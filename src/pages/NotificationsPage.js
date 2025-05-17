@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 function NotificationsPage({ navigation }) {
     const fadeAnim = useState(new Animated.Value(0))[0]; // Animation for fade-in effect
@@ -21,6 +22,7 @@ function NotificationsPage({ navigation }) {
             title: 'New Job Opportunity',
             description: 'A new construction job is available in your area. Apply now!',
             timestamp: '2 hours ago',
+            date: 'May 16, 2025', // Add this
             unread: true,
         },
         {
@@ -28,6 +30,7 @@ function NotificationsPage({ navigation }) {
             title: 'Policy Update',
             description: 'New government policy on migrant worker rights announced.',
             timestamp: '1 day ago',
+            date: 'May 15, 2025', // Add this
             unread: false,
         },
         {
@@ -35,6 +38,7 @@ function NotificationsPage({ navigation }) {
             title: 'Event Reminder',
             description: 'Legal consultation session tomorrow at 10 AM.',
             timestamp: '3 days ago',
+            date: 'May 11, 2025', // Add this
             unread: false,
         },
         {
@@ -42,6 +46,7 @@ function NotificationsPage({ navigation }) {
             title: 'Health Checkup',
             description: 'Free health checkup scheduled for next week.',
             timestamp: '5 days ago',
+            date: 'May 9, 2025', // Add this
             unread: false,
         },
     ];
@@ -53,17 +58,20 @@ function NotificationsPage({ navigation }) {
             style={styles.container}
         >
             <Animated.View style={[styles.innerContainer, { opacity: fadeAnim }]}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                >
-                    <Text style={styles.backButtonText}>{'< Back'}</Text>
-                </TouchableOpacity>
+                <View style={styles.headerRow}>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => navigation.goBack()}
+                    >
+                        <Text style={styles.backButtonText}>{'< Back'}</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.titleText}>Notifications</Text>
+                    <View style={{ width: 60 }} /> 
+                </View>
                 <ScrollView
                     contentContainerStyle={styles.contentContainer}
                     showsVerticalScrollIndicator={false}
                 >
-                    <Text style={styles.titleText}>Notifications</Text>
                     <View style={styles.notificationList}>
                         {notifications.length > 0 ? (
                             notifications.map((notification) => (
@@ -78,13 +86,28 @@ function NotificationsPage({ navigation }) {
                                         console.log(`Tapped on notification: ${notification.title}`);
                                     }}
                                 >
-                                    <Text style={styles.notificationTitle}>{notification.title}</Text>
-                                    <Text style={styles.notificationDescription}>
-                                        {notification.description}
-                                    </Text>
-                                    <Text style={styles.notificationTimestamp}>
-                                        {notification.timestamp}
-                                    </Text>
+                                    <View style={styles.notificationContent}>
+                                        <View style={styles.notificationHeader}>
+                                            <Icon
+                                                name={notification.unread ? "bell-ring" : "bell-outline"}
+                                                size={24}
+                                                color="#2753b2"
+                                                style={styles.notificationIcon}
+                                            />
+                                            <Text style={styles.notificationTitle}>{notification.title}</Text>
+                                            <Text style={styles.notificationTimestamp}>
+                                                {notification.timestamp}
+                                            </Text>
+                                        </View>
+                                        <Text style={styles.notificationDescription}>
+                                            {notification.description}
+                                        </Text>
+                                        <View style={styles.dateContainer}>
+                                            <Text style={styles.notificationDate}>
+                                                {notification.date}
+                                            </Text>
+                                        </View>
+                                    </View>
                                 </TouchableOpacity>
                             ))
                         ) : (
@@ -109,13 +132,24 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     backButton: {
-        position: 'absolute',
-        top: 20,
-        left: 20,
-        padding: 10,
+        // position: 'absolute',
+        // top: 20,
+        // left: 20,
+        // padding: 10,
+        paddingVertical: 6,
+        paddingHorizontal: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
         borderRadius: 8,
         zIndex: 1,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingTop: 30,
+        // paddingTop: 50,
+        // paddingBottom: 20,
     },
     backButtonText: {
         fontSize: 16,
@@ -124,19 +158,24 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         paddingHorizontal: 20,
-        paddingTop: 80,
+        // paddingTop: 80,
+        paddingTop: 40,
         paddingBottom: 40,
         alignItems: 'center',
     },
     titleText: {
-        fontSize: 32,
+        // fontSize: 32,
+        // fontWeight: 'bold',
+        // color: '#FFF',
+        // marginBottom: 20,
+        // textAlign: 'center',
+        // textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        // textShadowOffset: { width: 1, height: 1 },
+        // textShadowRadius: 3,
+        fontSize: 22,
         fontWeight: 'bold',
         color: '#FFF',
-        marginBottom: 20,
         textAlign: 'center',
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 3,
     },
     notificationList: {
         width: '100%',
@@ -152,6 +191,22 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 3,
     },
+    notificationContent: {
+        flexDirection: 'column',
+        // alignItems: 'flex-start',
+    },
+
+    notificationHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 5,
+        width: '100%',
+    },
+    notificationIcon: {
+        marginRight: 10,
+        // marginTop: 2,
+    },
+
     unreadNotification: {
         borderLeftWidth: 4,
         borderLeftColor: '#2753b2', // Blue highlight for unread notifications
@@ -160,17 +215,20 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '600',
         color: '#333',
-        marginBottom: 5,
+        // marginBottom: 5,
+        flex: 1,
     },
     notificationDescription: {
         fontSize: 14,
         color: '#666',
         marginBottom: 5,
+        paddingLeft: 34, // Match icon width + margin for alignment
     },
     notificationTimestamp: {
         fontSize: 12,
         color: '#999',
-        textAlign: 'right',
+        // textAlign: 'right',
+        marginLeft: 20,
     },
     noNotificationsText: {
         fontSize: 16,
@@ -180,5 +238,16 @@ const styles = StyleSheet.create({
         textShadowColor: 'rgba(0, 0, 0, 0.5)',
         textShadowOffset: { width: 1, height: 1 },
         textShadowRadius: 3,
+    },
+    dateContainer: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end', // Align to right
+        width: '100%',
+        marginTop: 4,
+    },
+    notificationDate: {
+        fontSize: 12,
+        color: '#999',
+        fontStyle: 'italic',
     },
 });

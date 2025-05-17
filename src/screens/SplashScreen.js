@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   // },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Dark overlay to improve text readability
+    backgroundColor: 'rgba(0, 0, 0, 0.3)', // Dark overlay to improve text readability
   },
   bottomContainer: {
     position: 'absolute',

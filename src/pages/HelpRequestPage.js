@@ -1,6 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView, TextInput, Picker, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView, TextInput, Alert } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { Picker } from '@react-native-picker/picker';
+import { Dropdown } from 'react-native-element-dropdown';
+
+
+// Add this to your component
+const categories = [
+    { label: 'Legal Assistance', value: 'Legal Assistance' },
+    { label: 'Job Support', value: 'Job Support' },
+    { label: 'Health Services', value: 'Health Services' },
+    { label: 'Language Support', value: 'Language Support' },
+    { label: 'Other', value: 'Other' },
+];
+
+const urgencyLevels = [
+    { label: 'Normal', value: 'Normal' },
+    { label: 'Urgent', value: 'Urgent' },
+];
+
 
 function HelpRequestPage({ navigation }) {
     const [category, setCategory] = useState('Legal Assistance');
@@ -33,71 +51,52 @@ function HelpRequestPage({ navigation }) {
             style={styles.container}
         >
             <Animated.View style={[styles.innerContainer, { opacity: fadeAnim }]}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                >
-                    <Text style={styles.backButtonText}>{'< Back'}</Text>
-                </TouchableOpacity>
+                <View style={styles.headerRow}>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => navigation.goBack()}
+                    >
+                        <Text style={styles.backButtonText}>{'< Back'}</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.titleText}>Help Request</Text>
+                    <View style={{ width: 60 }} /> 
+                </View>
                 <ScrollView
                     contentContainerStyle={styles.contentContainer}
                     showsVerticalScrollIndicator={false}
                 >
-                    <Text style={styles.titleText}>Help Request</Text>
                     <Text style={styles.subtitleText}>
                         Submit a request for assistance, and we’ll get back to you soon.
                     </Text>
                     <View style={styles.formContainer}>
                         <Text style={styles.label}>Category</Text>
-                        {/* <Picker
-              selectedValue={category}
-              style={styles.picker}
-              onValueChange={(itemValue) => setCategory(itemValue)}
-            >
-              <Picker.Item label="Legal Assistance" value="Legal Assistance" />
-              <Picker.Item label="Job Support" value="Job Support" />
-              <Picker.Item label="Health Services" value="Health Services" />
-              <Picker.Item label="Language Support" value="Language Support" />
-              <Picker.Item label="Other" value="Other" />
-            </Picker> */}
-                        <TextInput
-                            style={styles.textInput}
-                            placeholder="Describe your issue..."
-                            placeholderTextColor="#999"
-                            multiline
-                            numberOfLines={4}
-                            value={description}
-                            onChangeText={setDescription}
-                        />
+                        <View style={styles.pickerContainer}>
+                            <Picker
+                                selectedValue={category}
+                                style={styles.picker}
+                                onValueChange={(itemValue) => setCategory(itemValue)}
+                            >
+                                <Picker.Item label="Legal Assistance" value="Legal Assistance" />
+                                <Picker.Item label="Job Support" value="Job Support" />
+                                <Picker.Item label="Health Services" value="Health Services" />
+                                <Picker.Item label="Language Support" value="Language Support" />
+                                <Picker.Item label="Food and Shelter" value="Food and Shelter" />
+                            </Picker>
+                        </View>
 
                         <Text style={styles.label}>Description</Text>
                         <TextInput
-                            style={styles.textInput}
-                            placeholder="Describe your issue..."
+                            style={styles.multilineInput}
+                            placeholder="Describe your issue in detail..."
                             placeholderTextColor="#999"
                             multiline
-                            numberOfLines={4}
+                            numberOfLines={5}
+                            maxheight={100}
+                            textAlignVertical="top" // Align text to top
                             value={description}
                             onChangeText={setDescription}
-                        />
-
-                        <Text style={styles.label}>Urgency</Text>
-                        {/* <Picker
-              selectedValue={urgency}
-              style={styles.picker}
-              onValueChange={(itemValue) => setUrgency(itemValue)}
-            >
-              <Picker.Item label="Normal" value="Normal" />
-              <Picker.Item label="Urgent" value="Urgent" />
-            </Picker> */}
-                        <TextInput
-                            style={styles.textInput}
-                            placeholder="Describe your issue..."
-                            placeholderTextColor="#999"
-                            multiline
-                            numberOfLines={4}
-                            value={description}
-                            onChangeText={setDescription}
+                            blurOnSubmit={true}
+                            returnKeyType="done"
                         />
 
                         <TouchableOpacity
@@ -123,13 +122,24 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     backButton: {
-        position: 'absolute',
-        top: 20,
-        left: 20,
-        padding: 10,
+        // position: 'absolute',
+        // top: 20,
+        // left: 20,
+        // padding: 10,
+        paddingVertical: 6,
+        paddingHorizontal: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
         borderRadius: 8,
         zIndex: 1,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingTop: 30,
+        // paddingTop: 50,
+        // paddingBottom: 20,
     },
     backButtonText: {
         fontSize: 16,
@@ -138,19 +148,24 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         paddingHorizontal: 20,
-        paddingTop: 80,
+        // paddingTop: 80,
+        paddingTop: 40,
         paddingBottom: 40,
         alignItems: 'center',
     },
     titleText: {
-        fontSize: 32,
+        // fontSize: 32,
+        // fontWeight: 'bold',
+        // color: '#FFF',
+        // marginBottom: 15,
+        // textAlign: 'center',
+        // textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        // textShadowOffset: { width: 1, height: 1 },
+        // textShadowRadius: 3,
+        fontSize: 22,
         fontWeight: 'bold',
         color: '#FFF',
-        marginBottom: 15,
         textAlign: 'center',
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 3,
     },
     subtitleText: {
         fontSize: 16,
@@ -178,20 +193,55 @@ const styles = StyleSheet.create({
         textShadowOffset: { width: 1, height: 1 },
         textShadowRadius: 3,
     },
-    picker: {
+    // picker: {
+    //     width: '80%',
+    //     // height: 50,
+    //     backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    //     borderRadius: 8,
+    //     marginBottom: 20,
+    //     color: '#333',
+    //     elevation: 2,
+    //     shadowColor: '#000',
+    //     shadowOffset: { width: 0, height: 1 },
+    //     shadowOpacity: 0.2,
+    //     shadowRadius: 3,
+    // },
+    textInput: {
         width: '80%',
-        height: 50,
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
         borderRadius: 8,
+        // padding: 15,
         marginBottom: 20,
         color: '#333',
+        fontSize: 16,
+        textAlignVertical: 'top',
         elevation: 2,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.2,
         shadowRadius: 3,
     },
-    textInput: {
+    // For Picker solution
+    pickerContainer: {
+        width: '80%',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        borderRadius: 8,
+        marginBottom: 20,
+        overflow: 'hidden',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+    },
+    picker: {
+        width: '100%',
+        // height: 50,
+        color: '#333',
+    },
+
+    // Improved multiline input
+    multilineInput: {
         width: '80%',
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
         borderRadius: 8,
@@ -200,6 +250,8 @@ const styles = StyleSheet.create({
         color: '#333',
         fontSize: 16,
         textAlignVertical: 'top',
+        minHeight: 100,
+        maxHeight: 200,
         elevation: 2,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
@@ -216,6 +268,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.3,
         shadowRadius: 4,
+        marginTop: 20,
     },
     buttonText: {
         color: '#FFF',

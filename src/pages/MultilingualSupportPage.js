@@ -4,10 +4,9 @@ import LinearGradient from 'react-native-linear-gradient';
 
 function MultilingualSupportPage({ navigation }) {
     const [selectedLanguage, setSelectedLanguage] = useState('English');
-    const fadeAnim = useState(new Animated.Value(0))[0]; // Animation for fade-in effect
+    const fadeAnim = useState(new Animated.Value(0))[0];
 
     useEffect(() => {
-        // Start fade-in animation
         Animated.timing(fadeAnim, {
             toValue: 1,
             duration: 1500,
@@ -15,62 +14,67 @@ function MultilingualSupportPage({ navigation }) {
         }).start();
     }, [fadeAnim]);
 
+    // Updated languages array with native names
     const languages = [
-        'English',
-        'Spanish',
-        'Hindi',
-        'Mandarin',
-        'Arabic',
-        'French',
+        { englishName: 'English', nativeName: 'English' },
+        // { englishName: 'Spanish', nativeName: 'Español' },
+        { englishName: 'Hindi', nativeName: 'हिन्दी' },
+        { englishName: 'Tamil', nativeName: 'தமிழ்' },
+        // { englishName: 'Mandarin', nativeName: '普通话' },
+        { englishName: 'Arabic', nativeName: 'العربية' },
+        // { englishName: 'French', nativeName: 'Français' },
     ];
 
     const handleLanguageSelect = (language) => {
-        setSelectedLanguage(language);
+        setSelectedLanguage(language.englishName);
     };
 
     const handleContinue = () => {
-        // Add logic to set the app language and navigate
-        navigation.navigate('Dashboard'); // Replace with your desired screen
+        navigation.navigate('Dashboard');
     };
 
     return (
         <LinearGradient
-            colors={['#2753b2', '#e6e9f0']} // Gradient from blue to light gray
-            //   colors={['#5e3b15', '#b06a2c']}
+            colors={['#2753b2', '#e6e9f0']}
             style={styles.container}
         >
             <Animated.View style={[styles.innerContainer, { opacity: fadeAnim }]}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                >
-                    <Text style={styles.backButtonText}>{'< Back'}</Text>
-                </TouchableOpacity>
+                <View style={styles.headerRow}>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => navigation.goBack()}
+                    >
+                        <Text style={styles.backButtonText}>{'< Back'}</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.titleText}>Multilingual Support</Text>
+                    <View style={{ width: 60 }} />
+                </View>
                 <ScrollView
                     contentContainerStyle={styles.contentContainer}
                     showsVerticalScrollIndicator={false}
                 >
-                    <Text style={styles.titleText}>Multilingual Support</Text>
                     <Text style={styles.subtitleText}>
-                        Select your preferred language to continue.
+                        Select your preferred language : -
                     </Text>
                     <View style={styles.languageList}>
                         {languages.map((language) => (
                             <TouchableOpacity
-                                key={language}
+                                key={language.englishName}
                                 style={[
                                     styles.languageOption,
-                                    selectedLanguage === language && styles.selectedLanguageOption,
+                                    selectedLanguage === language.englishName && styles.selectedLanguageOption,
                                 ]}
                                 onPress={() => handleLanguageSelect(language)}
                             >
                                 <Text
                                     style={[
                                         styles.languageText,
-                                        selectedLanguage === language && styles.selectedLanguageText,
+                                        selectedLanguage === language.englishName && styles.selectedLanguageText,
                                     ]}
                                 >
-                                    {language}
+                                    {language.nativeName}
+                                    {/* - 
+                                    {language.englishName} */}
                                 </Text>
                             </TouchableOpacity>
                         ))}
@@ -87,8 +91,7 @@ function MultilingualSupportPage({ navigation }) {
     );
 }
 
-export default MultilingualSupportPage;
-
+// Keep all your existing styles exactly the same
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -97,13 +100,18 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     backButton: {
-        position: 'absolute',
-        top: 20,
-        left: 20,
-        padding: 10,
+        paddingVertical: 6,
+        paddingHorizontal: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
         borderRadius: 8,
-        zIndex: 1, // Ensure back button stays above the ScrollView
+        zIndex: 1,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingTop: 30,
     },
     backButtonText: {
         fontSize: 16,
@@ -112,19 +120,15 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         paddingHorizontal: 20,
-        paddingTop: 80, // Start content below the back button
+        paddingTop: 40,
         paddingBottom: 40,
         alignItems: 'center',
     },
     titleText: {
-        fontSize: 32,
+        fontSize: 22,
         fontWeight: 'bold',
         color: '#FFF',
-        marginBottom: 15,
         textAlign: 'center',
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 3,
     },
     subtitleText: {
         fontSize: 16,
@@ -179,3 +183,5 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
 });
+
+export default MultilingualSupportPage;

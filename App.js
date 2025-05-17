@@ -10,6 +10,7 @@ import MultilingualSupportPage from './src/pages/MultilingualSupportPage.js';
 import NotificationsPage from './src/pages/NotificationsPage.js';
 import HelpRequestPage from './src/pages/HelpRequestPage.js';
 import EventCalendarPage from './src/pages/EventCalendarPage.js';
+import CreateEventPage from './src/pages/CreateEventPage.js';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,6 +27,7 @@ function App() {
         <Stack.Screen name="Notifications" component={NotificationsPage} />
         <Stack.Screen name="HelpRequest" component={HelpRequestPage} />
         <Stack.Screen name="EventCalendar" component={EventCalendarPage} />
+        <Stack.Screen name="CreateEvent" component={CreateEventPage} options={{ title: 'Create Event' }} />
       </Stack.Navigator>
     </NavigationContainer>
   )

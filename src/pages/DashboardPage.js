@@ -109,7 +109,8 @@ function DashboardPage({ navigation }) {
                 </Text>
 
                 <Image
-                    source={require('../asserts/images/dash1.jpg')} // <- replace with your image path
+                    // source={require('../asserts/images/dash1.jpg')} // <- replace with your image path
+                    source={require('../asserts/images/bmgp2.png')} // <- replace with your image path
                     style={styles.welcomeImage}
                 />
 
@@ -137,7 +138,7 @@ function DashboardPage({ navigation }) {
                     {...sidebarPanResponder.panHandlers}
                 >
                     <TouchableOpacity onPress={handleMenuHeaderPress} style={styles.sidebarHeader}>
-                        <Text style={styles.sidebarTitle}>Menu</Text>
+                        <Text style={styles.sidebarTitle}>Menus</Text>
                     </TouchableOpacity>
 
                     {/* Separate TouchableOpacity for each menu option */}
@@ -146,9 +147,9 @@ function DashboardPage({ navigation }) {
                         <Text style={styles.menuText}>Event Calendar</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Help Request', { screen: 'HelpRequest' })}>
-                        <Icon name="help-circle-outline" size={22} color="#fff" style={styles.menuIcon} />
-                        <Text style={styles.menuText}>Help Request</Text>
+                    <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Services Directory', { screen: 'ServicesDirectory' })}>
+                        <Icon name="cog-outline" size={22} color="#fff" style={styles.menuIcon} />
+                        <Text style={styles.menuText}>Services Directory</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Notifications', { screen: 'Notifications' })}>
@@ -161,10 +162,11 @@ function DashboardPage({ navigation }) {
                         <Text style={styles.menuText}>Multilingual Support</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Services Directory', { screen: 'ServicesDirectory' })}>
-                        <Icon name="cog-outline" size={22} color="#fff" style={styles.menuIcon} />
-                        <Text style={styles.menuText}>Services Directory</Text>
+                    <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Help Request', { screen: 'HelpRequest' })}>
+                        <Icon name="help-circle-outline" size={22} color="#fff" style={styles.menuIcon} />
+                        <Text style={styles.menuText}>Help Request</Text>
                     </TouchableOpacity>
+
 
                     <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Logout', { screen: 'Login' })}>
                         <Icon name="logout" size={22} color="#fff" style={styles.menuIcon} />
@@ -211,11 +213,11 @@ const styles = StyleSheet.create({
         lineHeight: 28,
     },
     welcomeImage: {
-        width: "100%",
-        height: "50%",
+        width: "80%",
+        height: "30%",
         resizeMode: 'stretch',
         alignSelf: 'center',
-        marginTop: 30,
+        marginTop: 50,
         marginBottom: 20,
     },
 
@@ -225,7 +227,7 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
     },
     profileButton: {
-        backgroundColor: '#944D00',
+        backgroundColor: '#d79650',
         paddingVertical: 12,
         paddingHorizontal: 25,
         borderRadius: 30,
