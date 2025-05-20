@@ -168,6 +168,7 @@ function LoginScreen({ navigation }) {
               </View> */}
               {/* Phone Number Input */}
               {!showOtpField ? (
+                <>
               <TouchableOpacity
                 style={styles.inputBox}
                 activeOpacity={1}
@@ -195,10 +196,14 @@ function LoginScreen({ navigation }) {
                     style={[styles.input, { flex: 1 }]}
                     value={mobile}
                     onChangeText={(text) => setMobile(text.replace(/[^0-9]/g, ''))}
-                    maxLength={15}
+                    maxLength={12}
                   />
                 </View>
               </TouchableOpacity>
+
+              <Text style={styles.registerText}>New user? <Text onPress={() => navigation.navigate('Register')} style={styles.registerBold}>Register</Text></Text>
+
+              </>
               ) : (
                 /* OTP Input with Countdown */
                 <View style={styles.otpContainer}>
@@ -433,6 +438,8 @@ const styles = StyleSheet.create({
   input: {
     fontSize: 18,
     color: '#FFF7E7',
+    height: 40,
+    top: 2,
   },
   button: {
     backgroundColor: '#FFF2E0',
@@ -463,6 +470,39 @@ const styles = StyleSheet.create({
     marginTop: 10,
     textAlign: 'center',
   },
+// register button style:
+  registerButton: {
+  marginTop: 12,
+  paddingVertical: 10,
+  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  borderRadius: 8,
+  alignItems: 'center',
+},
+
+registerButtonText: {
+  color: '#FFF2E0',
+  fontSize: 16,
+  fontWeight: 'bold',
+},
+
+
+
+registerLink: {
+  marginTop: 15,
+  alignItems: 'center',
+},
+
+registerText: {
+  color: '#FFF2E0',
+  fontSize: 14,
+  bottom: 10,
+},
+
+registerBold: {
+  fontWeight: 'bold',
+  color: '#FFD699',
+}
+
 });
 
 export default LoginScreen;

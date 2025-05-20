@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView, TextInput, Alert } from 'react-native';
+import { 
+    View, 
+    Text, 
+    StyleSheet, 
+    TouchableOpacity, 
+    Animated, 
+    ScrollView, 
+    TextInput, 
+    Alert, 
+    Modal,
+    FlatList,
+    SafeAreaView
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
-import { Dropdown } from 'react-native-element-dropdown';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import moment from 'moment';
 
-
-// Add this to your component
 const categories = [
     { label: 'Legal Assistance', value: 'Legal Assistance' },
     { label: 'Job Support', value: 'Job Support' },
@@ -14,20 +25,28 @@ const categories = [
     { label: 'Other', value: 'Other' },
 ];
 
-const urgencyLevels = [
-    { label: 'Normal', value: 'Normal' },
-    { label: 'Urgent', value: 'Urgent' },
+const statusOptions = [
+    { label: 'Pending', value: 'Pending' },
+    { label: 'In Progress', value: 'In Progress' },
+    { label: 'Resolved', value: 'Resolved' },
 ];
 
+// Sample data for the list
+const sampleRequests = [
+    { id: '1', category: 'Legal Assistance', description: 'Need help with visa documentation', status: 'Pending', createdAt: moment().subtract(2, 'hours').toDate()  },
+    { id: '2', category: 'Job Support', description: 'Looking for IT job opportunities', status: 'In Progress', createdAt: moment().subtract(1, 'day').toDate()  },
+    { id: '3', category: 'Health Services', description: 'Need information about local hospitals', status: 'Resolved', createdAt: moment().subtract(3, 'days').toDate() },
+];
 
 function HelpRequestPage({ navigation }) {
+    const [requests, setRequests] = useState(sampleRequests);
+    const [modalVisible, setModalVisible] = useState(false);
     const [category, setCategory] = useState('Legal Assistance');
     const [description, setDescription] = useState('');
-    const [urgency, setUrgency] = useState('Normal');
-    const fadeAnim = useState(new Animated.Value(0))[0]; // Animation for fade-in effect
+    const [status, setStatus] = useState('Pending');
+    const fadeAnim = useState(new Animated.Value(0))[0];
 
     useEffect(() => {
-        // Start fade-in animation
         Animated.timing(fadeAnim, {
             toValue: 1,
             duration: 1500,
@@ -40,14 +59,61 @@ function HelpRequestPage({ navigation }) {
             Alert.alert('Error', 'Please provide a description of your issue.');
             return;
         }
-        // Add logic to submit the help request (e.g., API call)
+
+        // Add new request to the list
+        const newRequest = {
+            id: Math.random().toString(36).substring(7),
+            category,
+            description,
+            status
+        };
+
+        setRequests([...requests, newRequest]);
+        setModalVisible(false);
+        setDescription('');
         Alert.alert('Success', 'Your help request has been submitted successfully!');
-        setDescription(''); // Reset description field
     };
+
+    const formatTime = (date) => {
+        return moment(date).fromNow(); // Shows "2 hours ago", "1 day ago", etc.
+    };
+
+    // const renderItem = ({ item }) => (
+    //     <View style={styles.requestItem}>
+    //         <Text style={styles.requestCategory}>{item.category}</Text>
+    //         <Text style={styles.requestTime}>{formatTime(item.createdAt)}</Text>
+    //         <Text style={styles.requestDescription}>{item.description}</Text>
+    //         <View style={[styles.statusBadge, { 
+    //             backgroundColor: item.status === 'Resolved' ? '#4CAF50' : 
+    //                             item.status === 'In Progress' ? '#FFC107' : '#F44336'
+    //         }]}>
+    //             <Text style={styles.statusText}>{item.status}</Text>
+    //         </View>
+    //         <View>
+    //             <Text>{moment().format('MMMM Do YYYY')}</Text>
+    //         </View>
+    //     </View>
+    // );
+
+    const renderItem = ({ item }) => (
+        <View style={styles.requestItem}>
+            <View style={styles.requestHeader}>
+                <Text style={styles.requestCategory}>{item.category}</Text>
+                <Text style={styles.requestTime}>{formatTime(item.createdAt)}</Text>
+            </View>
+            <Text style={styles.requestDescription}>{item.description}</Text>
+            <View style={[styles.statusBadge, { 
+                backgroundColor: item.status === 'Resolved' ? '#4CAF50' : 
+                                item.status === 'In Progress' ? '#FFC107' : '#F44336'
+            }]}>
+                <Text style={styles.statusText}>{item.status}</Text>
+            </View>
+        </View>
+    );
 
     return (
         <LinearGradient
-            colors={['#2753b2', '#e6e9f0']} // Gradient from blue to light gray
+            colors={['#2753b2', '#e6e9f0']}
             style={styles.container}
         >
             <Animated.View style={[styles.innerContainer, { opacity: fadeAnim }]}>
@@ -58,61 +124,99 @@ function HelpRequestPage({ navigation }) {
                     >
                         <Text style={styles.backButtonText}>{'< Back'}</Text>
                     </TouchableOpacity>
-                    <Text style={styles.titleText}>Help Request</Text>
-                    <View style={{ width: 60 }} /> 
+                    <Text style={styles.titleText}>Help Requests</Text>
+                    <View style={{ width: 60 }} />
                 </View>
-                <ScrollView
-                    contentContainerStyle={styles.contentContainer}
-                    showsVerticalScrollIndicator={false}
+
+                <SafeAreaView style={styles.listContainer}>
+                    <FlatList
+                        data={requests}
+                        renderItem={renderItem}
+                        keyExtractor={item => item.id}
+                        contentContainerStyle={styles.listContent}
+                        ListEmptyComponent={
+                            <Text style={styles.emptyText}>No requests found</Text>
+                        }
+                    />
+                </SafeAreaView>
+
+                {/* Floating Action Button */}
+                <TouchableOpacity
+                    style={styles.fab}
+                    onPress={() => setModalVisible(true)}
                 >
-                    <Text style={styles.subtitleText}>
-                        Submit a request for assistance, and we’ll get back to you soon.
-                    </Text>
-                    <View style={styles.formContainer}>
-                        <Text style={styles.label}>Category</Text>
-                        <View style={styles.pickerContainer}>
-                            <Picker
-                                selectedValue={category}
-                                style={styles.picker}
-                                onValueChange={(itemValue) => setCategory(itemValue)}
+                    <Icon name="add" size={24} color="#fff" />
+                </TouchableOpacity>
+
+                {/* Modal for adding new request */}
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => setModalVisible(false)}
+                >
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <View style={styles.modalHeader}>
+                                <Text style={styles.modalTitle}>New Help Request</Text>
+                                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                    <Icon name="close" size={24} color="#333" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <ScrollView style={styles.modalScroll}>
+                                <Text style={styles.label}>Category</Text>
+                                <View style={styles.pickerContainer}>
+                                    <Picker
+                                        selectedValue={category}
+                                        style={styles.picker}
+                                        onValueChange={(itemValue) => setCategory(itemValue)}
+                                    >
+                                        {categories.map((cat) => (
+                                            <Picker.Item key={cat.value} label={cat.label} value={cat.value} />
+                                        ))}
+                                    </Picker>
+                                </View>
+
+                                {/* <Text style={styles.label}>Status</Text>
+                                <View style={styles.pickerContainer}>
+                                    <Picker
+                                        selectedValue={status}
+                                        style={styles.picker}
+                                        onValueChange={(itemValue) => setStatus(itemValue)}
+                                    >
+                                        {statusOptions.map((status) => (
+                                            <Picker.Item key={status.value} label={status.label} value={status.value} />
+                                        ))}
+                                    </Picker>
+                                </View> */}
+
+                                <Text style={styles.label}>Description</Text>
+                                <TextInput
+                                    style={styles.multilineInput}
+                                    placeholder="Describe your issue in detail..."
+                                    placeholderTextColor="#999"
+                                    multiline
+                                    numberOfLines={5}
+                                    textAlignVertical="top"
+                                    value={description}
+                                    onChangeText={setDescription}
+                                />
+                            </ScrollView>
+
+                            <TouchableOpacity
+                                style={styles.modalButton}
+                                onPress={handleSubmit}
                             >
-                                <Picker.Item label="Legal Assistance" value="Legal Assistance" />
-                                <Picker.Item label="Job Support" value="Job Support" />
-                                <Picker.Item label="Health Services" value="Health Services" />
-                                <Picker.Item label="Language Support" value="Language Support" />
-                                <Picker.Item label="Food and Shelter" value="Food and Shelter" />
-                            </Picker>
+                                <Text style={styles.buttonText}>Submit Request</Text>
+                            </TouchableOpacity>
                         </View>
-
-                        <Text style={styles.label}>Description</Text>
-                        <TextInput
-                            style={styles.multilineInput}
-                            placeholder="Describe your issue in detail..."
-                            placeholderTextColor="#999"
-                            multiline
-                            numberOfLines={5}
-                            maxheight={100}
-                            textAlignVertical="top" // Align text to top
-                            value={description}
-                            onChangeText={setDescription}
-                            blurOnSubmit={true}
-                            returnKeyType="done"
-                        />
-
-                        <TouchableOpacity
-                            style={styles.button}
-                            onPress={handleSubmit}
-                        >
-                            <Text style={styles.buttonText}>Submit Request</Text>
-                        </TouchableOpacity>
                     </View>
-                </ScrollView>
+                </Modal>
             </Animated.View>
         </LinearGradient>
     );
 }
-
-export default HelpRequestPage;
 
 const styles = StyleSheet.create({
     container: {
@@ -122,10 +226,6 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     backButton: {
-        // position: 'absolute',
-        // top: 20,
-        // left: 20,
-        // padding: 10,
         paddingVertical: 6,
         paddingHorizontal: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
@@ -138,111 +238,136 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: 20,
         paddingTop: 30,
-        // paddingTop: 50,
-        // paddingBottom: 20,
     },
     backButtonText: {
         fontSize: 16,
         color: '#FFF',
         fontWeight: 'bold',
     },
-    contentContainer: {
-        paddingHorizontal: 20,
-        // paddingTop: 80,
-        paddingTop: 40,
-        paddingBottom: 40,
-        alignItems: 'center',
-    },
     titleText: {
-        // fontSize: 32,
-        // fontWeight: 'bold',
-        // color: '#FFF',
-        // marginBottom: 15,
-        // textAlign: 'center',
-        // textShadowColor: 'rgba(0, 0, 0, 0.5)',
-        // textShadowOffset: { width: 1, height: 1 },
-        // textShadowRadius: 3,
         fontSize: 22,
         fontWeight: 'bold',
         color: '#FFF',
         textAlign: 'center',
     },
-    subtitleText: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#F0F0F0',
-        marginBottom: 20,
-        textAlign: 'center',
-        lineHeight: 22,
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 3,
+    listContainer: {
+        flex: 1,
+        marginTop: 20,
     },
-    formContainer: {
-        width: '100%',
+    listContent: {
+        paddingHorizontal: 20,
+        paddingBottom: 80,
+    },
+    requestItem: {
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        borderRadius: 8,
+        padding: 15,
+        marginBottom: 15,
+        elevation: 2,
+    },
+    requestHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
+        marginBottom: 5,
+    },
+    requestCategory: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#2753b2',
+        marginBottom: 5,
+    },
+    requestTime: {
+        fontSize: 12,
+        color: '#666',
+    },
+    requestDescription: {
+        fontSize: 16,
+        color: '#333',
+        marginBottom: 10,
+    },
+    statusBadge: {
+        alignSelf: 'flex-start',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 12,
+    },
+    statusText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    emptyText: {
+        textAlign: 'center',
+        color: '#fff',
+        fontSize: 16,
+        marginTop: 50,
+    },
+    fab: {
+        position: 'absolute',
+        right: 20,
+        bottom: 20,
+        backgroundColor: '#2753b2',
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        alignItems: 'center',
+        justifyContent: 'center',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        margin: 20,
+        borderRadius: 10,
+        maxHeight: '80%',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    modalScroll: {
+        paddingHorizontal: 20,
     },
     label: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#FFF',
-        alignSelf: 'flex-start',
-        marginLeft: '10%',
-        marginBottom: 5,
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 3,
-    },
-    // picker: {
-    //     width: '80%',
-    //     // height: 50,
-    //     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    //     borderRadius: 8,
-    //     marginBottom: 20,
-    //     color: '#333',
-    //     elevation: 2,
-    //     shadowColor: '#000',
-    //     shadowOffset: { width: 0, height: 1 },
-    //     shadowOpacity: 0.2,
-    //     shadowRadius: 3,
-    // },
-    textInput: {
-        width: '80%',
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        borderRadius: 8,
-        // padding: 15,
-        marginBottom: 20,
         color: '#333',
-        fontSize: 16,
-        textAlignVertical: 'top',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 3,
+        marginBottom: 5,
+        marginTop: 15,
     },
-    // For Picker solution
     pickerContainer: {
-        width: '80%',
+        width: '100%',
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
         borderRadius: 8,
-        marginBottom: 20,
+        marginBottom: 15,
         overflow: 'hidden',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 3,
+        borderWidth: 1,
+        borderColor: '#ddd',
     },
     picker: {
         width: '100%',
-        // height: 50,
         color: '#333',
     },
-
-    // Improved multiline input
     multilineInput: {
-        width: '80%',
+        width: '100%',
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
         borderRadius: 8,
         padding: 15,
@@ -251,29 +376,22 @@ const styles = StyleSheet.create({
         fontSize: 16,
         textAlignVertical: 'top',
         minHeight: 100,
-        maxHeight: 200,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 3,
+        borderWidth: 1,
+        borderColor: '#ddd',
     },
-    button: {
+    modalButton: {
         paddingHorizontal: 40,
         paddingVertical: 15,
         backgroundColor: '#2753b2',
-        borderRadius: 12,
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-        marginTop: 20,
+        borderRadius: 8,
+        margin: 20,
+        alignItems: 'center',
     },
     buttonText: {
         color: '#FFF',
         fontSize: 18,
         fontWeight: '600',
-        textAlign: 'center',
     },
 });
+
+export default HelpRequestPage;

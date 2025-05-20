@@ -9,6 +9,8 @@ import {
     TouchableWithoutFeedback,
     PanResponder,
     Image,
+    FlatList,
+    ScrollView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -18,7 +20,10 @@ const { width, height } = Dimensions.get('window');
 function DashboardPage({ navigation }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const slideAnim = useState(new Animated.Value(-250))[0];
-
+    const loggedInUserName = 'Roberto';
+    // Inside your component, define:
+    const [activeIndex, setActiveIndex] = useState(0);
+    const carouselRef = useRef(null);
     const openSidebar = () => {
         setSidebarOpen(true);
         Animated.timing(slideAnim, {
@@ -94,6 +99,82 @@ function DashboardPage({ navigation }) {
         })
     ).current;
 
+    // carousel:
+    const carouselItems = [
+        {
+            // title: `Welcome, ${loggedInUserName}!`,
+            image: require('../asserts/images/im2.png'),
+        },
+        {
+            // title: 'Stay Updated with Events!',
+            image: require('../asserts/images/img1.png'), // example image
+        },
+        {
+            // title: 'Discover Your Sector',
+            image: require('../asserts/images/im3.png'), // example image
+        },
+        {
+            // title: 'Discover Your Sector',
+            image: require('../asserts/images/im4.png'), // example image
+        },
+    ];
+
+    // Auto-scroll logic (optional)
+    React.useEffect(() => {
+        const interval = setInterval(() => {
+            setActiveIndex(prev => {
+                const nextIndex = (prev + 1) % carouselItems.length;
+                carouselRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+                return nextIndex;
+            });
+        }, 3000); // 3s interval
+
+        return () => clearInterval(interval);
+    }, []);
+
+    //     React.useEffect(() => {
+    //     const interval = setInterval(() => {
+    //         let nextIndex = (activeIndex + 1) % carouselItems.length;
+    //         carouselRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+    //     }, 3000);
+
+    //     return () => clearInterval(interval);
+    // }, [activeIndex]); // <- Make sure it updates based on latest index
+
+
+    // Carousel render function
+    const renderCarouselItem = ({ item }) => (
+        <View style={styles.carouselItem}>
+            <Image source={item.image} style={styles.carouselImage} />
+            <Text style={styles.carouselTitle}>{item.title}</Text>
+        </View>
+    );
+
+
+    // Add this new array of menu items above your component
+    const dashboardMenuItems = [
+        { id: '1', name: 'Event Calendar', screen: 'EventCalendar', icon: 'calendar-month' },
+        { id: '2', name: 'Services Directory', screen: 'ServicesDirectory', icon: 'cog-outline' },
+        { id: '3', name: 'Notifications', screen: 'Notifications', icon: 'bell-outline' },
+        { id: '4', name: 'Multilingual Support', screen: 'MultilingualSupport', icon: 'translate' },
+        { id: '5', name: 'Help Request', screen: 'HelpRequest', icon: 'help-circle-outline' },
+        { id: '6', name: 'Profile', screen: 'Profile', icon: 'account' },
+        // { id: '7', name: 'Celebration', icon: 'party-popper' },
+        // { id: '8', name: 'Event', icon: 'calendar' },
+        // { id: '9', name: 'La Madal', icon: 'church' },
+    ];
+
+    // Add this new function to handle icon presses
+    const handleIconPress = (itemName) => {
+        console.log(`${itemName} pressed`);
+        let name = itemName;
+        navigation.navigate(name);
+        // You can add navigation logic here based on the item pressed
+        // For example:
+        // if (itemName === 'News') {
+        //     navigation.navigate('NewsScreen');
+        // }
+    };
 
     return (
         <View style={styles.wrapper} {...screenPanResponder.panHandlers}>
@@ -104,22 +185,91 @@ function DashboardPage({ navigation }) {
 
                 <Text style={styles.title}>Dashboard</Text>
 
+                {/* <Text style={styles.welcomeText}>
+                    👋 Hi {loggedInUserName}! Welcome to Bosco Migrants.{'\n'}Wishing you a lovely day ahead!
+                </Text> */}
                 <Text style={styles.welcomeText}>
-                    👋 Hi there! Welcome to Bosco Migrants.{'\n'}Wishing you a lovely day ahead!
+                    👋 Hi {loggedInUserName}! Welcome to Bosco Migrants.
                 </Text>
-
-                <Image
+                {/* <Image
                     // source={require('../asserts/images/dash1.jpg')} // <- replace with your image path
                     source={require('../asserts/images/bmgp2.png')} // <- replace with your image path
                     style={styles.welcomeImage}
-                />
+                /> */}
+                <View style={styles.carouselContainer}>
+                    <FlatList
+                        data={carouselItems}
+                        horizontal
+                        pagingEnabled
+                        ref={carouselRef}
+                        showsHorizontalScrollIndicator={false}
+                        onMomentumScrollEnd={(event) => {
+                            const index = Math.floor(event.nativeEvent.contentOffset.x / width);
+                            setActiveIndex(index);
+                        }}
+                        renderItem={renderCarouselItem}
+                        keyExtractor={(_, index) => index.toString()}
+                    />
+                    {/* <View style={styles.pagination}>
+                        {carouselItems.map((_, index) => (
+                            <View
+                                key={index}
+                                style={[
+                                    styles.paginationDot,
+                                    { opacity: index === activeIndex ? 1 : 0.3 },
+                                ]}
+                            />
+                        ))}
+                    </View> */}
+                </View>
 
-                <View style={styles.bottomContainer}>
+
+                {/* <ScrollView contentContainerStyle={styles.gridContainer}>
+                    {dashboardMenuItems.map((item) => (
+                        <TouchableOpacity
+                            key={item.id}
+                            style={styles.gridItem}
+                            onPress={() => handleIconPress(item.screen)}
+                        >
+                            <View style={styles.iconContainer}>
+                                <Icon 
+                                    name={item.icon} 
+                                    size={26} 
+                                    color="#FFF" 
+                                    style={styles.gridIcon}
+                                />
+                                <Text style={styles.gridText}>{item.name}</Text>
+                            </View>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView> */}
+                {/* // Update the grid item rendering in your JSX: */}
+                <ScrollView contentContainerStyle={styles.gridContainer}>
+                    {dashboardMenuItems.map((item) => (
+                        <View key={item.id} style={styles.gridItem}>
+                            <TouchableOpacity
+                                style={styles.iconTouchable}
+                                onPress={() => handleIconPress(item.screen)}
+                            >
+                                <View style={[styles.iconBackground, { backgroundColor: '#c5894a' }]}>
+                                    <Icon
+                                        name={item.icon}
+                                        size={26}
+                                        color="#FFF"
+                                    />
+                                </View>
+                            </TouchableOpacity>
+                            <Text style={styles.gridText}>{item.name}</Text>
+                        </View>
+                    ))}
+                </ScrollView>
+
+                {/* <View style={styles.bottomContainer}>
                     <TouchableOpacity style={styles.profileButton} onPress={handleProfileNavigate}>
                         <Icon name="account" size={20} color="#fff" style={{ marginRight: 10 }} />
                         <Text style={styles.profileText}>View Profile</Text>
                     </TouchableOpacity>
-                </View>
+                </View> */}
 
                 {sidebarOpen && (
                     <TouchableWithoutFeedback onPress={closeSidebar}>
@@ -208,7 +358,7 @@ const styles = StyleSheet.create({
     welcomeText: {
         color: '#fff',
         fontSize: 18,
-        marginTop: 40,
+        marginTop: 15,
         textAlign: 'center',
         lineHeight: 28,
     },
@@ -283,4 +433,113 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: '600',
     },
+    // carousel styles:
+    carouselContainer: {
+        marginTop: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    carouselItem: {
+        width: width - 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    carouselImage: {
+        width: width - 80,
+        // height: 180,
+        height: 240,
+        borderRadius: 10,
+        resizeMode: 'cover',
+    },
+    carouselTitle: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: '600',
+        textAlign: 'center',
+        marginTop: 10,
+    },
+    pagination: {
+        flexDirection: 'row',
+        marginTop: 10,
+        justifyContent: 'center',
+    },
+    paginationDot: {
+        height: 8,
+        width: 8,
+        borderRadius: 4,
+        backgroundColor: '#fff',
+        margin: 5,
+    },
+    // Add these new styles for the grid layout
+    // gridContainer: {
+    //     flexDirection: 'row',
+    //     flexWrap: 'wrap',
+    //     justifyContent: 'space-around',
+    //     paddingHorizontal: 10,
+    //     marginTop: 20,
+    //     marginBottom: 20,
+    // },
+    // gridItem: {
+    //     width: '30%', // 3 items per row
+    //     aspectRatio: 1,
+    //     marginBottom: 15,
+    // },
+    iconContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        // backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: 10,
+        padding: 10,
+    },
+    gridIcon: {
+        marginBottom: 8,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        padding: 10,
+        borderRadius: 10,
+    },
+    // gridText: {
+    //     color: '#FFF',
+    //     fontSize: 14,
+    //     textAlign: 'center',
+    //     fontWeight: '500',
+    // },
+
+
+
+
+
+
+
+     gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between', // Changed from 'space-around'
+    paddingHorizontal: 20, // Increased padding
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  gridItem: {
+    width: '30%', // 3 items per row
+    marginBottom: 25, // Increased space between rows
+    alignItems: 'center', // Center items horizontally
+  },
+  iconTouchable: {
+    marginBottom: 8, // Space between icon and text
+  },
+  iconBackground: {
+    width: 63,
+    height: 63,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#944D00',
+  },
+  gridText: {
+    color: '#FFF',
+    fontSize: 14,
+    textAlign: 'center',
+    fontWeight: '500',
+    paddingHorizontal: 5, // Ensure text doesn't overflow
+  },
 });

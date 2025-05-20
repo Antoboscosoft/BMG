@@ -11,6 +11,8 @@ import NotificationsPage from './src/pages/NotificationsPage.js';
 import HelpRequestPage from './src/pages/HelpRequestPage.js';
 import EventCalendarPage from './src/pages/EventCalendarPage.js';
 import CreateEventPage from './src/pages/CreateEventPage.js';
+import RegisterScreen from './src/screens/RegisterScreen.js';
+import Toast from 'react-native-toast-message';
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +23,7 @@ function App() {
         <Stack.Screen name="Dashboard" component={DashboardPage} />
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="ServicesDirectory" component={ServicesDirectory} />
         <Stack.Screen name="MultilingualSupport" component={MultilingualSupportPage} />
@@ -29,6 +32,7 @@ function App() {
         <Stack.Screen name="EventCalendar" component={EventCalendarPage} />
         <Stack.Screen name="CreateEvent" component={CreateEventPage} options={{ title: 'Create Event' }} />
       </Stack.Navigator>
+      <Toast />
     </NavigationContainer>
   )
 }

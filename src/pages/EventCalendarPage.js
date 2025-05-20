@@ -12,6 +12,8 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import moment from 'moment';
+import Toast from 'react-native-toast-message';
 
 function EventCalendarPage({ navigation }) {
     const [selectedDate, setSelectedDate] = useState('2025-05-16');
@@ -51,8 +53,74 @@ function EventCalendarPage({ navigation }) {
                 time: '9:00 AM - 3:00 PM',
                 location: 'City Hall',
                 description: 'Meet employers hiring for construction and hospitality roles.',
-                startDate: '2025-05-19T10:00:00',
-                endDate: '2025-05-19T11:00:00',
+                startDate: '2025-05-18T10:00:00',
+                endDate: '2025-05-18T11:00:00',
+            },
+        ],
+        '2025-05-18': [
+            {
+                id: '0',
+                title: 'Job Fair',
+                date: '2025-05-18',
+                time: '9:00 AM - 3:00 PM',
+                location: 'City Hall',
+                description: 'Meet employers hiring for construction and hospitality roles.',
+                startDate: '2025-05-18T10:00:00',
+                endDate: '2025-05-18T11:00:00',
+            },
+        ],
+        '2025-05-20': [
+            {
+                id: '3',
+                title: 'Job Fair',
+                date: '2025-05-16',
+                time: '10:00 AM',
+                location: 'Community Center',
+                description: 'Free legal advice session for migrant workers.',
+                startDate: '2025-05-20T10:00:00',
+                endDate: '2025-05-21T11:00:00',
+            },
+            {
+                id: '4',
+                title: 'Cultural Festival',
+                date: '2025-05-16',
+                time: '10:00 AM',
+                location: 'Community Center',
+                description: 'Free legal advice session for migrant workers.',
+                startDate: '2025-05-20T10:00:00',
+                endDate: '2025-05-20T11:00:00',
+            },
+            {
+                id: '5',
+                title: 'Legal Consultation',
+                date: '2025-05-16',
+                time: '10:00 AM',
+                location: 'Community Center',
+                description: 'Free legal advice session for migrant workers.',
+                startDate: '2025-05-20T10:00:00',
+                endDate: '2025-05-22T11:00:00',
+            },
+        ],
+        '2025-05-23': [
+            {
+                id: '6',
+                title: 'Legal Consultation',
+                date: '2025-05-16',
+                time: '10:00 AM',
+                location: 'Community Center',
+                description: 'Free legal advice session for migrant workers.',
+                startDate: '2025-05-23T10:00:00',
+                endDate: '2025-05-24T11:00:00',
+            },
+            {
+                id: '7',
+                title: 'Cultural Festival',
+                date: '2025-05-16',
+                time: '10:00 AM',
+                location: 'Community Center',
+                description: 'Free legal advice session for migrant workers.',
+                startDate: '2025-05-23T10:00:00',
+                endDate: '2025-05-23T11:00:00',
             },
         ],
     });
@@ -141,6 +209,42 @@ function EventCalendarPage({ navigation }) {
         }
     };
 
+    // Format date range for display
+    const formatDateRange = (start, end) => {
+        const startMoment = moment(start);
+        const endMoment = moment(end);
+
+
+        if (startMoment.isSame(endMoment, 'day')) {
+            // Same day event
+            return `${startMoment.format('MMM D, YYYY')}\n${startMoment.format('h:mm A')} - ${endMoment.format('h:mm A')}`;
+        } else {
+            // Multi-day event
+            return `${startMoment.format('MMM D')} - ${endMoment.format('MMM D, YYYY')}`;
+        }
+    };
+
+    // Enhanced date and time formatting
+    const formatEventDateTime = (start, end) => {
+        const startMoment = moment(start);
+        const endMoment = moment(end);
+
+
+        if (startMoment.isSame(endMoment, 'day')) {
+            // Same day - show date once with time range
+            return {
+                date: startMoment.format('MMM D, YYYY'),
+                time: `${startMoment.format('h:mm A')} - ${endMoment.format('h:mm A')}`
+            };
+        } else {
+            // Multi-day event - show date range
+            return {
+                date: `${startMoment.format('MMM D')} - ${endMoment.format('MMM D, YYYY')}`,
+                time: `${startMoment.format('h:mm A')} - ${endMoment.format('h:mm A')}`
+            };
+        }
+    };
+
 
     // const handleCreateEvent = () => {
     //     const newEventId = Date.now().toString();
@@ -156,6 +260,37 @@ function EventCalendarPage({ navigation }) {
     //     setNewEvent({ title: '', time: '', location: '', description: '' });
     //     setModalVisible(false);
     // };
+
+    // Handle registration button click
+    const handleRegister = (eventTitle) => {
+        // Alert.alert('Success', `You have registered for "${eventTitle}"`);
+
+
+        // Hide the alert after 5 seconds
+        // setTimeout(() => {
+        // }, 5000);
+
+
+        Toast.show({
+            type: 'success',
+            position: 'bottom',
+            // autoHide: false,
+            topOffset: 60,
+            bottomOffset: 60,
+            text1Style: {
+                fontSize: 16,
+                fontWeight: 'bold',
+            },
+            text2Style: {
+                fontSize: 16,
+                fontWeight: 'normal',
+            },
+            text1: 'Success',
+            text2: `You have registered for "${eventTitle}"`,
+            visibilityTime: 5000, // 5 seconds
+        });
+    };
+
 
     return (
         <LinearGradient colors={['#2753b2', '#e6e9f0']} style={styles.container}>
@@ -203,12 +338,12 @@ function EventCalendarPage({ navigation }) {
                         />
                     </View>
 
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                         style={styles.createButton}
                         onPress={() => setModalVisible(true)}
                     >
                         <Text style={styles.createButtonText}>+ Create Event</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
 
                     {/* <View style={styles.eventList}>
                         {selectedEvents.length > 0 ? (
@@ -234,7 +369,89 @@ function EventCalendarPage({ navigation }) {
                             <Text style={styles.noEventsText}>No events scheduled for this date.</Text>
                         )}
                     </View> */}
-                    <View style={styles.eventList}>
+                    {/* <View style={styles.eventsContainer}>
+                        {selectedEvents.length > 0 ? (
+                            selectedEvents.map((event) => {
+                                const { date, time } = formatEventDateTime(event.startDate, event.endDate);
+
+
+                                return (
+                                    <View key={event.id} style={styles.eventCard}>
+                                        <Text style={styles.eventTitle}>{event.title}</Text>
+
+
+                                        <View style={styles.eventDetailRow}>
+                                            <Text style={styles.eventDetailLabel}>Date:</Text>
+                                            <Text style={styles.eventDetailText}>{date}</Text>
+                                        </View>
+
+
+                                        <View style={styles.eventDetailRow}>
+                                            <Text style={styles.eventDetailLabel}>Time:</Text>
+                                            <Text style={styles.eventDetailText}>{time}</Text>
+                                        </View>
+
+
+                                        <View style={styles.eventDetailRow}>
+                                            <Text style={styles.eventDetailLabel}>Location:</Text>
+                                            <Text style={styles.eventDetailText}>{event.location}</Text>
+                                        </View>
+
+
+                                        <Text style={styles.eventDescription}>{event.description}</Text>
+
+
+                                        <TouchableOpacity
+                                            style={styles.registerButton}
+                                            onPress={() => handleRegister(event.title)}
+                                        >
+                                            <Text style={styles.registerButtonText}>Register</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                );
+                            })
+                        ) : (
+                            <View style={styles.noEventsCard}>
+                                <Text style={styles.noEventsText}>No events scheduled for this date</Text>
+                            </View>
+                        )}
+                    </View> */}
+                    <View style={styles.eventsContainer}>
+                        {selectedEvents.length > 0 ? (
+                            selectedEvents.map((event) => (
+                                <View key={event.id} style={styles.eventCard}>
+                                    <Text style={styles.eventTitle}>{event.title}</Text>
+                                    
+                                    <View style={styles.eventDetailRow}>
+                                        <Text style={styles.eventDetailLabel}>Date & Time:</Text>
+                                        <Text style={styles.eventDetailText}>
+                                            {formatDateRange(event.startDate, event.endDate)}
+                                        </Text>
+                                    </View>
+                                    
+                                    <View style={styles.eventDetailRow}>
+                                        <Text style={styles.eventDetailLabel}>Location:</Text>
+                                        <Text style={styles.eventDetailText}>{event.location}</Text>
+                                    </View>
+                                    
+                                    <Text style={styles.eventDescription}>{event.description}</Text>
+                                    
+                                    <TouchableOpacity 
+                                        style={styles.registerButton}
+                                        onPress={() => handleRegister(event.title)}
+                                    >
+                                        <Text style={styles.registerButtonText}>Register</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            ))
+                        ) : (
+                            <View style={styles.noEventsCard}>
+                                <Text style={styles.noEventsText}>No events scheduled for this date</Text>
+                            </View>
+                        )}
+                    </View>
+                    
+                    {/* <View style={styles.eventList}>
                         {selectedEvents.length > 0 ? (
                             selectedEvents.map((event) => {
                                 // Format the dates for display
@@ -276,7 +493,7 @@ function EventCalendarPage({ navigation }) {
                         ) : (
                             <Text style={styles.noEventsText}>No events scheduled for this date.</Text>
                         )}
-                    </View>
+                    </View> */}
                 </ScrollView>
 
                 {/* Modal for creating event */}
@@ -420,7 +637,7 @@ function EventCalendarPage({ navigation }) {
 
 export default EventCalendarPage;
 
-const styles = StyleSheet.create({
+const styles1 = StyleSheet.create({
     container: { flex: 1 },
     innerContainer: { flex: 1 },
     headerRow: {
@@ -600,4 +817,130 @@ const styles = StyleSheet.create({
     dateInputText: {
         fontSize: 16,
     },
+});
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    innerContainer: {
+        flex: 1,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingTop: 30,
+    },
+    backButton: {
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: 8,
+    },
+    backButtonText: {
+        fontSize: 16,
+        color: '#FFF',
+        fontWeight: 'bold',
+    },
+    titleText: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#FFF',
+        textAlign: 'center',
+    },
+    contentContainer: {
+        paddingHorizontal: 20,
+        paddingBottom: 20,
+    },
+    subtitleText: {
+        fontSize: 16,
+        fontWeight: '500',
+        color: '#F0F0F0',
+        marginBottom: 10,
+        textAlign: 'center',
+        lineHeight: 22,
+    },
+    calendarContainer: {
+        width: '100%',
+        marginBottom: 15,
+    },
+    calendarStyle: {
+        borderRadius: 8,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+    },
+    eventsContainer: {
+        width: '100%',
+        marginBottom: 20,
+    },
+    eventCard: {
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        borderRadius: 8,
+        padding: 10,
+        marginBottom: 15,
+        elevation: 2,
+    },
+    noEventsCard: {
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        borderRadius: 8,
+        // padding: 20,
+        padding: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    eventTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#2753b2',
+        // marginBottom: 5,
+    },
+    eventDetailRow: {
+        flexDirection: 'row',
+        // marginBottom: 10,
+        marginBottom: 2,
+    },
+    eventDetailLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#333',
+        width: 80,
+    },
+    eventDetailText: {
+        fontSize: 14,
+        color: '#555',
+        flex: 1,
+    },
+    eventDescription: {
+        fontSize: 14,
+        color: '#666',
+        marginTop: 5,
+        marginBottom: 5,
+        lineHeight: 22,
+    },
+    noEventsText: {
+        fontSize: 14,
+        color: '#555',
+        textAlign: 'center',
+    },
+    registerButton: {
+        backgroundColor: '#2753b2',
+        paddingVertical: 8,
+        width: '30%',
+        borderRadius: 6,
+        alignItems: 'center',
+        justifyContent: 'center',
+        alignSelf: 'flex-end',
+        marginTop: 2,
+    },
+    registerButtonText: {
+        color: '#FFF',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    
 });

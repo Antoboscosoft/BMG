@@ -1,61 +1,170 @@
-import React, { useEffect, useRef } from 'react'
-import { Animated, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-// import splashImg from '../asserts/images/splashscreen.png'
-// import splashImg from '../asserts/images/splashscreen01.png'
-import splashImg from '../asserts/images/sps1.jpg'
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  Animated,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Dimensions,
+  FlatList,
+} from 'react-native';
+
+// Sample splash images (replace with your actual image imports)
+// import splashImg1 from '../asserts/images/sps1.jpg';
+import splashImg1 from '../asserts/images/ss1.jpg';
+import splashImg2 from '../asserts/images/splash1.jpg'; // add your image paths
+import splashImg3 from '../asserts/images/sps3.jpg';
+import splashImg4 from '../asserts/images/ss2.jpg';
+
+const { width, height } = Dimensions.get('window');
+
+const slides = [
+  {
+    key: 'slide1',
+    titleTop: 'DON BOSCO MIGRANT DBMS',
+    description:
+      'Works with the Unorganised workers & Migrants, Employers, Government, for a Decent work agenda and Dignified labour for intra and interstate workers.',
+    image: splashImg1,
+  },
+  {
+    key: 'slide2',
+    titleTop: 'Support for Migrants',
+    description:
+      'Providing legal assistance, job support, health services, and language support to migrants.',
+    image: splashImg2,
+  },
+  {
+    key: 'slide3',
+    titleTop: 'DON BOSCO MIGRANT DBMS',
+    description:
+      'Works with the Unorganised workers & Migrants, Employers, Government, for a Decent work agenda and Dignified labour for intra and interstate workers.',
+    image: splashImg4,
+  },
+  {
+    key: 'slide4',
+    titleTop: 'Your Journey Starts Here',
+    description:
+      'Join us to improve the lives of migrants and unorganized workers.',
+    image: splashImg3,
+  },
+];
+
 function SplashScreen({ navigation }) {
-
-  //   useEffect(() => {
-  //   // Simulate loading (3 sec), then navigate to Login
-  //   const timer = setTimeout(() => {
-  //     navigation.replace('Login');
-  //   }, 533000);
-  //   return () => clearTimeout(timer);
-  // }, []);
-
+  const [currentIndex, setCurrentIndex] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const flatListRef = useRef();
+  // smooth slide moovement:
+  const scrollX = useRef(new Animated.Value(0)).current;
+
+  const onViewRef = useRef(({ viewableItems }) => {
+    if (viewableItems.length > 0) {
+      setCurrentIndex(viewableItems[0].index);
+    }
+  });
+
+  const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 50 });
+
 
   useEffect(() => {
-    // Start fade-in animation
+    // Fade-in animation on slide change
+    fadeAnim.setValue(0);
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 1500,
+      duration: 800,
       useNativeDriver: true,
     }).start();
-  }, [fadeAnim]);
+  }, [currentIndex]);
 
-  return (
-    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      <Image
-        // source={require('../../assets/images/splash.png')} // replace with your image path
-        source={splashImg}
-        style={styles.logo}
-        resizeMode="cover" // change to 'contain' if you want it to show entire image without cropping
-      />
-      {/* Overlay to improve text readability */}
+  const handleNext = () => {
+    if (currentIndex < slides.length - 1) {
+      // setCurrentIndex(currentIndex + 1);
+      const nextIndex = currentIndex + 1;
+      requestAnimationFrame(() => {
+        flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+      });
+      setCurrentIndex(nextIndex);
+    } else {
+      // Last slide - navigate to Login
+      navigation.replace('Login');
+    }
+  };
+
+  const renderItem = ({ item }) => (
+    <View style={styles.slide}>
+      <Image source={item.image} style={styles.logo} resizeMode="cover" />
       <View style={styles.overlay} />
       <View style={styles.bottomContainer}>
-        <Text style={styles.titleTexttop}>DON BOSCO MIGRANT DBMS</Text>
-        <Text style={styles.titleText}>
-          Works with the Unorganised workers & Migrants, Employers, Government, for a Decent work agenda
-          and Dignified labour for intra and interstate workers.
-        </Text>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.replace('Login')}
-        >
-          <Text style={styles.buttonText}>Get Started</Text>
-        </TouchableOpacity>
+        <Text style={styles.titleTexttop}>{item.titleTop}</Text>
+        <Text style={styles.titleText}>{item.description}</Text>
       </View>
-    </Animated.View>
-  )
+    </View>
+  );
+
+  const currentSlide = slides[currentIndex];
+
+  return (
+    // <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+    //   <Image source={currentSlide.image} style={styles.logo} resizeMode="cover" />
+    //   <View style={styles.overlay} />
+    //   <View style={styles.bottomContainer}>
+    //     <Text style={styles.titleTexttop}>{currentSlide.titleTop}</Text>
+    //     <Text style={styles.titleText}>{currentSlide.description}</Text>
+
+    //     <TouchableOpacity style={styles.button} onPress={handleNext}>
+    //       <Text style={styles.buttonText}>
+    //         {currentIndex === slides.length - 1 ? 'Get Started' : 'Next'}
+    //       </Text>
+    //     </TouchableOpacity>
+    //   </View>
+    // </Animated.View>
+    <View style={styles.container}>
+      <Animated.FlatList
+        data={slides}
+        ref={flatListRef}
+        renderItem={renderItem}
+        horizontal
+        pagingEnabled={false}
+        decelerationRate="fast"
+        snapToInterval={width}
+        snapToAlignment="center"
+        showsHorizontalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+          { useNativeDriver: false },
+        )}
+        onViewableItemsChanged={onViewRef.current}
+        viewabilityConfig={viewConfigRef.current}
+        keyExtractor={(item) => item.key}
+        scrollEventThrottle={16}
+      />
+
+      {/* Dots Indicator */}
+      <View style={styles.dotsContainer}>
+        {slides.map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.dot,
+              { opacity: currentIndex === index ? 1 : 0.4 },
+            ]}
+          />
+        ))}
+      </View>
+
+      {/* Button */}
+      <TouchableOpacity style={styles.button} onPress={handleNext}>
+        <Text style={styles.buttonText}>
+          {currentIndex === slides.length - 1 ? 'Get Started' : 'Next'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
 }
 
-export default SplashScreen
+export default SplashScreen;
 
-
-const styles = StyleSheet.create({
+const styles1 = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
@@ -63,50 +172,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    width: '100%',
-    // height: '70%',
-    height: '100%',
-    // resizeMode: 'stretch',
-    position: 'absolute'
+    width: width,
+    height: height,
+    position: 'absolute',
   },
-  // button: {
-  //   // marginTop: 30,
-  //   position: 'absolute',
-  //   bottom: 50, // Position near the bottom, adjusted to align with the image
-  //   paddingHorizontal: 30,
-  //   paddingVertical: 12,
-  //   backgroundColor: '#b8c9dd',
-  //   borderRadius: 10,
-  //   // color: '#000'
-  // },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.3)', // Dark overlay to improve text readability
   },
   bottomContainer: {
     position: 'absolute',
-    bottom: 40, // Adjust this value as needed
+    bottom: 60,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
     width: '100%',
   },
   titleTexttop: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#ffffff', // White for contrast against the image
-    marginBottom: 15, // Space between title and button
+    color: '#ffffff',
+    marginBottom: 15,
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)', // Add shadow for better readability
+    textShadowColor: 'rgba(0, 0, 0, 0.7)',
     textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
+    textShadowRadius: 5,
   },
   titleText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#f0f0f0', // White for contrast against the image
-    marginBottom: 25, // Space between title and button
+    color: '#f0f0f0',
+    marginBottom: 30,
     textAlign: 'center',
+    lineHeight: 22,
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 3,
@@ -116,8 +214,8 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     backgroundColor: '#2753b2',
     borderRadius: 12,
-    elevation: 3, // Add shadow for depth (Android)
-    shadowColor: '#000', // Shadow for iOS
+    elevation: 3,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -129,6 +227,87 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textTransform: 'uppercase',
     letterSpacing: 1,
+  },
+});
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  slide: {
+    width,
+    height,
+    justifyContent: 'flex-end',
+  },
+  logo: {
+    width,
+    height,
+    position: 'absolute',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  bottomContainer: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 110,
+  },
+  titleTexttop: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 15,
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.7)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 5,
+  },
+  titleText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#f0f0f0',
+    marginBottom: 10,
+    textAlign: 'center',
+    lineHeight: 22,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
+  },
+  button: {
+    position: 'absolute',
+    bottom: 40,
+    alignSelf: 'center',
+    backgroundColor: '#2753b2',
+    paddingHorizontal: 40,
+    paddingVertical: 15,
+    borderRadius: 12,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  dotsContainer: {
+    position: 'absolute',
+    bottom: 100,
+    flexDirection: 'row',
+    alignSelf: 'center',
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#fff',
+    marginHorizontal: 6,
   },
 });
