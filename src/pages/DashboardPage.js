@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     Animated,
     Dimensions,
@@ -11,16 +11,23 @@ import {
     Image,
     FlatList,
     ScrollView,
+    ActivityIndicator,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import { getUserData } from '../api/auth'; // Import the getUserData function
+import { clearAuthToken } from '../api/axiosInstance';
 const { width, height } = Dimensions.get('window');
 
-function DashboardPage({ navigation }) {
+function DashboardPage({ navigation, route }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const slideAnim = useState(new Animated.Value(-250))[0];
     const loggedInUserName = 'Roberto';
+    const [userData, setUserData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const { accessToken } = route.params || {};
+    // console.log("accessToken",accessToken, "route",route,route.params, accessToken);
+    console.log("DashboardPage - Access Token:", accessToken);
     // Inside your component, define:
     const [activeIndex, setActiveIndex] = useState(0);
     const carouselRef = useRef(null);
@@ -41,9 +48,13 @@ function DashboardPage({ navigation }) {
         }).start(() => setSidebarOpen(false));
     };
 
-    const handleMenuItemPress = (label, screen) => {
+    const handleMenuItemPress = async (label, screen) => {
         console.log('Pressed:', label, screen);
         let name = screen.screen;
+        // Clear token on logout
+        if (name === 'Login') {
+            await clearAuthToken();
+        }
         navigation.navigate(name);
         closeSidebar();
     };
@@ -119,8 +130,97 @@ function DashboardPage({ navigation }) {
         },
     ];
 
+    // Fetch user data when component mounts
+    // useEffect(() => {
+    //     const fetchUserData = async () => {
+    //         try {
+    //             console.log("Fetching user data...");
+    //             // console.log("accessToken", accessToken);
+    //             console.log("Fetching user data with token:", accessToken);
+
+    //             if (!accessToken) {
+    //                 console.log("No access token, redirecting to login");
+    //                 // navigation.navigate('Login');
+
+    //                 throw new Error('No access token provided');
+    //             }
+
+    //             setLoading(true);
+    //             // const response = await getUserData(accessToken);
+    //             // const userData = response.data || response;
+    //             // setUserData(userData);
+
+    //             const data = await getUserData(accessToken);
+    //             console.log("User Data:", data);
+    //             setUserData(data);
+
+    //             Toast.show({
+    //                 type: 'success',
+    //                 text1: 'Welcome',
+    //                 text2: `Welcome back, ${data.name || 'User'}!`,
+    //             });
+    //         } catch (error) {
+    //             console.error('Failed to fetch user data:', error);
+    //             Toast.show({
+    //                 type: 'error',
+    //                 text1: 'Error',
+    //                 text2: error.message || 'Failed to load user data',
+    //             });
+
+    //             // Navigate back to login on token-related errors
+    //             if (error.message.includes('token') || error.status === 401) {
+    //                 navigation.navigate('Login');
+    //             }
+
+    //             // // If token is invalid, navigate back to login
+    //             // if (error.response?.status === 401) {
+    //             //     navigation.navigate('Login');
+    //             // }
+
+    //             // // If token is invalid, navigate back to login
+    //             // if (error.message.includes('token')) {
+    //             //     navigation.navigate('Login');
+    //             // }
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     };
+
+    //     fetchUserData();
+    // }, [accessToken, navigation]);
+
+    // Fetch user data when component mounts
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                setLoading(true);
+                console.log("Fetching user data...");
+                const data = await getUserData();
+                console.log("User Data:", data);
+                setUserData(data);
+            } catch (error) {
+                console.error('Failed to fetch user data:', error);
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: error.message || 'Failed to load user data',
+                });
+
+                // Navigate back to login on token-related errors
+                if (error.status === 401) {
+                    await clearAuthToken(); // Clear token on 401 error
+                    navigation.navigate('Login');
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, [navigation]);
+
     // Auto-scroll logic (optional)
-    React.useEffect(() => {
+    useEffect(() => {
         const interval = setInterval(() => {
             setActiveIndex(prev => {
                 const nextIndex = (prev + 1) % carouselItems.length;
@@ -131,6 +231,16 @@ function DashboardPage({ navigation }) {
 
         return () => clearInterval(interval);
     }, []);
+
+    
+    if (loading) {
+        return (
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" color="#FFF" />
+                <Text style={{ color: '#FFF', marginTop: 20 }}>Loading your data...</Text>
+            </View>
+        );
+    }
 
     //     React.useEffect(() => {
     //     const interval = setInterval(() => {
@@ -189,8 +299,14 @@ function DashboardPage({ navigation }) {
                     👋 Hi {loggedInUserName}! Welcome to Bosco Migrants.{'\n'}Wishing you a lovely day ahead!
                 </Text> */}
                 <Text style={styles.welcomeText}>
-                    👋 Hi {loggedInUserName}! Welcome to Bosco Migrants.
+                    👋 Hi { userData?.data.name || 'User'}! Welcome to Bosco Migrants.
                 </Text>
+                {/* Display user email if available */}
+                {userData?.data.email && (
+                    <Text style={styles.userInfoText}>
+                        Email: {userData.data.email}
+                    </Text>
+                )}
                 {/* <Image
                     // source={require('../asserts/images/dash1.jpg')} // <- replace with your image path
                     source={require('../asserts/images/bmgp2.png')} // <- replace with your image path
@@ -370,7 +486,12 @@ const styles = StyleSheet.create({
         marginTop: 50,
         marginBottom: 20,
     },
-
+    userInfoText: {
+        color: '#FFF',
+        fontSize: 14,
+        marginBottom: 10,
+        paddingHorizontal: 20,
+    },
     bottomContainer: {
         position: 'absolute',
         top: height * 0.8,
@@ -511,35 +632,35 @@ const styles = StyleSheet.create({
 
 
 
-     gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between', // Changed from 'space-around'
-    paddingHorizontal: 20, // Increased padding
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  gridItem: {
-    width: '30%', // 3 items per row
-    marginBottom: 25, // Increased space between rows
-    alignItems: 'center', // Center items horizontally
-  },
-  iconTouchable: {
-    marginBottom: 8, // Space between icon and text
-  },
-  iconBackground: {
-    width: 63,
-    height: 63,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#944D00',
-  },
-  gridText: {
-    color: '#FFF',
-    fontSize: 14,
-    textAlign: 'center',
-    fontWeight: '500',
-    paddingHorizontal: 5, // Ensure text doesn't overflow
-  },
+    gridContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between', // Changed from 'space-around'
+        paddingHorizontal: 20, // Increased padding
+        marginTop: 20,
+        marginBottom: 20,
+    },
+    gridItem: {
+        width: '30%', // 3 items per row
+        marginBottom: 25, // Increased space between rows
+        alignItems: 'center', // Center items horizontally
+    },
+    iconTouchable: {
+        marginBottom: 8, // Space between icon and text
+    },
+    iconBackground: {
+        width: 63,
+        height: 63,
+        borderRadius: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#944D00',
+    },
+    gridText: {
+        color: '#FFF',
+        fontSize: 14,
+        textAlign: 'center',
+        fontWeight: '500',
+        paddingHorizontal: 5, // Ensure text doesn't overflow
+    },
 });

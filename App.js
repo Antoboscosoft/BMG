@@ -14,12 +14,85 @@ import CreateEventPage from './src/pages/CreateEventPage.js';
 import RegisterScreen from './src/screens/RegisterScreen.js';
 import Toast from 'react-native-toast-message';
 
+
+// Custom Toast configuration
+const toastConfig = {
+  /*
+    Overwrite 'success' type,
+    modifying the existing BaseToast component
+  */
+  success: (props) => (
+    <BaseToast
+      {...props}
+      style={{ borderLeftColor: 'green', backgroundColor: '#f8f9fa' }}
+      contentContainerStyle={{ paddingHorizontal: 15 }}
+      text1Style={{
+        fontSize: 17,
+        fontWeight: 'bold',
+        color: '#28a745'
+      }}
+      text2Style={{
+        fontSize: 15,
+        color: '#6c757d'
+      }}
+    />
+  ),
+  /*
+    Overwrite 'error' type,
+    modifying the existing ErrorToast component
+  */
+  error: (props) => (
+    <ErrorToast
+      {...props}
+      style={{ borderLeftColor: 'red', backgroundColor: '#f8f9fa' }}
+      text1Style={{
+        fontSize: 17,
+        fontWeight: 'bold',
+        color: '#dc3545'
+      }}
+      text2Style={{
+        fontSize: 15,
+        color: '#6c757d'
+      }}
+    />
+  ),
+  /*
+    Or create a completely new type - 'info',
+    building the layout from scratch
+  */
+  info: (props) => (
+    <View style={{ 
+      width: '90%', 
+      padding: 15, 
+      backgroundColor: '#d1ecf1',
+      borderLeftColor: '#0dcaf0',
+      borderLeftWidth: 6,
+      borderRadius: 8 
+    }}>
+      <Text style={{ 
+        fontSize: 16, 
+        fontWeight: 'bold',
+        color: '#0c5460',
+        marginBottom: 4 
+      }}>
+        {props.text1}
+      </Text>
+      <Text style={{ 
+        fontSize: 14,
+        color: '#0c5460'
+      }}>
+        {props.text2}
+      </Text>
+    </View>
+  )
+};
+
 const Stack = createNativeStackNavigator();
 
 function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Dashboard" component={DashboardPage} />
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
