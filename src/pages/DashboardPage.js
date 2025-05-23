@@ -17,6 +17,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getUserData } from '../api/auth'; // Import the getUserData function
 import { clearAuthToken } from '../api/axiosInstance';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
 const { width, height } = Dimensions.get('window');
 
 function DashboardPage({ navigation, route }) {
@@ -25,9 +27,9 @@ function DashboardPage({ navigation, route }) {
     const loggedInUserName = 'Roberto';
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const { accessToken } = route.params || {};
+    // const { accessToken } = route.params || {};
     // console.log("accessToken",accessToken, "route",route,route.params, accessToken);
-    console.log("DashboardPage - Access Token:", accessToken);
+    // console.log("DashboardPage - Access Token:", accessToken);
     // Inside your component, define:
     const [activeIndex, setActiveIndex] = useState(0);
     const carouselRef = useRef(null);
@@ -193,11 +195,24 @@ function DashboardPage({ navigation, route }) {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
+                // Check if token exists in AsyncStorage
+        const token = await AsyncStorage.getItem('accessToken');
+        console.log("Token in DashboardPage:", token);
+        if (!token) {
+          console.warn("No token found, redirecting to Login");
+          navigation.replace('Login'); // Use replace to prevent going back
+          return;
+        }
                 setLoading(true);
                 console.log("Fetching user data...");
                 const data = await getUserData();
-                console.log("User Data:", data);
+                console.log("User Data dashboard page:", data);
                 setUserData(data);
+        //         Toast.show({
+        //   type: 'success',
+        //   text1: 'Welcome',
+        //   text2: `Welcome back, ${data.data?.name || 'User'}!`,
+        // });
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
                 Toast.show({
@@ -209,7 +224,8 @@ function DashboardPage({ navigation, route }) {
                 // Navigate back to login on token-related errors
                 if (error.status === 401) {
                     await clearAuthToken(); // Clear token on 401 error
-                    navigation.navigate('Login');
+                    // navigation.navigate('Login');
+                    navigation.replace('Login'); // Use replace to prevent going back
                 }
             } finally {
                 setLoading(false);
@@ -233,15 +249,27 @@ function DashboardPage({ navigation, route }) {
     }, []);
 
     
+    // if (loading) {
+    //     return (
+    //         <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+    //             <LinearGradient colors={['#5e3b15', '#b06a2c']} style={styles.loadingBackground}>
+    //             <ActivityIndicator size="large" color="#b97676" />
+    //             <Text style={{ color: '#a35050', marginTop: 20 }}>Loading your data...</Text>
+    //             </LinearGradient>
+    //         </View>
+    //     );
+    // }
+
     if (loading) {
         return (
-            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color="#FFF" />
-                <Text style={{ color: '#FFF', marginTop: 20 }}>Loading your data...</Text>
+            <View style={[styles.loadingContainer]}>
+                <LinearGradient colors={['#5e3b15', '#b06a2c']} style={styles.loadingBackground}>
+                    <ActivityIndicator size="large" color="#fff" />
+                    <Text style={styles.loadingText}>Loading your data...</Text>
+                </LinearGradient>
             </View>
         );
     }
-
     //     React.useEffect(() => {
     //     const interval = setInterval(() => {
     //         let nextIndex = (activeIndex + 1) % carouselItems.length;
@@ -663,4 +691,29 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         paddingHorizontal: 5, // Ensure text doesn't overflow
     },
+    
+
+    // loading screen
+    loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)'
+},
+
+loadingBackground: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    opacity: 0.9,
+    borderRadius: 10,
+},
+
+loadingText: {
+    marginTop: 20,
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+},
+
 });

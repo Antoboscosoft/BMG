@@ -1,20 +1,21 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    Dimensions, Image, KeyboardAvoidingView, Platform,
-    ScrollView, StyleSheet, Text, TextInput, TouchableOpacity,
-    View
+    ActivityIndicator,
+    Dimensions,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { Picker } from '@react-native-picker/picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { launchImageLibrary } from 'react-native-image-picker';
+import { getUserData } from '../api/auth';
+import { clearAuthToken } from '../api/axiosInstance';
+import Toast from 'react-native-toast-message';
+import Icon from 'react-native-vector-icons/MaterialIcons'; // Make sure to install this package
 
 const { width, height } = Dimensions.get('window');
-
-const languageOptions = ['English', 'Hindi', 'Tamil', 'Kannada'];
-const stateOptions = ['Tamil Nadu', 'Karnataka', 'Maharashtra'];
-const countryOptions = ['India', 'Nepal', 'Sri Lanka'];
-const districtOptions = ['Chennai', 'Bangalore', 'Mumbai'];
 
 function calculateAge(dob) {
     if (!dob) return '';
@@ -31,230 +32,217 @@ function calculateAge(dob) {
 function formatDate(date) {
     if (!date) return '';
     const d = new Date(date);
-    return d.toISOString().split('T')[0]; // YYYY-MM-DD
+    return `${d.getDate()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getFullYear()}`;
 }
 
 function ProfileScreen({ navigation }) {
-    const [isEditing, setIsEditing] = useState(false);
-    const [showDOBPicker, setShowDOBPicker] = useState(false);
-    const [imageUri, setImageUri] = useState(null); // for display
+    const [userData, setUserData] = useState(null);
+    const [imageUri, setImageUri] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [countryCode, setCountryCode] = useState('IN');
 
-    const [userData, setUserData] = useState({
-        name: 'Rajesh Kumar',
-        aadhaar: '1234 56789 9012',
-        address: '1234 Bapu Nagar, Jaipur',
-        contact: '+91 9876543210',
-        date_of_birth: '1990-05-01',
-        native_state_id: 'Tamil Nadu',
-        native_country_id: 'India',
-        native_district_id: 'Chennai',
-        language_pref: 'English',
-    });
+    // Fetch user data when component mounts
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                setLoading(true);
+                const response = await getUserData();
+                if (response.status && response.data) {
+                    setUserData(response.data);
+                    if (response.data.mobile_code) {
+                        const countryMapping = {
+                            '91': 'IN',
+                            '977': 'NP',
+                            '94': 'LK',
+                        };
+                        setCountryCode(countryMapping[response.data.mobile_code] || 'IN');
+                    }
+                    if (response.data.photo) {
+                        setImageUri(response.data.photo);
+                    } else {
+                        setImageUri(null);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch user data:', error);
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: error.message || 'Failed to load user data',
+                });
 
-    const handleChange = (field, value) => {
-        setUserData(prev => ({ ...prev, [field]: value }));
-    };
-
-    const handleEditToggle = () => {
-        if (isEditing) {
-            console.log('Saved Data:', userData);
-        }
-        setIsEditing(prev => !prev);
-    };
-
-    const navigateToDashboard = () => {
-        navigation.navigate('Dashboard');
-    };
-
-    const handleImagePick = () => {
-        const options = {
-            mediaType: 'photo',
-            quality: 0.7,
-            includeBase64: true, // optional
+                if (error.status === 401) {
+                    await clearAuthToken();
+                    navigation.replace('Login');
+                }
+            } finally {
+                setLoading(false);
+            }
         };
 
-        launchImageLibrary(options, (response) => {
-            if (response.didCancel) {
-                console.log('User cancelled image picker');
-            } else if (response.errorMessage) {
-                console.error('ImagePicker Error:', response.errorMessage);
-            } else {
-                const uri = response.assets[0].uri;
-                setImageUri(uri);
+        fetchUserData();
+    }, [navigation]);
 
-                // You can also save base64 string to userData if backend needs it
-                handleChange('profile_image', response.assets[0].base64);
-            }
-        });
-    };
-
-    const handleImageRemove = () => {
-        setImageUri(null);
-        handleChange('profile_image', '');
-    };
-
-    const renderInputOrValue = (label, field, keyboardType = 'default', placeholder = '') => (
-        <View style={styles.row}>
-            <Text style={styles.label}>{label}</Text>
-            {isEditing ? (
-                <TextInput
-                    style={styles.input}
-                    value={userData[field]}
-                    onChangeText={text => handleChange(field, text)}
-                    keyboardType={keyboardType}
-                    placeholder={placeholder}
-                    placeholderTextColor="#FFECD2"
-                />
-            ) : (
-                <Text style={styles.value}>{userData[field] || '-'}</Text>
-            )}
-        </View>
-    );
-
-    const renderPickerField = (label, field, options) => (
-        <View style={styles.row}>
-            <Text style={styles.label}>{label}</Text>
-            {isEditing ? (
-                <Picker
-                    selectedValue={userData[field]}
-                    style={styles.picker}
-                    onValueChange={(itemValue) => handleChange(field, itemValue)}
-                >
-                    {options.map((item, index) => (
-                        <Picker.Item label={item} value={item} key={index} />
-                    ))}
-                </Picker>
-            ) : (
-                <Text style={styles.value}>{userData[field] || '-'}</Text>
-            )}
-        </View>
-    );
-
-    const renderDOBField = () => {
-        if (isEditing) {
-            return (
-                <View style={styles.row}>
-                    <Text style={styles.label}>Date of Birth</Text>
-                    <TouchableOpacity onPress={() => setShowDOBPicker(true)} style={{ flex: 1 }}>
-                        <Text style={[styles.input, { color: '#FFF2E0', marginLeft: 20 }]}>
-                            {formatDate(userData.date_of_birth) || 'Select DOB'}
-                        </Text>
-                    </TouchableOpacity>
-                    {showDOBPicker && (
-                        <DateTimePicker
-                            value={new Date(userData.date_of_birth || '2000-01-01')}
-                            mode="date"
-                            display="spinner"
-                            onChange={(event, selectedDate) => {
-                                setShowDOBPicker(false);
-                                if (selectedDate) {
-                                    handleChange('date_of_birth', selectedDate.toISOString());
-                                }
-                            }}
-                            maximumDate={new Date()}
-                        />
-                    )}
-                </View>
-            );
-        } else {
-            return (
-                <>
-                    <View style={styles.row}>
-                        <Text style={styles.label}>DOB</Text>
-                        <Text style={styles.value}>{formatDate(userData.date_of_birth)}</Text>
-                    </View>
-                    <View style={styles.row}>
-                        <Text style={styles.label}>Age</Text>
-                        <Text style={styles.value}>{calculateAge(userData.date_of_birth)}</Text>
-                    </View>
-                </>
-            );
-        }
-    };
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <LinearGradient colors={['#5e3b15', '#b06a2c']} style={styles.loadingBackground}>
+                    <ActivityIndicator size="large" color="#fff" />
+                    <Text style={styles.loadingText}>Loading your data...</Text>
+                </LinearGradient>
+            </View>
+        );
+    }
 
     return (
-        <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-        >
-            <LinearGradient colors={['#5e3b15', '#b06a2c']} style={styles.background}>
-                <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-                    <View style={styles.headerContainer}>
-                        <TouchableOpacity style={styles.backButton} onPress={navigateToDashboard}>
-                            <Text style={styles.backButtonText}>{'< Back'}</Text>
-                        </TouchableOpacity>
-                        <Text style={styles.headerTitle}>Manage your profile</Text>
-                        <View style={{ width: 60 }} />
+        <LinearGradient colors={['#5e3b15', '#b06a2c']} style={styles.background}>
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <View style={styles.headerContainer}>
+                    <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Dashboard')}>
+                        <Text style={styles.backButtonText}>{'< Back'}</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Your Profile</Text>
+                    <View style={{ width: 60 }} />
+                </View>
+
+                <View style={styles.contentContainer}>
+                    <View style={styles.avatarContainer}>
+                        <Image
+                            source={
+                                imageUri
+                                    ? { uri: imageUri }
+                                    : require('../asserts/images/profile.png')
+                            }
+                            style={styles.avatar}
+                        />
                     </View>
 
-                    <View style={styles.contentContainer}>
-                        {/* <Image source={require('../asserts/images/profile.png')} style={styles.avatar} /> */}
-
-                        <View style={styles.avatarContainer}>
-                            <Image
-                                source={
-                                    imageUri
-                                        ? { uri: imageUri }
-                                        : userData.profile_image
-                                            ? { uri: `data:image/jpeg;base64,${userData.profile_image}` }
-                                            : require('../asserts/images/profile.png')
-                                }
-                                style={styles.avatar}
-                            />
-
-                            {isEditing && (
-                                <>
-                                    {/* Camera Icon (Bottom-Right) */}
-                                    <TouchableOpacity onPress={handleImagePick} style={styles.cameraIconContainer}>
-                                        <Image
-                                            source={require('../asserts/images/photo-camera.png')} // Add your camera icon to assets
-                                            style={styles.iconStyle}
-                                        />
-                                    </TouchableOpacity>
-
-                                    {/* Cancel Icon (Top-Right) */}
-                                    {/* <TouchableOpacity onPress={handleImageRemove} style={styles.cancelIconContainer}>
-                                        <Image
-                                            source={require('../asserts/images/close.png')} // Add your cancel icon to assets
-                                            style={styles.iconStyle}
-                                        />
-                                    </TouchableOpacity> */}
-                                </>
-                            )}
-                        </View>
-
-
-                        {/* <TouchableOpacity onPress={isEditing ? handleImagePick : null}>
-                            <Image
-                                source={imageUri ? { uri: imageUri } :
-                                    userData.profile_image ? { uri: `data:image/jpeg;base64,${userData.profile_image}` } :
-                                        require('../asserts/images/profile.png')}
-                                style={styles.avatar}
-                            />
-                            {isEditing && <Text style={{ color: '#FFECD2', textAlign: 'center', marginTop: 4 }}>Tap to change photo</Text>}
-                        </TouchableOpacity> */}
-
-
-                        <View style={styles.card}>
-                            {renderInputOrValue('Name', 'name')}
-                            {renderInputOrValue('Aadhaar', 'aadhaar', 'numeric')}
-                            {renderInputOrValue('Address', 'address')}
-                            {renderInputOrValue('Contact', 'contact', 'phone-pad')}
-                            {renderDOBField()}
-                            {renderPickerField('Language Pref', 'language_pref', languageOptions)}
-                            {renderPickerField('Native State', 'native_state_id', stateOptions)}
-                            {renderPickerField('Native Country', 'native_country_id', countryOptions)}
-                            {renderPickerField('Native District', 'native_district_id', districtOptions)}
-                        </View>
-
-                        <TouchableOpacity style={styles.button} onPress={handleEditToggle}>
-                            <Text style={styles.buttonText}>{isEditing ? 'Save Changes' : 'Edit Profile'}</Text>
-                        </TouchableOpacity>
+                    {/* Name */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}>Name</Text>
+                        <Text style={styles.value}>{userData?.name || '-'}</Text>
                     </View>
-                </ScrollView>
-            </LinearGradient>
-        </KeyboardAvoidingView>
+
+                    {/* Email */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}>Email</Text>
+                        <Text style={styles.value}>{userData?.email || '-'}</Text>
+                    </View>
+
+                    {/* Mobile */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}>Mobile</Text>
+                        <Text style={styles.value}>
+                            {userData?.mobile_code ? `+${userData.mobile_code}` : '-'} {userData?.mobile_number || '-'}
+                        </Text>
+                    </View>
+
+                    {/* Aadhaar */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}>Aadhaar</Text>
+                        <Text style={styles.value}>{userData?.aadhaar_number || '-'}</Text>
+                    </View>
+
+                    {/* Date of Birth */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}>Date of Birth</Text>
+                        <Text style={styles.value}>{formatDate(userData?.date_of_birth) || '-'}</Text>
+                    </View>
+
+                    {/* Age */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}>Age</Text>
+                        <Text style={styles.value}>{calculateAge(userData?.date_of_birth) || '-'}</Text>
+                    </View>
+
+                    {/* Current Address */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}>Current Address</Text>
+                        <Text style={styles.value}>{userData?.current_address_line || '-'}</Text>
+                    </View>
+
+                    {/* Current Country */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}>Current Country</Text>
+                        <Text style={styles.value}>{userData?.current_country?.name || '-'}</Text>
+                    </View>
+
+                    {/* Current State */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}>Current State</Text>
+                        <Text style={styles.value}>{userData?.current_state?.name || '-'}</Text>
+                    </View>
+
+                    {/* Current District */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}>Current District</Text>
+                        <Text style={styles.value}>{userData?.current_district?.name || '-'}</Text>
+                    </View>
+
+                    {/* Native Address */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}>Native Address</Text>
+                        <Text style={styles.value}>{userData?.native_address_line || '-'}</Text>
+                    </View>
+
+                    {/* Native Country */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}>Native Country</Text>
+                        <Text style={styles.value}>{userData?.native_country?.name || '-'}</Text>
+                    </View>
+
+                    {/* Native State */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}>Native State</Text>
+                        <Text style={styles.value}>{userData?.native_state?.name || '-'}</Text>
+                    </View>
+
+                    {/* Native District */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}>Native District</Text>
+                        <Text style={styles.value}>{userData?.native_district?.name || '-'}</Text>
+                    </View>
+
+                    {/* Language Preference */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}>Language</Text>
+                        <Text style={styles.value}>
+                            {userData?.language_pref === 'en' ? 'English' :
+                             userData?.language_pref === 'hi' ? 'Hindi' :
+                             userData?.language_pref === 'ta' ? 'Tamil' :
+                             userData?.language_pref === 'kn' ? 'Kannada' : '-'}
+                        </Text>
+                    </View>
+
+                    {/* Skills */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}>Skills</Text>
+                        <Text style={styles.value}>{userData?.skills || '-'}</Text>
+                    </View>
+
+                    {/* Job Type */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}>Job Type</Text>
+                        <Text style={styles.value}>{userData?.job_type || '-'}</Text>
+                    </View>
+
+                    {/* <TouchableOpacity
+                        style={styles.button}
+                        onPress={() => navigation.navigate('ProfileEdit', { userData })}
+                    >
+                        <Text style={styles.buttonText}>Edit Profile</Text>
+                    </TouchableOpacity> */}
+                </View>
+            </ScrollView>
+            {/* Add the floating edit button */}
+            <TouchableOpacity
+                style={styles.floatingButton}
+                onPress={() => navigation.navigate('ProfileEdit', { userData })}
+            >
+                <Icon name="edit" size={24} color="#3D2A1A" />
+                {/* <Text style={{ color: '#3D2A1A', fontSize: 16 }}>Edit Profile</Text> */}
+            </TouchableOpacity>
+        </LinearGradient>
     );
 }
 
@@ -262,97 +250,122 @@ const styles = StyleSheet.create({
     background: { flex: 1, width, height },
     scrollContainer: { flexGrow: 1 },
     headerContainer: {
-        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-        paddingHorizontal: 20, paddingTop: 30, paddingBottom: 20, width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingTop: 30,
+        paddingBottom: 20,
+        width: '100%',
     },
     backButton: {
-        padding: 10, backgroundColor: 'rgba(255, 242, 224, 0.2)', borderRadius: 8,
+        padding: 10,
+        backgroundColor: 'rgba(255, 242, 224, 0.2)',
+        borderRadius: 8,
     },
     backButtonText: {
-        fontSize: 16, color: '#FFF2E0', fontWeight: 'bold',
+        fontSize: 16,
+        color: '#FFF2E0',
+        fontWeight: 'bold',
     },
     headerTitle: {
-        fontSize: 20, fontWeight: 'bold', color: '#FFECD2',
-        textAlign: 'center', flex: 1, paddingHorizontal: 10,
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#FFECD2',
+        textAlign: 'center',
+        flex: 1,
+        paddingHorizontal: 10,
     },
     contentContainer: {
-        alignItems: 'center', paddingHorizontal: 20, paddingBottom: 20,
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingBottom: 20,
     },
-    avatar: {
-        width: 160, height: 160, marginBottom: 20, borderRadius: 160 / 2,
-    },
-    card: {
-        backgroundColor: '#944D00', width: '100%',
-        borderRadius: 16, padding: 16, marginBottom: 30,
-    },
-    row: {
-        flexDirection: 'row', justifyContent: 'space-between',
-        paddingVertical: 10, borderBottomColor: '#a86030',
-        borderBottomWidth: 0.5, alignItems: 'center',
-    },
-    label: {
-        color: '#FFECD2', fontSize: 16, width: '40%',
-    },
-    value: {
-        color: '#FFF2E0', fontWeight: '600', fontSize: 16,
-        textAlign: 'right', flex: 1, marginLeft: 20,
-    },
-    input: {
-        flex: 1, marginLeft: 20, fontSize: 16,
-        color: '#FFF2E0', borderBottomWidth: 1,
-        borderBottomColor: '#FFECD2', paddingVertical: 2,
-    },
-    picker: {
-        flex: 1, marginLeft: 20, color: '#FFF2E0', backgroundColor: '#6e3b17',
-    },
-    button: {
-        backgroundColor: '#FFECD2', paddingVertical: 14,
-        paddingHorizontal: 30, borderRadius: 18,
-        shadowColor: '#000', shadowOpacity: 0.2,
-        shadowRadius: 4, elevation: 3,
-    },
-    buttonText: {
-        fontSize: 18, color: '#3D2A1A', fontWeight: 'bold',
-    },
-
-    // profile:
     avatarContainer: {
         alignSelf: 'center',
         marginBottom: 20,
         position: 'relative',
     },
-
     avatar: {
         width: 120,
         height: 120,
         borderRadius: 60,
         backgroundColor: '#ddd',
     },
-
-    iconStyle: {
-        width: 24,
-        height: 24,
-        tintColor: '#fff',
+    row: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 10,
+        borderBottomColor: '#a86030',
+        borderBottomWidth: 0.5,
+        alignItems: 'center',
     },
-
-    cameraIconContainer: {
+    label: {
+        color: '#FFECD2',
+        fontSize: 16,
+        width: '40%',
+    },
+    value: {
+        color: '#FFF2E0',
+        fontWeight: '600',
+        fontSize: 16,
+        textAlign: 'right',
+        flex: 1,
+        marginLeft: 20,
+    },
+    button: {
+        backgroundColor: '#FFECD2',
+        paddingVertical: 14,
+        paddingHorizontal: 30,
+        borderRadius: 18,
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 3,
+        marginTop: 20,
+    },
+    buttonText: {
+        fontSize: 18,
+        color: '#3D2A1A',
+        fontWeight: 'bold',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    },
+    loadingBackground: {
+        ...StyleSheet.absoluteFillObject,
+        justifyContent: 'center',
+        alignItems: 'center',
+        opacity: 0.9,
+        borderRadius: 10,
+    },
+    loadingText: {
+        marginTop: 20,
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: '600',
+    },
+     floatingButton: {
         position: 'absolute',
-        bottom: 4,
-        right: 4,
-        backgroundColor: '#0008',
-        padding: 6,
-        borderRadius: 20,
-    },
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        // backgroundColor: '#FFECD2',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
 
-    cancelIconContainer: {
-        position: 'absolute',
-        top: 4,
-        right: 4,
-        backgroundColor: '#0008',
-        padding: 6,
-        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        bottom: 30,
+        right: 20,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
     },
-
 });
 
 export default ProfileScreen;

@@ -13,6 +13,8 @@ import EventCalendarPage from './src/pages/EventCalendarPage.js';
 import CreateEventPage from './src/pages/CreateEventPage.js';
 import RegisterScreen from './src/screens/RegisterScreen.js';
 import Toast from 'react-native-toast-message';
+import ProfileEdit from './src/screens/ProfileEdit.js';
+import CreateService from './src/pages/CreateService.js';
 
 
 // Custom Toast configuration
@@ -92,13 +94,15 @@ const Stack = createNativeStackNavigator();
 function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Dashboard" component={DashboardPage} />
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="ProfileEdit" component={ProfileEdit} />
         <Stack.Screen name="ServicesDirectory" component={ServicesDirectory} />
+        <Stack.Screen name="CreateService" component={CreateService} />
         <Stack.Screen name="MultilingualSupport" component={MultilingualSupportPage} />
         <Stack.Screen name="Notifications" component={NotificationsPage} />
         <Stack.Screen name="HelpRequest" component={HelpRequestPage} />

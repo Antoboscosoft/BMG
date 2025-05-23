@@ -16,6 +16,7 @@ import splashImg1 from '../asserts/images/ss1.jpg';
 import splashImg2 from '../asserts/images/splash1.jpg'; // add your image paths
 import splashImg3 from '../asserts/images/sps3.jpg';
 import splashImg4 from '../asserts/images/ss2.jpg';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 
@@ -65,6 +66,32 @@ function SplashScreen({ navigation }) {
 
   const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 50 });
 
+  useEffect(() => {
+    const checkTokenAndNavigate = async () => {
+      try {
+        // Check if token exists in AsyncStorage
+        const token = await AsyncStorage.getItem('accessToken');
+        console.log("Token in SplashScreen:", token);
+
+        // Simulate a delay for the splash screen (e.g., 2 seconds)
+        setTimeout(() => {
+          if (token) {
+            console.log("Token found, navigating to Dashboard");
+            navigation.replace('Dashboard');
+          } else {
+            console.log("No token found, navigating to Login");
+            // navigation.replace('Login');
+          }
+        }, 2000);
+      } catch (error) {
+        console.error("Error checking token in SplashScreen:", error);
+        // If there's an error, navigate to Login as a fallback
+        navigation.replace('Login');
+      }
+    };
+
+    checkTokenAndNavigate();
+  }, [navigation]);
 
   useEffect(() => {
     // Fade-in animation on slide change

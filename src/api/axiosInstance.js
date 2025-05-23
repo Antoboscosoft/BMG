@@ -15,16 +15,16 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem('accessToken');
-    console.log("Retrieved Token in Interceptor:", token); // Debug token retrieval
+    // console.log("Retrieved Token in Interceptor:", token); // Debug token retrieval
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     } else {
       console.warn("No token found in AsyncStorage for request:", config.url);
     }
-    console.log("Request URL:", config.url);
-    console.log("Request Method:", config.method.toUpperCase());
-    console.log("Request Data:", config.data);
-    console.log("Request Headers:", config.headers);
+    // console.log("Request URL:", config.url);
+    // console.log("Request Method:", config.method.toUpperCase());
+    // console.log("Request Data:", config.data);
+    // console.log("Request Headers:", config.headers);
     return config;
   },
   (error) => {
@@ -47,6 +47,25 @@ axiosInstance.interceptors.response.use(
     }
     return Promise.reject(error);
   }
+);
+
+import { getAuthToken, refreshAuthToken } from './auth'; // Hypothetical functions
+
+axiosInstance.interceptors.response.use(
+    response => response,
+    async error => {
+        if (error.response?.status === 401) {
+            try {
+                const newToken = await refreshAuthToken();
+                error.config.headers.Authorization = `Bearer ${newToken}`;
+                return axiosInstance(error.config); // Retry the request with the new token
+            } catch (refreshError) {
+                // If refresh fails, redirect to login
+                return Promise.reject(refreshError);
+            }
+        }
+        return Promise.reject(error);
+    }
 );
 
 export default axiosInstance;

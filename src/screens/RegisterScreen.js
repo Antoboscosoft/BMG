@@ -9,7 +9,8 @@ import {
     Platform,
     TouchableOpacity,
     ImageBackground,
-    ActivityIndicator
+    ActivityIndicator,
+    Alert
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -17,12 +18,12 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import CountryPicker from 'react-native-country-picker-modal';
 import RegisterImg from '../asserts/images/splash1.jpg';
 import { getCountries, getStates, getDistricts, registerUser } from '../api/auth';
-import Toast from 'react-native-toast-message';
+import Toast from "react-native-toast-message";
 
 const RegisterScreen = ({ navigation }) => {
     const [form, setForm] = useState({
         name: '',
-        email: '',
+        // email: '',
         mobileCode: '',
         mobileNumber: '',
         dateOfBirth: '',
@@ -58,15 +59,24 @@ const RegisterScreen = ({ navigation }) => {
 
     const [errors, setErrors] = useState({
         name: false,
-        email: '',
+        // email: '',
         dateOfBirth: false,
         mobileNumber: false,
         currentCountryId: false,
         currentStateId: false,
         currentDistrictId: false,
     });
+
+    const tost = () => {
+        Toast.show({
+            type: 'success',
+            text1: 'Hello',
+            text2: 'This is some something 👋'
+        });
+    }
     // Fetch countries on component mount
     useEffect(() => {
+
         const fetchCountries = async () => {
             setLoadingCountries(true);
             try {
@@ -165,7 +175,7 @@ const RegisterScreen = ({ navigation }) => {
         let isValid = true;
         const newErrors = {
             name: false,
-            email: '',
+            // email: '',
             dateOfBirth: false,
             mobileNumber: false,
             currentCountryId: false,
@@ -212,13 +222,13 @@ const RegisterScreen = ({ navigation }) => {
             isValid = false;
         }
 
-        if (!form.email) {
-            newErrors.email = 'Email is required';
-            isValid = false;
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-            newErrors.email = 'Please enter a valid email';
-            isValid = false;
-        }
+        // if (!form.email) {
+        //     newErrors.email = 'Email is required';
+        //     isValid = false;
+        // } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+        //     newErrors.email = 'Please enter a valid email';
+        //     isValid = false;
+        // }
 
         setErrors(newErrors);
         return isValid;
@@ -236,7 +246,7 @@ const RegisterScreen = ({ navigation }) => {
 
             const registrationData = {
                 name: form.name,
-                email: form.email,
+                // email: form.email,
                 mobile_code: callingCode,
                 mobile_number: form.mobileNumber,
                 current_country_id: form.currentCountryId,
@@ -257,6 +267,7 @@ const RegisterScreen = ({ navigation }) => {
             const response = await registerUser(registrationData);
             console.log("response", response);
 
+
             if (response.status || response.success === true) {
                 Toast.show({
                     type: 'success',
@@ -269,19 +280,45 @@ const RegisterScreen = ({ navigation }) => {
                 });
                 setTimeout(() => {
                     navigation.navigate('Login');
-                }, 3000);
+                }, 1000);
+                // Show success alert with OK button
+                Alert.alert(
+                    'Success',
+                    'Your account has been created successfully!',
+                    [
+                        {
+                            text: 'OK',
+                            onPress: () => navigation.navigate('Login'), // Navigate on OK
+                        },
+                    ],
+                    { cancelable: false }
+                );
             } else {
-                if (response.details === 'Email already exists') {
-                    setErrors(prev => ({ ...prev, email: 'Email already exists' }));
+                // if (response.details === 'Email already exists') {
+                //     setErrors(prev => ({ ...prev, email: 'Email already exists' }));
+                // }
+                let errorMsg = 'Registration failed';
+
+                if (response.details) {
+                    if (response.details.includes("Mobile number already exists")) {
+                        errorMsg = 'This mobile number is already registered. Please login or use a different number.';
+                        setErrors(prev => ({ ...prev, mobileNumber: errorMsg }));
+                    }
+                    // Add more specific error checks here if needed
+                    else {
+                        errorMsg = response.details;
+                    }
                 }
+Alert.alert('Error', errorMsg || response.details || 'Registration failed');
                 Toast.show({
                     type: 'error',
                     text1: 'Error',
-                    text2: response.details || 'Registration failed',
+                    text2: errorMsg || response.details || 'Registration failed',
                 });
             }
         } catch (error) {
             console.error("Registration Error:", error);
+            Alert.alert('Error', error.message || 'Registration failed. Please try again.');
             Toast.show({
                 type: 'error',
                 text1: 'Error',
@@ -317,8 +354,6 @@ const RegisterScreen = ({ navigation }) => {
 
         return age;
     };
-
-
 
 
     return (
@@ -569,7 +604,7 @@ const RegisterScreen = ({ navigation }) => {
                             onChangeText={(text) => handleChange('jobType', text)}
                         /> */}
 
-                        <View style={styles.inputContainer}>
+                        {/* <View style={styles.inputContainer}>
                             <TextInput
                                 style={[styles.input, errors.email && styles.errorInput]}
                                 placeholder="Email"
@@ -582,7 +617,7 @@ const RegisterScreen = ({ navigation }) => {
                                 }}
                             />
                             {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-                        </View>
+                        </View> */}
 
                         {/* Language Preference Dropdown */}
                         <Text style={styles.label}>Language Preference</Text>

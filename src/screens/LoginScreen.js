@@ -12,8 +12,11 @@ import {
   View,
   Animated,
   ActivityIndicator,
+  Keyboard,
 } from "react-native";
 import loginImg from "../asserts/images/loginImg.jpg";
+// import loginImg from "../asserts/images/sps2.jpg";
+// import loginImg from "../asserts/images/sps4.jpg";
 // import loginImg from "../asserts/images/imgLogin.jpg";
 import CountryPicker from "react-native-country-picker-modal";
 import Toast from "react-native-toast-message";
@@ -38,29 +41,36 @@ function LoginScreen({ navigation }) {
   const [error, setError] = useState("");
   const textInputRef = useRef(null);
   const countdownRef = useRef(null);
-const [blinkAnim] = useState(new Animated.Value(0));
+  const [blinkAnim] = useState(new Animated.Value(0));
 
-// Add this effect when error occurs
-useEffect(() => {
+  // Refs for scrolling to input
+  const scrollViewRef = useRef(null);
+  const mobileInputRef = useRef(null);
+  const otpInputRef = useRef(null);
+  
+  console.log("otp", otp);
+  const [yourOtp, setYourOtp] = useState([]);
+  // Add this effect when error occurs
+  useEffect(() => {
     if (error.includes("not registered")) {
-        Animated.loop(
-            Animated.sequence([
-                Animated.timing(blinkAnim, {
-                    toValue: 1,
-                    duration: 500,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(blinkAnim, {
-                    toValue: 0,
-                    duration: 500,
-                    useNativeDriver: true,
-                }),
-            ])
-        ).start();
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(blinkAnim, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(blinkAnim, {
+            toValue: 0,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
     } else {
-        blinkAnim.setValue(0);
+      blinkAnim.setValue(0);
     }
-}, [error]);
+  }, [error]);
 
 
   useEffect(() => {
@@ -109,23 +119,23 @@ useEffect(() => {
     setLoading(true);
     try {
       console.log("Sending OTP...");
-      
+
       const response = await getLoginOtp(callingCode, mobile);
       console.log("OTP Response:", response); // Log the response for debugging
+      setYourOtp(response.otp);
+      if (!response.status) {
+        // User not registered
+        Toast.show({
+          type: "error",
+          text1: "User Not Registered",
+          text2: "Please register first to continue",
+        });
 
-       if (!response.status) {
-            // User not registered
-            Toast.show({
-                type: "error",
-                text1: "User Not Registered",
-                text2: "Please register first to continue",
-            });
-            
-            // Highlight the register text
-            setError("User not registered. Please register first.");
-            setShowOtpField(false);
-            return;
-        }
+        // Highlight the register text
+        setError("User not registered. Please register first.");
+        setShowOtpField(false);
+        return;
+      }
 
       // User is registered - proceed with OTP flow
       const receivedOtp = response.otp; // Ensure the response has an 'otp' field
@@ -161,6 +171,40 @@ useEffect(() => {
     }
   };
 
+//   console.log("Showing toast...");
+// Toast.show({ type: 'success', text1: 'Success', text2: 'Your account has been created successfully!' });
+  // Handle keyboard show/hide events to scroll to the focused input
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      (event) => {
+
+        // const focusedInput = showOtpField ? otpInputRef.current : mobileInputRef.current;
+        // if (focusedInput) {
+        //   focusedInput.measureLayout(
+        //     scrollViewRef.current,
+        //     (x, y) => {
+        //       scrollViewRef.current.scrollTo({ y: y - 50, animated: true }); // Adjust offset as needed
+        //     },
+        //     (error) => console.log("Error measuring layout:", error)
+        //   );
+        // }
+
+        setTimeout(() => {
+      const focusedInput = showOtpField ? otpInputRef.current : mobileInputRef.current;
+      focusedInput?.measure((x, y, width, height, pageX, pageY) => {
+        scrollViewRef.current?.scrollTo({ y: pageY - 100, animated: true });
+      });
+    }, 100); // delay helps with layout settling
+      }
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+    };
+  }, [showOtpField]);
+
+
   const handleResendOtp = async () => {
     setCanResendOtp(false);
     setCountdown(OTP_TIMEOUT);
@@ -182,7 +226,7 @@ useEffect(() => {
       const response = await verifyOtp(callingCode, mobile, otp);
       console.log("Verify OTP Response:", response); // Log the response for debugging
       console.log("response.access_token", response.access_token);
-      
+
       if (response?.status) {
         await setAuthToken(response.access_token)
         Toast.show({
@@ -193,9 +237,9 @@ useEffect(() => {
           visibilityTime: 5000,
         });
         setTimeout(() => {
-        navigation.navigate("Dashboard", {
-          accessToken: response.access_token,
-        });
+          navigation.navigate("Dashboard", {
+            accessToken: response.access_token,
+          });
         }, 2000);
       } else {
         setError("Invalid OTP. Please try again.");
@@ -267,7 +311,9 @@ useEffect(() => {
                       />
                       <Text style={styles.callingCode}>+{callingCode}</Text>
                       <TextInput
-                        ref={textInputRef}
+                        // ref={textInputRef}
+                        ref={mobileInputRef}
+
                         placeholder="Mobile Number"
                         placeholderTextColor="#D3B58F"
                         keyboardType="phone-pad"
@@ -296,7 +342,8 @@ useEffect(() => {
                 <View style={styles.otpContainer}>
                   <View style={styles.inputBox}>
                     <TextInput
-                      ref={textInputRef}
+                      // ref={textInputRef}
+                      ref={otpInputRef}
                       placeholder="Enter 6-digit OTP"
                       placeholderTextColor="#D3B58F"
                       keyboardType="numeric"
@@ -306,7 +353,7 @@ useEffect(() => {
                       maxLength={6}
                     />
                   </View>
-                  <View style={styles.otpFooter}>
+                  {/* <View style={styles.otpFooter}>
                     <Text style={styles.countdownText}>
                       {countdown > 0 ? `Resend OTP in ${countdown}s` : ""}
                     </Text>
@@ -317,6 +364,16 @@ useEffect(() => {
                     >
                       <Text style={styles.resendButtonText}>Resend OTP</Text>
                     </TouchableOpacity>
+                  </View> */}
+                  {/* 👇 New OTP text row */}
+                  <View style={styles.otpInfoRow}>
+                    <Text style={styles.otpText}>Your otp: </Text>
+                    <Text style={styles.otpValue}>{yourOtp}</Text>
+                    {canResendOtp && (
+                      <TouchableOpacity onPress={handleResendOtp}>
+                        <Text style={styles.resendText}>Resend OTP</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
               )}
@@ -530,11 +587,37 @@ const styles = StyleSheet.create({
     color: "#FFD699",
   },
   highlightedRegister: {
-        color: '#FF0000', // Red color
-        fontWeight: 'bold',
-        textDecorationLine: 'underline',
-        fontSize: 16,
-    },
+    color: '#FF0000', // Red color
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
+    fontSize: 16,
+  },
+
+
+  otpInfoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 10,
+    paddingHorizontal: 5,
+  },
+  otpText: {
+    fontSize: 14,
+    color: "#fff",
+  },
+  otpValue: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#FFD700", // Golden color to highlight
+    marginLeft: 4,
+    marginRight: 8,
+  },
+  resendText: {
+    fontSize: 14,
+    color: "#00BFFF", // Light Blue
+    textDecorationLine: "underline",
+  },
+
 });
 
 export default LoginScreen;
