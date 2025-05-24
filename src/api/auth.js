@@ -258,3 +258,14 @@ export const deleteServiceRequest = async (serviceId) => {
         throw error.response?.data || { message: "Failed to delete service request" };
     }
 };
+
+// Add this to your auth.js file
+export const getEvents = async () => {
+    try {
+        const response = await axiosInstance.get('event');
+        return response.data;
+    } catch (error) {
+        console.error("Get Events Error:", error);
+        throw error.response?.data || { message: "Failed to fetch events" };
+    }
+};

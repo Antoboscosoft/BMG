@@ -63,7 +63,8 @@ function ServicesDirectory({ navigation }) {
                         // description: serviceDescriptions[service.name] || serviceDescriptions['default'],
                         category_id: service?.id, // Keep the original ID for API calls
                         available: service?.available,
-                        services: service?.services // Include the services object if available
+                        // services: service?.services, // Include the services object if available
+                        services: service?.requested // Include the services object if available
                     }));
                     setServices(formattedServices);
                 } else {

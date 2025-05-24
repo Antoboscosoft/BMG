@@ -14,7 +14,9 @@ import {
 // import splashImg1 from '../asserts/images/sps1.jpg';
 import splashImg1 from '../asserts/images/ss1.jpg';
 import splashImg2 from '../asserts/images/splash1.jpg'; // add your image paths
-import splashImg3 from '../asserts/images/sps3.jpg';
+// import splashImg3 from '../asserts/images/sps3.jpg';
+import splashImg3 from '../asserts/images/spimg1.jpg';
+
 import splashImg4 from '../asserts/images/ss2.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

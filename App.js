@@ -15,6 +15,7 @@ import RegisterScreen from './src/screens/RegisterScreen.js';
 import Toast from 'react-native-toast-message';
 import ProfileEdit from './src/screens/ProfileEdit.js';
 import CreateService from './src/pages/CreateService.js';
+import { navigationRef } from './src/api/navigationRef.js';
 
 
 // Custom Toast configuration
@@ -93,7 +94,7 @@ const Stack = createNativeStackNavigator();
 
 function App() {
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Dashboard" component={DashboardPage} />
         <Stack.Screen name="Splash" component={SplashScreen} />

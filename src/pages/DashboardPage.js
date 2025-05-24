@@ -192,27 +192,42 @@ function DashboardPage({ navigation, route }) {
     // }, [accessToken, navigation]);
 
     // Fetch user data when component mounts
+
+
+    useEffect(() => {
+        const verifySession = async () => {
+            try {
+                // Optional: You can add a manual check here
+                // await checkAuthStatus();
+            } catch (error) {
+                // Will be handled by the interceptor
+            }
+        };
+        verifySession();
+    }, []);
+
+
     useEffect(() => {
         const fetchUserData = async () => {
             try {
                 // Check if token exists in AsyncStorage
-        const token = await AsyncStorage.getItem('accessToken');
-        console.log("Token in DashboardPage:", token);
-        if (!token) {
-          console.warn("No token found, redirecting to Login");
-          navigation.replace('Login'); // Use replace to prevent going back
-          return;
-        }
+                const token = await AsyncStorage.getItem('accessToken');
+                console.log("Token in DashboardPage:", token);
+                if (!token) {
+                    console.warn("No token found, redirecting to Login");
+                    navigation.replace('Login'); // Use replace to prevent going back
+                    return;
+                }
                 setLoading(true);
                 console.log("Fetching user data...");
                 const data = await getUserData();
                 console.log("User Data dashboard page:", data);
                 setUserData(data);
-        //         Toast.show({
-        //   type: 'success',
-        //   text1: 'Welcome',
-        //   text2: `Welcome back, ${data.data?.name || 'User'}!`,
-        // });
+                //         Toast.show({
+                //   type: 'success',
+                //   text1: 'Welcome',
+                //   text2: `Welcome back, ${data.data?.name || 'User'}!`,
+                // });
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
                 Toast.show({
@@ -248,7 +263,7 @@ function DashboardPage({ navigation, route }) {
         return () => clearInterval(interval);
     }, []);
 
-    
+
     // if (loading) {
     //     return (
     //         <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -327,7 +342,7 @@ function DashboardPage({ navigation, route }) {
                     👋 Hi {loggedInUserName}! Welcome to Bosco Migrants.{'\n'}Wishing you a lovely day ahead!
                 </Text> */}
                 <Text style={styles.welcomeText}>
-                    👋 Hi { userData?.data.name || 'User'}! Welcome to Bosco Migrants.
+                    👋 Hi {userData?.data.name || 'User'}! Welcome to Bosco Migrants.
                 </Text>
                 {/* Display user email if available */}
                 {userData?.data.email && (
@@ -691,29 +706,29 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         paddingHorizontal: 5, // Ensure text doesn't overflow
     },
-    
+
 
     // loading screen
     loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)'
-},
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)'
+    },
 
-loadingBackground: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-    opacity: 0.9,
-    borderRadius: 10,
-},
+    loadingBackground: {
+        ...StyleSheet.absoluteFillObject,
+        justifyContent: 'center',
+        alignItems: 'center',
+        opacity: 0.9,
+        borderRadius: 10,
+    },
 
-loadingText: {
-    marginTop: 20,
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-},
+    loadingText: {
+        marginTop: 20,
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: '600',
+    },
 
 });

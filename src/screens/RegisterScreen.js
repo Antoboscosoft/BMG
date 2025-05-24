@@ -18,7 +18,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import CountryPicker from 'react-native-country-picker-modal';
 import RegisterImg from '../asserts/images/splash1.jpg';
 import { getCountries, getStates, getDistricts, registerUser } from '../api/auth';
-import Toast from "react-native-toast-message";
+// import Toast from "react-native-toast-message";
+import Toast from 'react-native-simple-toast'; // Changed import
 
 const RegisterScreen = ({ navigation }) => {
     const [form, setForm] = useState({
@@ -269,30 +270,33 @@ const RegisterScreen = ({ navigation }) => {
 
 
             if (response.status || response.success === true) {
-                Toast.show({
-                    type: 'success',
-                    text1: 'Success',
-                    text2: 'Your account has been created successfully!',
-                    visibilityTime: 3000, // Show for 3 seconds
-                    position: 'bottom',
-                    // autoHide: true,
-                    // topOffset: 50,
-                });
+                            // Show success toast
+            Toast.show('Your account has been created successfully!', Toast.LONG);
+
+                // Toast.show({
+                //     type: 'success',
+                //     text1: 'Success',
+                //     text2: 'Your account has been created successfully!',
+                //     visibilityTime: 3000, // Show for 3 seconds
+                //     position: 'bottom',
+                //     // autoHide: true,
+                //     // topOffset: 50,
+                // });
                 setTimeout(() => {
                     navigation.navigate('Login');
                 }, 1000);
                 // Show success alert with OK button
-                Alert.alert(
-                    'Success',
-                    'Your account has been created successfully!',
-                    [
-                        {
-                            text: 'OK',
-                            onPress: () => navigation.navigate('Login'), // Navigate on OK
-                        },
-                    ],
-                    { cancelable: false }
-                );
+                // Alert.alert(
+                //     'Success',
+                //     'Your account has been created successfully!',
+                //     [
+                //         {
+                //             text: 'OK',
+                //             onPress: () => navigation.navigate('Login'), // Navigate on OK
+                //         },
+                //     ],
+                //     { cancelable: false }
+                // );
             } else {
                 // if (response.details === 'Email already exists') {
                 //     setErrors(prev => ({ ...prev, email: 'Email already exists' }));
@@ -310,20 +314,26 @@ const RegisterScreen = ({ navigation }) => {
                     }
                 }
 Alert.alert('Error', errorMsg || response.details || 'Registration failed');
-                Toast.show({
-                    type: 'error',
-                    text1: 'Error',
-                    text2: errorMsg || response.details || 'Registration failed',
-                });
+                // Toast.show({
+                //     type: 'error',
+                //     text1: 'Error',
+                //     text2: errorMsg || response.details || 'Registration failed',
+                // });
+                            // Show error toast
+            Toast.show(errorMsg || 'Registration failed', Toast.LONG);
+
             }
         } catch (error) {
             console.error("Registration Error:", error);
-            Alert.alert('Error', error.message || 'Registration failed. Please try again.');
-            Toast.show({
-                type: 'error',
-                text1: 'Error',
-                text2: error.message || 'Registration failed. Please try again.',
-            });
+            // Alert.alert('Error', error.message || 'Registration failed. Please try again.');
+            // Toast.show({
+            //     type: 'error',
+            //     text1: 'Error',
+            //     text2: error.message || 'Registration failed. Please try again.',
+            // });
+                    // Show error toast
+        Toast.show(error.message || 'Registration failed. Please try again.', Toast.LONG);
+
         } finally {
             setLoading(false);
         }
