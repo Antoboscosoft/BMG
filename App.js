@@ -16,6 +16,7 @@ import Toast from 'react-native-toast-message';
 import ProfileEdit from './src/screens/ProfileEdit.js';
 import CreateService from './src/pages/CreateService.js';
 import { navigationRef } from './src/api/navigationRef.js';
+import CreateRegister from './src/pages/CreateRegister.js';
 
 
 // Custom Toast configuration
@@ -108,6 +109,8 @@ function App() {
         <Stack.Screen name="Notifications" component={NotificationsPage} />
         <Stack.Screen name="HelpRequest" component={HelpRequestPage} />
         <Stack.Screen name="EventCalendar" component={EventCalendarPage} />
+        <Stack.Screen name="CreateRegister" component={CreateRegister} options={{ title: 'Create Register' }} />
+
         <Stack.Screen name="CreateEvent" component={CreateEventPage} options={{ title: 'Create Event' }} />
       </Stack.Navigator>
       <Toast />

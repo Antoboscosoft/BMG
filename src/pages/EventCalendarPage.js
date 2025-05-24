@@ -13,7 +13,10 @@ import LinearGradient from 'react-native-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
-import Toast from 'react-native-toast-message';
+// import Toast from 'react-native-toast-message';
+import Toast from 'react-native-simple-toast'; // Changed import
+import { getEvents } from '../api/auth';
+import Icon from 'react-native-vector-icons/MaterialIcons'; // Add this import
 
 function EventCalendarPage({ navigation }) {
     const [selectedDate, setSelectedDate] = useState('2025-05-16');
@@ -142,6 +145,55 @@ function EventCalendarPage({ navigation }) {
         return acc;
     }, {});
 
+
+    const fetchEvents = async () => {
+        try {
+            // setLoading(true);
+            const response = await getEvents();
+            console.log('API Response Events:', response);
+            if (response.status && response.data) {
+                // Transform API data to match our UI structure
+                const formattedEvents = {};
+
+                response.data.forEach(event => {
+                    const eventDate = event.start_datetime.split('T')[0];
+                    const formattedEvent = {
+                        id: event.id.toString(),
+                        title: event.title,
+                        description: event.description,
+                        location: event.location,
+                        startDate: event.start_datetime,
+                        endDate: event.end_datetime,
+                        registered: event.registered
+                    };
+
+                    if (!formattedEvents[eventDate]) {
+                        formattedEvents[eventDate] = [];
+                    }
+                    formattedEvents[eventDate].push(formattedEvent);
+                });
+
+                setEvents(formattedEvents);
+            } else {
+                throw new Error(response.details || 'Failed to fetch events');
+            }
+        } catch (err) {
+            console.error('Failed to fetch events:', err);
+            setError(err.message);
+            Toast.show(err.message, Toast.LONG);
+        } finally {
+            // setLoading(false);
+        }
+    };
+
+    console.log('Events:', events);
+
+
+    useEffect(() => {
+        // Fetch events when the component mounts
+        fetchEvents();
+    }, []);
+
     const selectedEvents = events[selectedDate] || [];
 
     const formatDate = (date) => {
@@ -150,33 +202,6 @@ function EventCalendarPage({ navigation }) {
 
     const formatTime = (date) => {
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    };
-
-    const handleCreateEvent = () => {
-        const newEventId = Date.now().toString();
-        const eventToAdd = {
-            id: newEventId,
-            ...newEvent,
-            date: selectedDate,
-            time: formatTime(newEvent.time),
-            startDate: newEvent.startDate.toISOString(),
-            endDate: newEvent.endDate.toISOString(),
-        };
-
-        setEvents(prev => ({
-            ...prev,
-            [selectedDate]: [...(prev[selectedDate] || []), eventToAdd],
-        }));
-
-        setNewEvent({
-            title: '',
-            time: new Date(),
-            location: '',
-            description: '',
-            startDate: new Date(),
-            endDate: new Date(),
-        });
-        setModalVisible(false);
     };
 
     const handleTimeChange = (event, selectedTime) => {
@@ -216,8 +241,9 @@ function EventCalendarPage({ navigation }) {
 
 
         if (startMoment.isSame(endMoment, 'day')) {
-            // Same day event
-            return `${startMoment.format('MMM D, YYYY')}\n${startMoment.format('h:mm A')} - ${endMoment.format('h:mm A')}`;
+            // Same day event only
+            // return `${startMoment.format('MMM D, YYYY')}\n${startMoment.format('h:mm A')} - ${endMoment.format('h:mm A')}`;
+            return `${startMoment.format('MMM D, YYYY')}, ${startMoment.format('h:mm A')} - ${endMoment.format('h:mm A')}`;
         } else {
             // Multi-day event
             return `${startMoment.format('MMM D')} - ${endMoment.format('MMM D, YYYY')}`;
@@ -246,49 +272,77 @@ function EventCalendarPage({ navigation }) {
     };
 
 
-    // const handleCreateEvent = () => {
-    //     const newEventId = Date.now().toString();
-    //     const eventToAdd = {
-    //         id: newEventId,
-    //         ...newEvent,
-    //         date: selectedDate,
-    //     };
-    //     setEvents(prev => ({
-    //         ...prev,
-    //         [selectedDate]: [...(prev[selectedDate] || []), eventToAdd],
-    //     }));
-    //     setNewEvent({ title: '', time: '', location: '', description: '' });
-    //     setModalVisible(false);
+    // Handle registration button click
+    // const handleRegister = (eventTitle) => {
+    //             Toast.show(`You have registered for "${eventTitle}"`, Toast.LONG);
     // };
 
-    // Handle registration button click
-    const handleRegister = (eventTitle) => {
-        // Alert.alert('Success', `You have registered for "${eventTitle}"`);
+    // In your EventCalendarPage.js, modify the handleRegister function:
+    // const handleRegister = (event) => {
+    //     navigation.navigate('CreateRegister', {
+    //         eventData: {
+    //             id: event.id,
+    //             title: event.title,
+    //             description: event.description,
+    //             location: event.location,
+    //             isRegistered: false
+    //         }
+    //     });
+    // };
+
+    // const handleRegistered = (event) => {
+    //     navigation.navigate('CreateRegister', { 
+    //         eventData: {
+    //             id: event.id,
+    //             title: event.title,
+    //             description: event.description,
+    //             location: event.location,
+    //             currentStatus: event.registered,
+    //             isRegistered: true
+    //         } 
+    //     });
+    // };
 
 
-        // Hide the alert after 5 seconds
-        // setTimeout(() => {
-        // }, 5000);
+    const handleRegister = (event) => {
+        try {
+            if (!event?.id) {
+                throw new Error('Invalid event data');
+            }
+            navigation.navigate('CreateRegister', {
+                eventData: {
+                    id: event.id,
+                    title: event.title,
+                    description: event.description,
+                    location: event.location,
+                    isRegistered: false
+                }
+            });
+        } catch (error) {
+            console.error('Registration Error:', error);
+            Toast.show('Failed to start registration. Please try again.', Toast.LONG);
+        }
+    };
 
-
-        Toast.show({
-            type: 'success',
-            position: 'bottom',
-            // autoHide: false,
-            topOffset: 60,
-            bottomOffset: 60,
-            text1Style: {
-                fontSize: 16,
-                fontWeight: 'bold',
-            },
-            text2Style: {
-                fontSize: 16,
-                fontWeight: 'normal',
-            },
-            text1: 'Success',
-            text2: `You have registered for "${eventTitle}"`,
-            visibilityTime: 5000, // 5 seconds
-        });
+    const handleRegistered = (event) => {
+        try {
+            if (!event?.id) {
+                throw new Error('Invalid event data');
+            }
+            navigation.navigate('CreateRegister', {
+                eventData: {
+                    id: event.id,
+                    title: event.title,
+                    description: event.description,
+                    location: event.location,
+                    currentStatus: event.registered?.status?.toLowerCase() || 'maybe',
+                    isRegistered: true
+                }
+            });
+        } catch (error) {
+            console.error('Registered Event Error:', error);
+            Toast.show('Failed to view registration. Please try again.', Toast.LONG);
+        }
     };
 
 
@@ -337,90 +391,13 @@ function EventCalendarPage({ navigation }) {
                             style={styles.calendarStyle}
                         />
                     </View>
-
-                    {/* <TouchableOpacity
-                        style={styles.createButton}
-                        onPress={() => setModalVisible(true)}
-                    >
-                        <Text style={styles.createButtonText}>+ Create Event</Text>
-                    </TouchableOpacity> */}
-
-                    {/* <View style={styles.eventList}>
-                        {selectedEvents.length > 0 ? (
-                            selectedEvents.map((event) => (
-                                <TouchableOpacity
-                                    key={event.id}
-                                    style={styles.eventItem}
-                                >
-                                    <Text style={styles.eventTitle}>{event.title}</Text>
-                                    <Text style={styles.eventDetail}>
-                                        <Text style={styles.eventDetailValue}>Date: </Text>{event.date}
-                                    </Text>
-                                    <Text style={styles.eventDetail}>
-                                        <Text style={styles.eventDetailValue}>Time: </Text>{event.time}
-                                    </Text>
-                                    <Text style={styles.eventDetail}>
-                                        <Text style={styles.eventDetailValue}>Location: </Text>{event.location}
-                                    </Text>
-                                    <Text style={styles.eventDescription}>{event.description}</Text>
-                                </TouchableOpacity>
-                            ))
-                        ) : (
-                            <Text style={styles.noEventsText}>No events scheduled for this date.</Text>
-                        )}
-                    </View> */}
-                    {/* <View style={styles.eventsContainer}>
-                        {selectedEvents.length > 0 ? (
-                            selectedEvents.map((event) => {
-                                const { date, time } = formatEventDateTime(event.startDate, event.endDate);
-
-
-                                return (
-                                    <View key={event.id} style={styles.eventCard}>
-                                        <Text style={styles.eventTitle}>{event.title}</Text>
-
-
-                                        <View style={styles.eventDetailRow}>
-                                            <Text style={styles.eventDetailLabel}>Date:</Text>
-                                            <Text style={styles.eventDetailText}>{date}</Text>
-                                        </View>
-
-
-                                        <View style={styles.eventDetailRow}>
-                                            <Text style={styles.eventDetailLabel}>Time:</Text>
-                                            <Text style={styles.eventDetailText}>{time}</Text>
-                                        </View>
-
-
-                                        <View style={styles.eventDetailRow}>
-                                            <Text style={styles.eventDetailLabel}>Location:</Text>
-                                            <Text style={styles.eventDetailText}>{event.location}</Text>
-                                        </View>
-
-
-                                        <Text style={styles.eventDescription}>{event.description}</Text>
-
-
-                                        <TouchableOpacity
-                                            style={styles.registerButton}
-                                            onPress={() => handleRegister(event.title)}
-                                        >
-                                            <Text style={styles.registerButtonText}>Register</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                );
-                            })
-                        ) : (
-                            <View style={styles.noEventsCard}>
-                                <Text style={styles.noEventsText}>No events scheduled for this date</Text>
-                            </View>
-                        )}
-                    </View> */}
                     <View style={styles.eventsContainer}>
                         {selectedEvents.length > 0 ? (
                             selectedEvents.map((event) => (
-                                <View key={event.id} style={styles.eventCard}>
-                                    <Text style={styles.eventTitle}>{event.title}</Text>
+                                <View key={event?.id} style={styles.eventCard}>
+                                    <View style={styles.eventContent}>
+
+                                        {/* <Text style={styles.eventTitle}>{event.title}</Text>
                                     
                                     <View style={styles.eventDetailRow}>
                                         <Text style={styles.eventDetailLabel}>Date & Time:</Text>
@@ -434,14 +411,75 @@ function EventCalendarPage({ navigation }) {
                                         <Text style={styles.eventDetailText}>{event.location}</Text>
                                     </View>
                                     
-                                    <Text style={styles.eventDescription}>{event.description}</Text>
-                                    
-                                    <TouchableOpacity 
+                                    <Text style={styles.eventDescription}>{event.description}</Text> */}
+
+                                        <Text style={styles.eventTitle}>{event?.title}</Text>
+
+                                        {/* <View style={styles.eventDetailRow}>
+                                        <Text style={styles.eventDetailLabel}>Date & Time:</Text>
+                                        <Text style={styles.eventDetailText}>
+                                            {formatDateRange(event?.startDate, event?.endDate)}
+                                        </Text>
+                                    </View>
+
+                                    <View style={styles.eventDetailRow}>
+                                        <Text style={styles.eventDetailLabel}>Location:</Text>
+                                        <Text style={styles.eventDetailText}>{event?.location}</Text>
+                                    </View>
+
+                                    <View style={styles.eventDetailRow}>
+                                        <Text style={styles.eventDetailLabel}>Description:</Text>
+                                        <Text style={styles.eventDescription}>{event?.description}</Text>
+                                    </View> */}
+
+                                        <View style={styles.eventDetailRow}>
+                                            <Icon name="event" size={20} color="#2753b2" style={styles.icon} />
+                                            <Text style={styles.eventDetailText}>
+                                                {formatDateRange(event?.startDate, event?.endDate)}
+                                            </Text>
+                                        </View>
+
+                                        <View style={styles.eventDetailRow}>
+                                            <Icon name="location-on" size={20} color="#2753b2" style={styles.icon} />
+                                            <Text style={styles.eventDetailText}>{event?.location}</Text>
+                                        </View>
+
+                                        <View style={styles.eventDetailRow}>
+                                            <Icon name="notes" size={20} color="#2753b2" style={styles.icon} />
+                                            <Text style={styles.eventDescription}>{event?.description}</Text>
+                                        </View>
+
+                                        {/* <View style={styles.eventDetailRow}>
+                                    <Text style={styles.eventDetailLabel}>Registered:</Text>
+                                    <Text style={styles.eventDetailText}>{event?.registered ? 'Yes' : 'No'}</Text>
+                                </View> */}
+                                    <View style={styles.buttonContainer}>
+                                        {event.registered === null ? (
+                                            <TouchableOpacity
+                                                style={styles.registerButton}
+                                                onPress={() => handleRegister(event)}
+                                            >
+                                                <Text style={styles.registerButtonText}>Register</Text>
+                                            </TouchableOpacity>
+                                        ) : (
+                                            <TouchableOpacity
+                                                style={styles.registeredButton}
+                                                onPress={() => handleRegistered(event)}
+                                            >
+                                                <Text style={styles.registeredButtonText}>Registered</Text>
+                                                {/* <Text style={styles.registeredButtonText}>Registered: {event?.registered?.status}</Text> */}
+                                            </TouchableOpacity>
+                                        )}
+                                    </View>
+                                    </View>
+
+                                    {/* <TouchableOpacity
                                         style={styles.registerButton}
-                                        onPress={() => handleRegister(event.title)}
+                                        onPress={() => handleRegister(event)}
                                     >
                                         <Text style={styles.registerButtonText}>Register</Text>
-                                    </TouchableOpacity>
+                                    </TouchableOpacity> */}
+
                                 </View>
                             ))
                         ) : (
@@ -450,186 +488,55 @@ function EventCalendarPage({ navigation }) {
                             </View>
                         )}
                     </View>
-                    
-                    {/* <View style={styles.eventList}>
-                        {selectedEvents.length > 0 ? (
-                            selectedEvents.map((event) => {
-                                // Format the dates for display
-                                const startDate = new Date(event.startDate);
-                                const endDate = new Date(event.endDate);
-                                const formattedStart = startDate.toLocaleDateString() + ' ' + startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                                const formattedEnd = endDate.toLocaleDateString() + ' ' + endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-                                return (
-                                    <TouchableOpacity
-                                        key={event.id}
-                                        style={styles.eventItem}
-                                    >
-                                        <Text style={styles.eventTitle}>{event.title}</Text>
-                                        <Text style={styles.eventDetail}>
-                                            <Text style={styles.eventDetailValue}>Date: </Text>
-                                            {event.date}
-                                        </Text>
-                                        <Text style={styles.eventDetail}>
-                                            <Text style={styles.eventDetailValue}>Time: </Text>
-                                            {event.time}
-                                        </Text>
-                                        <Text style={styles.eventDetail}>
-                                            <Text style={styles.eventDetailValue}>Start: </Text>
-                                            {formattedStart}
-                                        </Text>
-                                        <Text style={styles.eventDetail}>
-                                            <Text style={styles.eventDetailValue}>End: </Text>
-                                            {formattedEnd}
-                                        </Text>
-                                        <Text style={styles.eventDetail}>
-                                            <Text style={styles.eventDetailValue}>Location: </Text>
-                                            {event.location}
-                                        </Text>
-                                        <Text style={styles.eventDescription}>{event.description}</Text>
-                                    </TouchableOpacity>
-                                );
-                            })
-                        ) : (
-                            <Text style={styles.noEventsText}>No events scheduled for this date.</Text>
-                        )}
-                    </View> */}
+
+
+                    {/* <View key={event?.id} style={styles.eventCard}>
+    <View style={styles.eventContent}>
+        <Text style={styles.eventTitle}>{event?.title}</Text>
+        
+        <View style={styles.eventDetailRow}>
+            <Icon name="event" size={20} color="#2753b2" style={styles.icon} />
+            <Text style={styles.eventDetailText}>
+                {formatDateRange(event?.startDate, event?.endDate)}
+            </Text>
+        </View>
+        
+        <View style={styles.eventDetailRow}>
+            <Icon name="location-on" size={20} color="#2753b2" style={styles.icon} />
+            <Text style={styles.eventDetailText}>{event?.location}</Text>
+        </View>
+        
+        {event.description && (
+            <View style={styles.eventDetailRow}>
+                <Icon name="notes" size={20} color="#2753b2" style={styles.icon} />
+                <Text style={styles.eventDescription}>{event?.description}</Text>
+            </View>
+        )}
+    </View>
+    
+    <View style={styles.buttonContainer}>
+        {event.registered === null ? (
+            <TouchableOpacity
+                style={styles.registerButton}
+                onPress={() => handleRegister(event)}
+            >
+                <Text style={styles.registerButtonText}>Register</Text>
+            </TouchableOpacity>
+        ) : (
+            <TouchableOpacity
+                style={styles.registeredButton}
+                onPress={() => handleRegistered(event)}
+            >
+                <Text style={styles.registeredButtonText}>Registered</Text>
+            </TouchableOpacity>
+        )}
+    </View>
+</View> */}
+
+
                 </ScrollView>
 
-                {/* Modal for creating event */}
-                <Modal
-                    visible={modalVisible}
-                    animationType="slide"
-                    transparent={true}
-                    onRequestClose={() => setModalVisible(false)}
-                >
-                    <View style={styles.modalOverlay}>
-                        <View style={styles.modalContent}>
-                            <Text style={styles.modalTitle}>Create Event</Text>
-
-                            <View style={styles.inputContainer}>
-                                <Text style={styles.inputLabel}>Event Title</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Title"
-                                    value={newEvent.title}
-                                    onChangeText={(text) => setNewEvent({ ...newEvent, title: text })}
-                                />
-                            </View>
-                            <View style={styles.inputContainer}>
-                                <Text style={styles.inputLabel}>Time</Text>
-                                {/* <TextInput
-                                style={styles.input}
-                                placeholder="Time"
-                                value={newEvent.time}
-                                onChangeText={(text) => setNewEvent({ ...newEvent, time: text })}
-                                /> */}
-                                <TouchableOpacity
-                                    style={styles.dateInput}
-                                    onPress={() => setShowTimePicker(true)}
-                                >
-                                    <Text style={styles.dateInputText}>
-                                        {formatTime(newEvent.time)}
-                                    </Text>
-                                </TouchableOpacity>
-                                {showTimePicker && (
-                                    <DateTimePicker
-                                        value={newEvent.time}
-                                        mode="time"
-                                        display="default"
-                                        onChange={handleTimeChange}
-                                    />
-                                )}
-                            </View>
-                            <View style={styles.inputContainer}>
-                                <Text style={styles.inputLabel}>Start Date & Time</Text>
-                                <View style={[styles.dateInput, styles.disabledInput]}>
-                                    <Text style={[styles.dateInputText, { opacity: 0.5 }]}>
-                                        {formatDate(newEvent.startDate)} {formatTime(newEvent.startDate)}
-                                    </Text>
-                                </View>
-                            </View>
-
-                            <View style={styles.inputContainer}>
-                                <Text style={styles.inputLabel}>End Date & Time</Text>
-                                <View style={[styles.dateInput, styles.disabledInput]}>
-                                    <Text style={[styles.dateInputText, { opacity: 0.5 }]}>
-                                        {formatDate(newEvent.endDate)} {formatTime(newEvent.endDate)}
-                                    </Text>
-                                </View>
-                            </View>
-                            {/* <TouchableOpacity
-                                style={[styles.dateInput, { opacity: 0.5 }]}
-                                onPress={() => setShowStartDatePicker(true)}
-                                disabled
-                            >
-                                <Text style={styles.dateInputText}>
-                                   {formatDate(newEvent.startDate)} {formatTime(newEvent.startDate)}
-                                </Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={[styles.dateInput, { opacity: 0.5 }]}
-                                onPress={() => setShowEndDatePicker(true)}
-                                disabled
-                            >
-                                <Text style={styles.dateInputText}>
-                                 {formatDate(newEvent.endDate)} {formatTime(newEvent.endDate)}
-                                </Text>
-                            </TouchableOpacity> */}
-
-                            {showStartDatePicker && (
-                                <DateTimePicker
-                                    value={newEvent.startDate}
-                                    mode="datetime"
-                                    display="default"
-                                    onChange={handleStartDateChange}
-                                    disabled
-                                />
-                            )}
-
-                            {showEndDatePicker && (
-                                <DateTimePicker
-                                    value={newEvent.endDate}
-                                    mode="datetime"
-                                    display="default"
-                                    onChange={handleEndDateChange}
-                                    minimumDate={newEvent.startDate}
-                                />
-                            )}
-                            <View style={styles.inputContainer}>
-                                <Text style={styles.inputLabel}>Location</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Location"
-                                    value={newEvent.location}
-                                    onChangeText={(text) => setNewEvent({ ...newEvent, location: text })}
-                                />
-                            </View>
-                            <View style={styles.inputContainer}>
-                                <Text style={styles.inputLabel}>Description</Text>
-                                <TextInput
-                                    style={[styles.input, { height: 45 }]}
-                                    placeholder="Description"
-                                    multiline
-                                    value={newEvent.description}
-                                    onChangeText={(text) => setNewEvent({ ...newEvent, description: text })}
-                                />
-                            </View>
-
-                            <Text style={styles.modalDate}>Date: {selectedDate}</Text>
-
-                            <View style={styles.modalActions}>
-                                <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
-                                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={handleCreateEvent} style={styles.saveButton}>
-                                    <Text style={styles.saveButtonText}>Save</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    </View>
-                </Modal>
             </Animated.View>
         </LinearGradient>
     );
@@ -637,187 +544,6 @@ function EventCalendarPage({ navigation }) {
 
 export default EventCalendarPage;
 
-const styles1 = StyleSheet.create({
-    container: { flex: 1 },
-    innerContainer: { flex: 1 },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingTop: 30,
-    },
-    inputContainer: {
-        marginBottom: 15,
-    },
-    inputLabel: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 5,
-    },
-    backButton: {
-        paddingVertical: 6,
-        paddingHorizontal: 10,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 8,
-    },
-    backButtonText: {
-        fontSize: 16,
-        color: '#FFF',
-        fontWeight: 'bold',
-    },
-    titleText: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: '#FFF',
-        textAlign: 'center',
-    },
-    contentContainer: {
-        paddingHorizontal: 20,
-        paddingBottom: 40,
-        alignItems: 'center',
-    },
-    subtitleText: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#F0F0F0',
-        marginBottom: 20,
-        textAlign: 'center',
-        lineHeight: 22,
-    },
-    calendarContainer: {
-        width: '100%',
-        marginBottom: 20,
-    },
-    calendarStyle: {
-        borderRadius: 8,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 3,
-    },
-    createButton: {
-        backgroundColor: '#FFF',
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 20,
-        marginBottom: 15,
-        alignSelf: 'center',
-        elevation: 3,
-    },
-    createButtonText: {
-        color: '#2753b2',
-        fontWeight: 'bold',
-        fontSize: 16,
-    },
-    eventList: {
-        width: '100%',
-    },
-    eventItem: {
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        padding: 15,
-        borderRadius: 8,
-        marginBottom: 10,
-        elevation: 2,
-    },
-    eventTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 5,
-    },
-    eventDetail: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 3,
-    },
-    eventDetailValue: {
-        fontSize: 14,
-        color: '#3d31e6',
-    },
-    eventDescription: {
-        fontSize: 14,
-        color: '#666',
-        marginTop: 5,
-    },
-    noEventsText: {
-        fontSize: 16,
-        color: '#FFF',
-        textAlign: 'center',
-        marginTop: 20,
-    },
-
-    modalOverlay: {
-        flex: 1,
-        justifyContent: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        paddingHorizontal: 20,
-    },
-    modalContent: {
-        backgroundColor: '#FFF',
-        borderRadius: 10,
-        padding: 20,
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        textAlign: 'center',
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        padding: 10,
-        borderRadius: 8,
-        marginBottom: 10,
-    },
-    modalDate: {
-        fontSize: 14,
-        color: '#444',
-        marginBottom: 15,
-        textAlign: 'center',
-    },
-    modalActions: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    cancelButton: {
-        backgroundColor: '#ccc',
-        padding: 10,
-        borderRadius: 8,
-        flex: 1,
-        marginRight: 5,
-        alignItems: 'center',
-    },
-    cancelButtonText: {
-        color: '#000',
-        fontWeight: 'bold',
-    },
-    saveButton: {
-        backgroundColor: '#2753b2',
-        padding: 10,
-        borderRadius: 8,
-        flex: 1,
-        marginLeft: 5,
-        alignItems: 'center',
-    },
-    saveButtonText: {
-        color: '#FFF',
-        fontWeight: 'bold',
-    },
-    dateInput: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 10,
-    },
-    dateInputText: {
-        fontSize: 16,
-    },
-});
 
 const styles = StyleSheet.create({
     container: {
@@ -884,6 +610,18 @@ const styles = StyleSheet.create({
         padding: 10,
         marginBottom: 15,
         elevation: 2,
+        flexDirection: 'row', // Add this
+        justifyContent: 'space-between', // Add this
+        alignItems: 'center', // Add this to vertically center
+    },
+    eventContent: {
+        flex: 1, // Take up available space
+    },
+    buttonContainer: {
+        // flexDirection: 'row',
+        // justifyContent: 'center',
+        // alignItems: 'center',
+        marginLeft: 10, // Add some space between content and buttons
     },
     noEventsCard: {
         backgroundColor: 'rgba(255, 255, 255, 0.7)',
@@ -899,9 +637,14 @@ const styles = StyleSheet.create({
         color: '#2753b2',
         // marginBottom: 5,
     },
+    icon: {
+        marginRight: 8,
+        width: 20,
+    },
     eventDetailRow: {
         flexDirection: 'row',
         // marginBottom: 10,
+        alignItems: 'center',
         marginBottom: 2,
     },
     eventDetailLabel: {
@@ -918,8 +661,8 @@ const styles = StyleSheet.create({
     eventDescription: {
         fontSize: 14,
         color: '#666',
-        marginTop: 5,
-        marginBottom: 5,
+        // marginTop: 5,
+        // marginBottom: 5,
         lineHeight: 22,
     },
     noEventsText: {
@@ -932,6 +675,7 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         width: '30%',
         borderRadius: 6,
+        // paddingHorizontal: 10,
         alignItems: 'center',
         justifyContent: 'center',
         alignSelf: 'flex-end',
@@ -942,5 +686,43 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
-    
+
+    registeredButton: {
+        backgroundColor: '#4CAF50',
+        paddingVertical: 8,
+        width: '30%',
+        borderRadius: 6,
+        // paddingHorizontal: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        alignSelf: 'flex-end',
+        marginTop: 2,
+    },
+    registeredButtonText: {
+        color: '#FFF',
+        fontSize: 14,
+        fontWeight: '600',
+    },
+
+
+    loadingText: {
+        color: '#FFF',
+        fontSize: 16,
+        marginTop: 10,
+    },
+    errorText: {
+        color: '#FFF',
+        fontSize: 16,
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+    retryButton: {
+        backgroundColor: '#FFF',
+        padding: 10,
+        borderRadius: 5,
+    },
+    retryButtonText: {
+        color: '#2753b2',
+        fontWeight: 'bold',
+    },
 });

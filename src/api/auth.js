@@ -269,3 +269,65 @@ export const getEvents = async () => {
         throw error.response?.data || { message: "Failed to fetch events" };
     }
 };
+
+// Add this to your auth.js file
+export const createEventRegistration = async (eventId, status) => {
+    console.log("Creating event registration with eventId:", eventId, "and status:", status);
+    try {
+        // const response = await axiosInstance.post('event/rsvp/', {
+        //     event_id: eventId,
+        //     status: status
+        // });
+        const response = await axiosInstance.post(`event/rsvp/${eventId}?status=${status.toUpperCase()}`);
+        // Convert status to uppercase to match your example
+        // const formattedStatus = status.toUpperCase();
+        // const response = await axiosInstance.post(`event/rsvp/${eventId}?status=${formattedStatus}`);
+        console.log("Registration Response:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Event Registration Error:", error);
+        if (error.response) {
+            console.error("Error response data:", error.response.data);
+            console.error("Error status:", error.response.status);
+        }
+        throw error.response?.data || { message: "Failed to register for event" };
+    }
+};
+
+
+// auth.js
+// export const createEventRegistration = async (eventId, status) => {
+//     try {
+//         const response = await axiosInstance.post(
+//             `event/rsvp/${eventId}?status=${status.toUpperCase()}`
+//         );
+//         return response.data;
+//     } catch (error) {
+//         console.error("Event Registration Error:", error);
+//         throw error.response?.data || { message: "Failed to register for event" };
+//     }
+// };
+
+export const updateEventRegistration = async (eventId, status) => {
+    try {
+        const response = await axiosInstance.put(
+            `event/rsvp/${eventId}?status=${status.toUpperCase()}`
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Event Update Error:", error);
+        throw error.response?.data || { message: "Failed to update registration" };
+    }
+};
+
+export const deleteEventRegistration = async (eventId) => {
+    try {
+        const response = await axiosInstance.delete(
+            `event/rsvp/${eventId}`
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Event Delete Error:", error);
+        throw error.response?.data || { message: "Failed to delete registration" };
+    }
+};
