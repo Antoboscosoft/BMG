@@ -10,123 +10,127 @@ import {
     Modal,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { Calendar } from 'react-native-calendars';
+import { Calendar, LocaleConfig } from 'react-native-calendars';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 // import Toast from 'react-native-toast-message';
 import Toast from 'react-native-simple-toast'; // Changed import
 import { getEvents } from '../api/auth';
 import Icon from 'react-native-vector-icons/MaterialIcons'; // Add this import
+import { useLanguage } from '../language/commondir';
 
 function EventCalendarPage({ navigation }) {
+    const { languageTexts } = useLanguage();
     const [selectedDate, setSelectedDate] = useState('2025-05-16');
     const [fadeAnim] = useState(new Animated.Value(0));
-    const [modalVisible, setModalVisible] = useState(false);
-    const [showTimePicker, setShowTimePicker] = useState(false);
-    const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-    const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+    // const [modalVisible, setModalVisible] = useState(false);
+    // const [showTimePicker, setShowTimePicker] = useState(false);
+    // const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+    // const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
-    const [newEvent, setNewEvent] = useState({
-        title: '',
-        time: new Date(),
-        location: '',
-        description: '',
-        startDate: new Date(),
-        endDate: new Date(),
-    });
+    // const [newEvent, setNewEvent] = useState({
+    //     title: '',
+    //     time: new Date(),
+    //     location: '',
+    //     description: '',
+    //     startDate: new Date(),
+    //     endDate: new Date(),
+    // });
 
-    const [events, setEvents] = useState({
-        '2025-05-16': [
-            {
-                id: '1',
-                title: 'Legal Consultation',
-                date: '2025-05-16',
-                time: '10:00 AM',
-                location: 'Community Center',
-                description: 'Free legal advice session for migrant workers.',
-                startDate: '2025-05-16T10:00:00',
-                endDate: '2025-05-16T11:00:00',
-            },
-        ],
-        '2025-05-18': [
-            {
-                id: '2',
-                title: 'Job Fair',
-                date: '2025-05-18',
-                time: '9:00 AM - 3:00 PM',
-                location: 'City Hall',
-                description: 'Meet employers hiring for construction and hospitality roles.',
-                startDate: '2025-05-18T10:00:00',
-                endDate: '2025-05-18T11:00:00',
-            },
-        ],
-        '2025-05-18': [
-            {
-                id: '0',
-                title: 'Job Fair',
-                date: '2025-05-18',
-                time: '9:00 AM - 3:00 PM',
-                location: 'City Hall',
-                description: 'Meet employers hiring for construction and hospitality roles.',
-                startDate: '2025-05-18T10:00:00',
-                endDate: '2025-05-18T11:00:00',
-            },
-        ],
-        '2025-05-20': [
-            {
-                id: '3',
-                title: 'Job Fair',
-                date: '2025-05-16',
-                time: '10:00 AM',
-                location: 'Community Center',
-                description: 'Free legal advice session for migrant workers.',
-                startDate: '2025-05-20T10:00:00',
-                endDate: '2025-05-21T11:00:00',
-            },
-            {
-                id: '4',
-                title: 'Cultural Festival',
-                date: '2025-05-16',
-                time: '10:00 AM',
-                location: 'Community Center',
-                description: 'Free legal advice session for migrant workers.',
-                startDate: '2025-05-20T10:00:00',
-                endDate: '2025-05-20T11:00:00',
-            },
-            {
-                id: '5',
-                title: 'Legal Consultation',
-                date: '2025-05-16',
-                time: '10:00 AM',
-                location: 'Community Center',
-                description: 'Free legal advice session for migrant workers.',
-                startDate: '2025-05-20T10:00:00',
-                endDate: '2025-05-22T11:00:00',
-            },
-        ],
-        '2025-05-23': [
-            {
-                id: '6',
-                title: 'Legal Consultation',
-                date: '2025-05-16',
-                time: '10:00 AM',
-                location: 'Community Center',
-                description: 'Free legal advice session for migrant workers.',
-                startDate: '2025-05-23T10:00:00',
-                endDate: '2025-05-24T11:00:00',
-            },
-            {
-                id: '7',
-                title: 'Cultural Festival',
-                date: '2025-05-16',
-                time: '10:00 AM',
-                location: 'Community Center',
-                description: 'Free legal advice session for migrant workers.',
-                startDate: '2025-05-23T10:00:00',
-                endDate: '2025-05-23T11:00:00',
-            },
-        ],
-    });
+    const [events, setEvents] = useState({});
+
+    // const [events, setEvents] = useState({
+    //     '2025-05-16': [
+    //         {
+    //             id: '1',
+    //             title: 'Legal Consultation',
+    //             date: '2025-05-16',
+    //             time: '10:00 AM',
+    //             location: 'Community Center',
+    //             description: 'Free legal advice session for migrant workers.',
+    //             startDate: '2025-05-16T10:00:00',
+    //             endDate: '2025-05-16T11:00:00',
+    //         },
+    //     ],
+    //     '2025-05-18': [
+    //         {
+    //             id: '2',
+    //             title: 'Job Fair',
+    //             date: '2025-05-18',
+    //             time: '9:00 AM - 3:00 PM',
+    //             location: 'City Hall',
+    //             description: 'Meet employers hiring for construction and hospitality roles.',
+    //             startDate: '2025-05-18T10:00:00',
+    //             endDate: '2025-05-18T11:00:00',
+    //         },
+    //     ],
+    //     '2025-05-18': [
+    //         {
+    //             id: '0',
+    //             title: 'Job Fair',
+    //             date: '2025-05-18',
+    //             time: '9:00 AM - 3:00 PM',
+    //             location: 'City Hall',
+    //             description: 'Meet employers hiring for construction and hospitality roles.',
+    //             startDate: '2025-05-18T10:00:00',
+    //             endDate: '2025-05-18T11:00:00',
+    //         },
+    //     ],
+    //     '2025-05-20': [
+    //         {
+    //             id: '3',
+    //             title: 'Job Fair',
+    //             date: '2025-05-16',
+    //             time: '10:00 AM',
+    //             location: 'Community Center',
+    //             description: 'Free legal advice session for migrant workers.',
+    //             startDate: '2025-05-20T10:00:00',
+    //             endDate: '2025-05-21T11:00:00',
+    //         },
+    //         {
+    //             id: '4',
+    //             title: 'Cultural Festival',
+    //             date: '2025-05-16',
+    //             time: '10:00 AM',
+    //             location: 'Community Center',
+    //             description: 'Free legal advice session for migrant workers.',
+    //             startDate: '2025-05-20T10:00:00',
+    //             endDate: '2025-05-20T11:00:00',
+    //         },
+    //         {
+    //             id: '5',
+    //             title: 'Legal Consultation',
+    //             date: '2025-05-16',
+    //             time: '10:00 AM',
+    //             location: 'Community Center',
+    //             description: 'Free legal advice session for migrant workers.',
+    //             startDate: '2025-05-20T10:00:00',
+    //             endDate: '2025-05-22T11:00:00',
+    //         },
+    //     ],
+    //     '2025-05-23': [
+    //         {
+    //             id: '6',
+    //             title: 'Legal Consultation',
+    //             date: '2025-05-16',
+    //             time: '10:00 AM',
+    //             location: 'Community Center',
+    //             description: 'Free legal advice session for migrant workers.',
+    //             startDate: '2025-05-23T10:00:00',
+    //             endDate: '2025-05-24T11:00:00',
+    //         },
+    //         {
+    //             id: '7',
+    //             title: 'Cultural Festival',
+    //             date: '2025-05-16',
+    //             time: '10:00 AM',
+    //             location: 'Community Center',
+    //             description: 'Free legal advice session for migrant workers.',
+    //             startDate: '2025-05-23T10:00:00',
+    //             endDate: '2025-05-23T11:00:00',
+    //         },
+    //     ],
+    // });
 
     useEffect(() => {
         Animated.timing(fadeAnim, {
@@ -144,6 +148,29 @@ function EventCalendarPage({ navigation }) {
         }
         return acc;
     }, {});
+
+    // Configure calendar locale based on language
+    useEffect(() => {
+        LocaleConfig.locales['custom'] = {
+            monthNames: languageTexts?.calendar?.monthNames || [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December',
+            ],
+            monthNamesShort: languageTexts?.calendar?.monthNamesShort || [
+                'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+            ],
+            dayNames: languageTexts?.calendar?.dayNames || [
+                'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
+            ],
+            dayNamesShort: languageTexts?.calendar?.dayNamesShort || [
+                'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat',
+            ],
+            today: languageTexts?.calendar?.today || 'Today',
+        };
+
+        LocaleConfig.defaultLocale = 'custom';
+    }, [languageTexts]);
 
 
     const fetchEvents = async () => {
@@ -196,43 +223,43 @@ function EventCalendarPage({ navigation }) {
 
     const selectedEvents = events[selectedDate] || [];
 
-    const formatDate = (date) => {
-        return date.toISOString().split('T')[0];
-    };
+    // const formatDate = (date) => {
+    //     return date.toISOString().split('T')[0];
+    // };
 
-    const formatTime = (date) => {
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    };
+    // const formatTime = (date) => {
+    //     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    // };
 
-    const handleTimeChange = (event, selectedTime) => {
-        setShowTimePicker(false);
-        if (selectedTime) {
-            setNewEvent(prev => ({
-                ...prev,
-                time: selectedTime,
-            }));
-        }
-    };
+    // const handleTimeChange = (event, selectedTime) => {
+    //     setShowTimePicker(false);
+    //     if (selectedTime) {
+    //         setNewEvent(prev => ({
+    //             ...prev,
+    //             time: selectedTime,
+    //         }));
+    //     }
+    // };
 
-    const handleStartDateChange = (event, selectedDate) => {
-        setShowStartDatePicker(false);
-        if (selectedDate) {
-            setNewEvent(prev => ({
-                ...prev,
-                startDate: selectedDate,
-            }));
-        }
-    };
+    // const handleStartDateChange = (event, selectedDate) => {
+    //     setShowStartDatePicker(false);
+    //     if (selectedDate) {
+    //         setNewEvent(prev => ({
+    //             ...prev,
+    //             startDate: selectedDate,
+    //         }));
+    //     }
+    // };
 
-    const handleEndDateChange = (event, selectedDate) => {
-        setShowEndDatePicker(false);
-        if (selectedDate) {
-            setNewEvent(prev => ({
-                ...prev,
-                endDate: selectedDate,
-            }));
-        }
-    };
+    // const handleEndDateChange = (event, selectedDate) => {
+    //     setShowEndDatePicker(false);
+    //     if (selectedDate) {
+    //         setNewEvent(prev => ({
+    //             ...prev,
+    //             endDate: selectedDate,
+    //         }));
+    //     }
+    // };
 
     // Format date range for display
     const formatDateRange = (start, end) => {
@@ -350,15 +377,22 @@ function EventCalendarPage({ navigation }) {
         <LinearGradient colors={['#2753b2', '#e6e9f0']} style={styles.container}>
             <Animated.View style={[styles.innerContainer, { opacity: fadeAnim }]}>
                 <View style={styles.headerRow}>
-                    <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Dashboard')}>
-                        <Text style={styles.backButtonText}>{'< Back'}</Text>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => navigation.navigate('Dashboard')}
+                    >
+                        <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text>
                     </TouchableOpacity>
-                    <Text style={styles.titleText}>Event Calendar</Text>
+                    <Text style={styles.titleText}>
+                        {languageTexts?.menu?.eventCalendar || 'Event Calendar'}
+                    </Text>
                     <View style={{ width: 60 }} />
                 </View>
 
                 <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
-                    <Text style={styles.subtitleText}>View upcoming events and activities.</Text>
+                    <Text style={styles.subtitleText}>
+                        {languageTexts?.eventCalendar?.subtitle || 'View upcoming events and activities.'}
+                    </Text>
 
                     <View style={styles.calendarContainer}>
                         <Calendar
@@ -385,8 +419,8 @@ function EventCalendarPage({ navigation }) {
                                         borderRadius: 20,
                                         overflow: 'hidden',
                                         color: '#FFF',
-                                    }
-                                }
+                                    },
+                                },
                             }}
                             style={styles.calendarStyle}
                         />
@@ -396,147 +430,62 @@ function EventCalendarPage({ navigation }) {
                             selectedEvents.map((event) => (
                                 <View key={event?.id} style={styles.eventCard}>
                                     <View style={styles.eventContent}>
-
-                                        {/* <Text style={styles.eventTitle}>{event.title}</Text>
-                                    
-                                    <View style={styles.eventDetailRow}>
-                                        <Text style={styles.eventDetailLabel}>Date & Time:</Text>
-                                        <Text style={styles.eventDetailText}>
-                                            {formatDateRange(event.startDate, event.endDate)}
+                                        <Text style={styles.eventTitle}>
+                                            {languageTexts?.eventCalendar?.events?.[event.titleKey] || event.title}
                                         </Text>
-                                    </View>
-                                    
-                                    <View style={styles.eventDetailRow}>
-                                        <Text style={styles.eventDetailLabel}>Location:</Text>
-                                        <Text style={styles.eventDetailText}>{event.location}</Text>
-                                    </View>
-                                    
-                                    <Text style={styles.eventDescription}>{event.description}</Text> */}
-
-                                        <Text style={styles.eventTitle}>{event?.title}</Text>
-
-                                        {/* <View style={styles.eventDetailRow}>
-                                        <Text style={styles.eventDetailLabel}>Date & Time:</Text>
-                                        <Text style={styles.eventDetailText}>
-                                            {formatDateRange(event?.startDate, event?.endDate)}
-                                        </Text>
-                                    </View>
-
-                                    <View style={styles.eventDetailRow}>
-                                        <Text style={styles.eventDetailLabel}>Location:</Text>
-                                        <Text style={styles.eventDetailText}>{event?.location}</Text>
-                                    </View>
-
-                                    <View style={styles.eventDetailRow}>
-                                        <Text style={styles.eventDetailLabel}>Description:</Text>
-                                        <Text style={styles.eventDescription}>{event?.description}</Text>
-                                    </View> */}
-
                                         <View style={styles.eventDetailRow}>
                                             <Icon name="event" size={20} color="#2753b2" style={styles.icon} />
                                             <Text style={styles.eventDetailText}>
                                                 {formatDateRange(event?.startDate, event?.endDate)}
                                             </Text>
                                         </View>
-
                                         <View style={styles.eventDetailRow}>
                                             <Icon name="location-on" size={20} color="#2753b2" style={styles.icon} />
-                                            <Text style={styles.eventDetailText}>{event?.location}</Text>
+                                            <Text style={styles.eventDetailText}>
+                                                {languageTexts?.eventCalendar?.locations?.[event.locationKey] || event.location}
+                                            </Text>
                                         </View>
-
                                         <View style={styles.eventDetailRow}>
                                             <Icon name="notes" size={20} color="#2753b2" style={styles.icon} />
-                                            <Text style={styles.eventDescription}>{event?.description}</Text>
+                                            <Text style={styles.eventDescription}>
+                                                {languageTexts?.eventCalendar?.descriptions?.[event.descriptionKey] ||
+                                                    event.description}
+                                            </Text>
                                         </View>
-
-                                        {/* <View style={styles.eventDetailRow}>
-                                    <Text style={styles.eventDetailLabel}>Registered:</Text>
-                                    <Text style={styles.eventDetailText}>{event?.registered ? 'Yes' : 'No'}</Text>
-                                </View> */}
-                                    <View style={styles.buttonContainer}>
-                                        {event.registered === null ? (
-                                            <TouchableOpacity
-                                                style={styles.registerButton}
-                                                onPress={() => handleRegister(event)}
-                                            >
-                                                <Text style={styles.registerButtonText}>Register</Text>
-                                            </TouchableOpacity>
-                                        ) : (
-                                            <TouchableOpacity
-                                                style={styles.registeredButton}
-                                                onPress={() => handleRegistered(event)}
-                                            >
-                                                <Text style={styles.registeredButtonText}>Registered</Text>
-                                                {/* <Text style={styles.registeredButtonText}>Registered: {event?.registered?.status}</Text> */}
-                                            </TouchableOpacity>
-                                        )}
+                                        <View style={styles.buttonContainer}>
+                                            {event.registered === null ? (
+                                                <TouchableOpacity
+                                                    style={styles.registerButton}
+                                                    onPress={() => handleRegister(event)}
+                                                >
+                                                    <Text style={styles.registerButtonText}>
+                                                        {languageTexts?.eventCalendar?.register || 'Register'}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            ) : (
+                                                <TouchableOpacity
+                                                    style={styles.registeredButton}
+                                                    onPress={() => handleRegistered(event)}
+                                                >
+                                                    <Text style={styles.registeredButtonText}>
+                                                        {languageTexts?.eventCalendar?.registered || 'Registered'}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            )}
+                                        </View>
                                     </View>
-                                    </View>
-
-                                    {/* <TouchableOpacity
-                                        style={styles.registerButton}
-                                        onPress={() => handleRegister(event)}
-                                    >
-                                        <Text style={styles.registerButtonText}>Register</Text>
-                                    </TouchableOpacity> */}
-
                                 </View>
                             ))
                         ) : (
                             <View style={styles.noEventsCard}>
-                                <Text style={styles.noEventsText}>No events scheduled for this date</Text>
+                                <Icon name="event-busy" size={50} color="#666" />
+                                <Text style={styles.noEventsText}>
+                                    {languageTexts?.eventCalendar?.noEvents || 'No events scheduled for this date'}
+                                </Text>
                             </View>
                         )}
                     </View>
-
-
-
-                    {/* <View key={event?.id} style={styles.eventCard}>
-    <View style={styles.eventContent}>
-        <Text style={styles.eventTitle}>{event?.title}</Text>
-        
-        <View style={styles.eventDetailRow}>
-            <Icon name="event" size={20} color="#2753b2" style={styles.icon} />
-            <Text style={styles.eventDetailText}>
-                {formatDateRange(event?.startDate, event?.endDate)}
-            </Text>
-        </View>
-        
-        <View style={styles.eventDetailRow}>
-            <Icon name="location-on" size={20} color="#2753b2" style={styles.icon} />
-            <Text style={styles.eventDetailText}>{event?.location}</Text>
-        </View>
-        
-        {event.description && (
-            <View style={styles.eventDetailRow}>
-                <Icon name="notes" size={20} color="#2753b2" style={styles.icon} />
-                <Text style={styles.eventDescription}>{event?.description}</Text>
-            </View>
-        )}
-    </View>
-    
-    <View style={styles.buttonContainer}>
-        {event.registered === null ? (
-            <TouchableOpacity
-                style={styles.registerButton}
-                onPress={() => handleRegister(event)}
-            >
-                <Text style={styles.registerButtonText}>Register</Text>
-            </TouchableOpacity>
-        ) : (
-            <TouchableOpacity
-                style={styles.registeredButton}
-                onPress={() => handleRegistered(event)}
-            >
-                <Text style={styles.registeredButtonText}>Registered</Text>
-            </TouchableOpacity>
-        )}
-    </View>
-</View> */}
-
-
                 </ScrollView>
-
             </Animated.View>
         </LinearGradient>
     );
@@ -544,8 +493,145 @@ function EventCalendarPage({ navigation }) {
 
 export default EventCalendarPage;
 
-
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    innerContainer: {
+        flex: 1,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingTop: 30,
+    },
+    backButton: {
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: 8,
+        zIndex: 1,
+    },
+    backButtonText: {
+        fontSize: 16,
+        color: '#FFF',
+        fontWeight: 'bold',
+    },
+    titleText: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#FFF',
+        textAlign: 'center',
+    },
+    subtitleText: {
+        fontSize: 16,
+        fontWeight: '500',
+        color: '#F0F0F0',
+        marginVertical: 20,
+        textAlign: 'center',
+        lineHeight: 22,
+        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 3,
+    },
+    calendarContainer: {
+        marginHorizontal: 20,
+        borderRadius: 10,
+        overflow: 'hidden',
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+    },
+    calendarStyle: {
+        borderRadius: 10,
+    },
+    eventsContainer: {
+        marginTop: 20,
+        paddingHorizontal: 20,
+    },
+    eventCard: {
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        borderRadius: 10,
+        marginBottom: 15,
+        padding: 15,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
+    },
+    eventContent: {
+        flex: 1,
+    },
+    eventTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 10,
+    },
+    eventDetailRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    icon: {
+        marginRight: 10,
+    },
+    eventDetailText: {
+        fontSize: 14,
+        color: '#333',
+        flex: 1,
+    },
+    eventDescription: {
+        fontSize: 14,
+        color: '#666',
+        flex: 1,
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        marginTop: 10,
+    },
+    registerButton: {
+        backgroundColor: '#2753b2',
+        paddingVertical: 8,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+    },
+    registeredButton: {
+        backgroundColor: '#28a745',
+        paddingVertical: 8,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+    },
+    registerButtonText: {
+        color: '#FFF',
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    registeredButtonText: {
+        color: '#FFF',
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    noEventsCard: {
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        borderRadius: 10,
+        padding: 20,
+        alignItems: 'center',
+        elevation: 2,
+    },
+    noEventsText: {
+        fontSize: 16,
+        color: '#666',
+    },
+});
+
+const styles1 = StyleSheet.create({
     container: {
         flex: 1,
     },

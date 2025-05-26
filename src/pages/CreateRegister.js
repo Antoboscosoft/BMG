@@ -10,8 +10,10 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
 import { createEventRegistration, deleteEventRegistration, updateEventRegistration } from '../api/auth';
+import { useLanguage } from '../language/commondir';
 
 function CreateRegister({ navigation, route }) {
+    const { languageTexts } = useLanguage();
     const { eventData } = route.params;
     const [status, setStatus] = useState(eventData.currentStatus || 'maybe');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,7 +22,7 @@ function CreateRegister({ navigation, route }) {
 
     const handleSubmit = async () => {
         if (!status) {
-            setError('Please select a status');
+            setError(languageTexts?.createRegister?.error?.status || 'Please select a status');
             return;
         }
 
@@ -36,11 +38,11 @@ function CreateRegister({ navigation, route }) {
             }
 
             Alert.alert(
-                'Success',
-                'Registration updated successfully!',
+                languageTexts?.createRegister?.success?.title || 'Success',
+                languageTexts?.createRegister?.success?.message || 'Registration updated successfully!',
                 [
                     {
-                        text: 'OK',
+                        text: languageTexts?.common?.ok || 'OK',
                         onPress: () => navigation.navigate('EventCalendar'),
                     },
                 ],
@@ -48,7 +50,7 @@ function CreateRegister({ navigation, route }) {
             );
         } catch (error) {
             console.error('Registration Error:', error);
-            setError(error.message || 'Failed to update registration. Please try again.');
+            setError(error.message || (languageTexts?.createRegister?.error?.submit || 'Failed to update registration. Please try again.'));
         } finally {
             setIsSubmitting(false);
         }
@@ -56,29 +58,29 @@ function CreateRegister({ navigation, route }) {
 
     const handleDelete = async () => {
         Alert.alert(
-            'Delete Registration',
-            'Are you sure you want to delete this registration?',
+            languageTexts?.createRegister?.delete?.title || 'Delete Registration',
+            languageTexts?.createRegister?.delete?.message || 'Are you sure you want to delete this registration?',
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: languageTexts?.common?.cancel || 'Cancel', style: 'cancel' },
                 {
-                    text: 'Delete',
+                    text: languageTexts?.createRegister?.delete?.confirm || 'Delete',
                     onPress: async () => {
                         setIsDeleting(true);
                         try {
                             await deleteEventRegistration(eventData.id);
                             Alert.alert(
-                                'Success',
-                                'Registration deleted successfully!',
+                                languageTexts?.createRegister?.success?.title || 'Success',
+                                languageTexts?.createRegister?.success?.delete || 'Registration deleted successfully!',
                                 [
                                     {
-                                        text: 'OK',
+                                        text: languageTexts?.common?.ok || 'OK',
                                         onPress: () => navigation.navigate('EventCalendar'),
                                     },
                                 ]
                             );
                         } catch (error) {
                             console.error('Delete Error:', error);
-                            setError(error.message || 'Failed to delete registration.');
+                            setError(error.message || (languageTexts?.createRegister?.error?.delete || 'Failed to delete registration.'));
                         } finally {
                             setIsDeleting(false);
                         }
@@ -96,17 +98,17 @@ function CreateRegister({ navigation, route }) {
                     style={styles.backButton}
                     onPress={() => navigation.navigate('EventCalendar')}
                 >
-                    <Text style={styles.backButtonText}>{'< Back'}</Text>
+                    <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text>
                 </TouchableOpacity>
 
                 <View style={styles.header}>
                     <Text style={styles.headerText}>
-                        {eventData.isRegistered ? 'Update Registration' : 'Create Registration'}
+                        {eventData.isRegistered ? languageTexts?.createRegister?.title?.update || 'Update Registration' : languageTexts?.createRegister?.title?.create || 'Create Registration'}
                     </Text>
                 </View>
 
                 <View style={styles.contentContainer}>
-                    <Text style={styles.label}>Event:</Text>
+                    <Text style={styles.label}>{languageTexts?.createRegister?.event || 'Event:'}</Text>
                     <View style={styles.eventBox}>
                         <Text style={styles.eventTitle}>{eventData.title}</Text>
                         <Text style={styles.eventDetail}>{eventData.description}</Text>
@@ -127,7 +129,7 @@ function CreateRegister({ navigation, route }) {
                         </Picker>
                     </View> */}
 
-                    <Text style={styles.label}>RSVP Status:</Text>
+                    <Text style={styles.label}>{languageTexts?.createRegister?.rsvpStatus || 'RSVP Status:'}</Text>
                     <View style={styles.radioContainer}>
                         <TouchableOpacity
                             style={styles.radioButton}
@@ -136,7 +138,7 @@ function CreateRegister({ navigation, route }) {
                             <View style={styles.radioOuter}>
                                 {status === 'maybe' && <View style={styles.radioInner} />}
                             </View>
-                            <Text style={styles.radioLabel}>Maybe</Text>
+                            <Text style={styles.radioLabel}>{languageTexts?.createRegister?.statusOptions?.maybe || 'Maybe'}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -146,7 +148,7 @@ function CreateRegister({ navigation, route }) {
                             <View style={styles.radioOuter}>
                                 {status === 'yes' && <View style={styles.radioInner} />}
                             </View>
-                            <Text style={styles.radioLabel}>Yes</Text>
+                            <Text style={styles.radioLabel}>{languageTexts?.createRegister?.statusOptions?.yes || 'Yes'}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -156,7 +158,7 @@ function CreateRegister({ navigation, route }) {
                             <View style={styles.radioOuter}>
                                 {status === 'no' && <View style={styles.radioInner} />}
                             </View>
-                            <Text style={styles.radioLabel}>No</Text>
+                            <Text style={styles.radioLabel}>{languageTexts?.createRegister?.statusOptions?.no || 'No'}</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -170,7 +172,7 @@ function CreateRegister({ navigation, route }) {
                                 disabled={isSubmitting || isDeleting}
                             >
                                 <Text style={styles.buttonText}>
-                                    {isDeleting ? 'Deleting...' : 'Delete'}
+                                    {isDeleting ? languageTexts?.createRegister?.deleting || 'Deleting...' : languageTexts?.createRegister?.delete?.button || 'Delete'}
                                 </Text>
                             </TouchableOpacity>
                         )}
@@ -180,7 +182,7 @@ function CreateRegister({ navigation, route }) {
                             disabled={isSubmitting || isDeleting}
                         >
                             <Text style={styles.buttonText}>
-                                {isSubmitting ? 'Submitting...' : 'Submit'}
+                                {isSubmitting ? languageTexts?.createRegister?.submitting || 'Submitting...' : languageTexts?.createRegister?.submit || 'Submit'}
                             </Text>
                         </TouchableOpacity>
                     </View>

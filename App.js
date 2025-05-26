@@ -17,6 +17,7 @@ import ProfileEdit from './src/screens/ProfileEdit.js';
 import CreateService from './src/pages/CreateService.js';
 import { navigationRef } from './src/api/navigationRef.js';
 import CreateRegister from './src/pages/CreateRegister.js';
+import { LanguageProvider } from './src/language/commondir.js';
 
 
 // Custom Toast configuration
@@ -95,6 +96,7 @@ const Stack = createNativeStackNavigator();
 
 function App() {
   return (
+    <LanguageProvider>
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Dashboard" component={DashboardPage} />
@@ -115,6 +117,7 @@ function App() {
       </Stack.Navigator>
       <Toast />
     </NavigationContainer>
+    </LanguageProvider>
   )
 }
 

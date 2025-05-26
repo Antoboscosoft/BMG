@@ -1,0 +1,105 @@
+{
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome, {name}!",
+    "email": "Email: {email}",
+    "loading": "Loading your data...",
+    "carousel": {
+      "stayUpdated": "Stay Updated with Events!",
+      "discoverSector": "Discover Your Sector"
+    }
+  },
+  "menu": {
+    "eventCalendar": "Event Calendar",
+    "servicesDirectory": "Services",
+    "notifications": "Notifications",
+    "multilingualSupport": "Language",
+    "helpRequest": "Help",
+    "profile": "Profile",
+    "menus": "Menus",
+    "logout": "Logout"
+  },
+  "multilingual": {
+    "select": "Select your preferred language : -",
+    "continue": "Continue"
+  },
+  "eventCalendar": {
+    "subtitle": "View upcoming events and activities.",
+    "noEvents": "No events scheduled for this date",
+    "register": "Register",
+    "registered": "Registered",
+    "events": {
+      "legalConsultation": "Legal Consultation",
+      "jobFair": "Job Fair",
+      "culturalFestival": "Cultural Festival"
+    },
+    "locations": {
+      "communityCenter": "Community Center",
+      "cityHall": "City Hall"
+    },
+    "descriptions": {
+      "legalConsultationDesc": "Free legal advice session for migrant workers.",
+      "jobFairDesc": "Meet employers hiring for construction and hospitality roles.",
+      "culturalFestivalDesc": "Celebrate diverse cultures with food and performances."
+    },
+    "error": {
+      "fetchEvents": "Failed to fetch events",
+      "register": "Failed to start registration. Please try again.",
+      "registered": "Failed to view registration. Please try again."
+    }
+  },
+  "createRegister": {
+    "title": {
+      "create": "Create Registration",
+      "update": "Update Registration"
+    },
+    "event": "Event:",
+    "rsvpStatus": "RSVP Status:",
+    "statusOptions": {
+      "maybe": "Maybe",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "submit": "Submit",
+    "submitting": "Submitting...",
+    "delete": {
+      "button": "Delete",
+      "title": "Delete Registration",
+      "message": "Are you sure you want to delete this registration?",
+      "confirm": "Delete"
+    },
+    "deleting": "Deleting...",
+    "success": {
+      "title": "Success",
+      "message": "Registration updated successfully!",
+      "delete": "Registration deleted successfully!"
+    },
+    "error": {
+      "status": "Please select a status",
+      "submit": "Failed to update registration. Please try again.",
+      "delete": "Failed to delete registration."
+    }
+  },
+  "common": {
+    "back": "< Back",
+    "ok": "OK",
+    "cancel": "Cancel"
+  },
+  "calendar": {
+    "monthNames": [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ],
+    "monthNamesShort": [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ],
+    "dayNames": [
+      "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+    ],
+    "dayNamesShort": [
+      "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+    ],
+    "today": "Today"
+  }
+}

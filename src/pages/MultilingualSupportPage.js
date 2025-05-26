@@ -1,10 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { useLanguage } from '../language/commondir';
 
 function MultilingualSupportPage({ navigation }) {
-    const [selectedLanguage, setSelectedLanguage] = useState('English');
-    const fadeAnim = useState(new Animated.Value(0))[0];
+    const { language, changeLanguage, languageTexts } = useLanguage();
+    const [fadeAnim] = useState(new Animated.Value(0));
+
+    // Map English names to language codes
+    const languageMap = {
+        'English': 'EN',
+        'Hindi': 'HI',
+        'Tamil': 'TA',
+        'Bengali': 'BN',
+        // 'Arabic': 'AR', // Note: Arabic is not implemented in translations yet
+    };
+
+    // Map language codes to native names for display
+    const languages = [
+        { englishName: 'English', nativeName: 'English', code: 'EN' },
+        { englishName: 'Hindi', nativeName: 'हिन्दी', code: 'HI' },
+        { englishName: 'Tamil', nativeName: 'தமிழ்', code: 'TA' },
+        { englishName: 'Bengali', nativeName: 'বাংলা', code: 'BN' },
+        // { englishName: 'Arabic', nativeName: 'العربية', code: 'AR' },
+    ];
+
+    // Set initial selected language based on current language
+    const [selectedLanguage, setSelectedLanguage] = useState(
+        Object.keys(languageMap).find(key => languageMap[key] === language) || 'English'
+    );
 
     useEffect(() => {
         Animated.timing(fadeAnim, {
@@ -14,24 +38,29 @@ function MultilingualSupportPage({ navigation }) {
         }).start();
     }, [fadeAnim]);
 
-    // Updated languages array with native names
-    const languages = [
-        { englishName: 'English', nativeName: 'English' },
-        // { englishName: 'Spanish', nativeName: 'Español' },
-        { englishName: 'Hindi', nativeName: 'हिन्दी' },
-        { englishName: 'Tamil', nativeName: 'தமிழ்' },
-        // { englishName: 'Mandarin', nativeName: '普通话' },
-        { englishName: 'Arabic', nativeName: 'العربية' },
-        // { englishName: 'French', nativeName: 'Français' },
-    ];
-
     const handleLanguageSelect = (language) => {
         setSelectedLanguage(language.englishName);
+        const langCode = languageMap[language.englishName];
+        if (langCode) {
+            changeLanguage(langCode);
+        }
     };
 
     const handleContinue = () => {
         navigation.navigate('Dashboard');
     };
+
+    // const changeLanguage = async (langCode) => {
+    //     try {
+    //         await AsyncStorage.setItem('languageSelect', langCode);
+    //         setLanguage(langCode);
+    //         await updateLanguageTexts(langCode);
+    //         // Optional: Update backend
+    //         // await updateUserLanguage(langCode.toLowerCase()); // Implement this API call
+    //     } catch (error) {
+    //         console.error('Failed to change language:', error);
+    //     }
+    // };
 
     return (
         <LinearGradient
@@ -46,7 +75,9 @@ function MultilingualSupportPage({ navigation }) {
                     >
                         <Text style={styles.backButtonText}>{'< Back'}</Text>
                     </TouchableOpacity>
-                    <Text style={styles.titleText}>Multilingual Support</Text>
+                    <Text style={styles.titleText}>
+                        {languageTexts?.menu?.multilingualSupport || 'Multilingual Support'}
+                    </Text>
                     <View style={{ width: 60 }} />
                 </View>
                 <ScrollView
@@ -54,7 +85,7 @@ function MultilingualSupportPage({ navigation }) {
                     showsVerticalScrollIndicator={false}
                 >
                     <Text style={styles.subtitleText}>
-                        Select your preferred language : -
+                        {languageTexts?.multilingual?.select || 'Select your preferred language : -'}
                     </Text>
                     <View style={styles.languageList}>
                         {languages.map((language) => (
@@ -73,8 +104,6 @@ function MultilingualSupportPage({ navigation }) {
                                     ]}
                                 >
                                     {language.nativeName}
-                                    {/* - 
-                                    {language.englishName} */}
                                 </Text>
                             </TouchableOpacity>
                         ))}
@@ -83,7 +112,9 @@ function MultilingualSupportPage({ navigation }) {
                         style={styles.button}
                         onPress={handleContinue}
                     >
-                        <Text style={styles.buttonText}>Continue</Text>
+                        <Text style={styles.buttonText}>
+                            {languageTexts?.multilingual?.continue || 'Continue'}
+                        </Text>
                     </TouchableOpacity>
                 </ScrollView>
             </Animated.View>
@@ -91,7 +122,6 @@ function MultilingualSupportPage({ navigation }) {
     );
 }
 
-// Keep all your existing styles exactly the same
 const styles = StyleSheet.create({
     container: {
         flex: 1,

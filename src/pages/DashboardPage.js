@@ -15,24 +15,51 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getUserData } from '../api/auth'; // Import the getUserData function
+import { getUserData } from '../api/auth';
 import { clearAuthToken } from '../api/axiosInstance';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
+import { useLanguage } from '../language/commondir';
+
 const { width, height } = Dimensions.get('window');
 
 function DashboardPage({ navigation, route }) {
+    const { languageTexts, language } = useLanguage();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const slideAnim = useState(new Animated.Value(-250))[0];
-    const loggedInUserName = 'Roberto';
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
-    // const { accessToken } = route.params || {};
-    // console.log("accessToken",accessToken, "route",route,route.params, accessToken);
-    // console.log("DashboardPage - Access Token:", accessToken);
-    // Inside your component, define:
     const [activeIndex, setActiveIndex] = useState(0);
     const carouselRef = useRef(null);
+
+    const dashboardMenuItems = [
+        { id: '1', name: 'eventCalendar', screen: 'EventCalendar', icon: 'calendar-month' },
+        { id: '2', name: 'servicesDirectory', screen: 'ServicesDirectory', icon: 'cog-outline' },
+        { id: '3', name: 'notifications', screen: 'Notifications', icon: 'bell-outline' },
+        { id: '4', name: 'multilingualSupport', screen: 'MultilingualSupport', icon: 'translate' },
+        { id: '5', name: 'helpRequest', screen: 'HelpRequest', icon: 'help-circle-outline' },
+        { id: '6', name: 'profile', screen: 'Profile', icon: 'account' },
+    ];
+
+    const carouselItems = [
+        {
+            title: languageTexts?.dashboard?.welcome?.replace('{name}', userData?.data?.name || 'User'),
+            image: require('../asserts/images/im2.png'),
+        },
+        {
+            title: languageTexts?.dashboard?.carousel?.stayUpdated || 'Stay Updated with Events!',
+            image: require('../asserts/images/img1.png'),
+        },
+        {
+            title: languageTexts?.dashboard?.carousel?.discoverSector || 'Discover Your Sector',
+            image: require('../asserts/images/im3.png'),
+        },
+        {
+            title: languageTexts?.dashboard?.carousel?.discoverSector || 'Discover Your Sector',
+            image: require('../asserts/images/im4.png'),
+        },
+    ];
+
     const openSidebar = () => {
         setSidebarOpen(true);
         Animated.timing(slideAnim, {
@@ -51,9 +78,7 @@ function DashboardPage({ navigation, route }) {
     };
 
     const handleMenuItemPress = async (label, screen) => {
-        console.log('Pressed:', label, screen);
         let name = screen.screen;
-        // Clear token on logout
         if (name === 'Login') {
             await clearAuthToken();
         }
@@ -65,16 +90,13 @@ function DashboardPage({ navigation, route }) {
         closeSidebar();
     };
 
-    // Handle profile navigation
     const handleProfileNavigate = () => {
-        navigation.navigate('Profile'); // assuming route name is 'Profile'
+        navigation.navigate('Profile');
     };
 
-    // Swipe gesture handling
     const panResponder = useRef(
         PanResponder.create({
             onMoveShouldSetPanResponder: (_, gestureState) => {
-                // Start responding to gesture if user swipes left
                 return gestureState.dx < -10;
             },
             onPanResponderRelease: (_, gestureState) => {
@@ -85,7 +107,6 @@ function DashboardPage({ navigation, route }) {
         })
     ).current;
 
-    // Swipe left to close (inside sidebar)
     const sidebarPanResponder = useRef(
         PanResponder.create({
             onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dx < -10,
@@ -97,11 +118,9 @@ function DashboardPage({ navigation, route }) {
         })
     ).current;
 
-    // Swipe right to open (from screen left edge)
     const screenPanResponder = useRef(
         PanResponder.create({
             onMoveShouldSetPanResponder: (_, gestureState) => {
-                // Only respond if starting near left edge & swiping right
                 return gestureState.moveX < 30 && gestureState.dx > 10;
             },
             onPanResponderRelease: (_, gestureState) => {
@@ -112,122 +131,18 @@ function DashboardPage({ navigation, route }) {
         })
     ).current;
 
-    // carousel:
-    const carouselItems = [
-        {
-            // title: `Welcome, ${loggedInUserName}!`,
-            image: require('../asserts/images/im2.png'),
-        },
-        {
-            // title: 'Stay Updated with Events!',
-            image: require('../asserts/images/img1.png'), // example image
-        },
-        {
-            // title: 'Discover Your Sector',
-            image: require('../asserts/images/im3.png'), // example image
-        },
-        {
-            // title: 'Discover Your Sector',
-            image: require('../asserts/images/im4.png'), // example image
-        },
-    ];
-
-    // Fetch user data when component mounts
-    // useEffect(() => {
-    //     const fetchUserData = async () => {
-    //         try {
-    //             console.log("Fetching user data...");
-    //             // console.log("accessToken", accessToken);
-    //             console.log("Fetching user data with token:", accessToken);
-
-    //             if (!accessToken) {
-    //                 console.log("No access token, redirecting to login");
-    //                 // navigation.navigate('Login');
-
-    //                 throw new Error('No access token provided');
-    //             }
-
-    //             setLoading(true);
-    //             // const response = await getUserData(accessToken);
-    //             // const userData = response.data || response;
-    //             // setUserData(userData);
-
-    //             const data = await getUserData(accessToken);
-    //             console.log("User Data:", data);
-    //             setUserData(data);
-
-    //             Toast.show({
-    //                 type: 'success',
-    //                 text1: 'Welcome',
-    //                 text2: `Welcome back, ${data.name || 'User'}!`,
-    //             });
-    //         } catch (error) {
-    //             console.error('Failed to fetch user data:', error);
-    //             Toast.show({
-    //                 type: 'error',
-    //                 text1: 'Error',
-    //                 text2: error.message || 'Failed to load user data',
-    //             });
-
-    //             // Navigate back to login on token-related errors
-    //             if (error.message.includes('token') || error.status === 401) {
-    //                 navigation.navigate('Login');
-    //             }
-
-    //             // // If token is invalid, navigate back to login
-    //             // if (error.response?.status === 401) {
-    //             //     navigation.navigate('Login');
-    //             // }
-
-    //             // // If token is invalid, navigate back to login
-    //             // if (error.message.includes('token')) {
-    //             //     navigation.navigate('Login');
-    //             // }
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     };
-
-    //     fetchUserData();
-    // }, [accessToken, navigation]);
-
-    // Fetch user data when component mounts
-
-
-    useEffect(() => {
-        const verifySession = async () => {
-            try {
-                // Optional: You can add a manual check here
-                // await checkAuthStatus();
-            } catch (error) {
-                // Will be handled by the interceptor
-            }
-        };
-        verifySession();
-    }, []);
-
-
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                // Check if token exists in AsyncStorage
                 const token = await AsyncStorage.getItem('accessToken');
-                console.log("Token in DashboardPage:", token);
                 if (!token) {
-                    console.warn("No token found, redirecting to Login");
-                    navigation.replace('Login'); // Use replace to prevent going back
+                    console.warn('No token found, redirecting to Login');
+                    navigation.replace('Login');
                     return;
                 }
                 setLoading(true);
-                console.log("Fetching user data...");
                 const data = await getUserData();
-                console.log("User Data dashboard page:", data);
                 setUserData(data);
-                //         Toast.show({
-                //   type: 'success',
-                //   text1: 'Welcome',
-                //   text2: `Welcome back, ${data.data?.name || 'User'}!`,
-                // });
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
                 Toast.show({
@@ -235,12 +150,9 @@ function DashboardPage({ navigation, route }) {
                     text1: 'Error',
                     text2: error.message || 'Failed to load user data',
                 });
-
-                // Navigate back to login on token-related errors
                 if (error.status === 401) {
-                    await clearAuthToken(); // Clear token on 401 error
-                    // navigation.navigate('Login');
-                    navigation.replace('Login'); // Use replace to prevent going back
+                    await clearAuthToken();
+                    navigation.replace('Login');
                 }
             } finally {
                 setLoading(false);
@@ -250,7 +162,6 @@ function DashboardPage({ navigation, route }) {
         fetchUserData();
     }, [navigation]);
 
-    // Auto-scroll logic (optional)
     useEffect(() => {
         const interval = setInterval(() => {
             setActiveIndex(prev => {
@@ -258,44 +169,24 @@ function DashboardPage({ navigation, route }) {
                 carouselRef.current?.scrollToIndex({ index: nextIndex, animated: true });
                 return nextIndex;
             });
-        }, 3000); // 3s interval
+        }, 3000);
 
         return () => clearInterval(interval);
-    }, []);
-
-
-    // if (loading) {
-    //     return (
-    //         <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-    //             <LinearGradient colors={['#5e3b15', '#b06a2c']} style={styles.loadingBackground}>
-    //             <ActivityIndicator size="large" color="#b97676" />
-    //             <Text style={{ color: '#a35050', marginTop: 20 }}>Loading your data...</Text>
-    //             </LinearGradient>
-    //         </View>
-    //     );
-    // }
+    }, [carouselItems]);
 
     if (loading) {
         return (
             <View style={[styles.loadingContainer]}>
                 <LinearGradient colors={['#5e3b15', '#b06a2c']} style={styles.loadingBackground}>
                     <ActivityIndicator size="large" color="#fff" />
-                    <Text style={styles.loadingText}>Loading your data...</Text>
+                    <Text style={styles.loadingText}>
+                        {languageTexts?.dashboard?.loading || 'Loading your data...'}
+                    </Text>
                 </LinearGradient>
             </View>
         );
     }
-    //     React.useEffect(() => {
-    //     const interval = setInterval(() => {
-    //         let nextIndex = (activeIndex + 1) % carouselItems.length;
-    //         carouselRef.current?.scrollToIndex({ index: nextIndex, animated: true });
-    //     }, 3000);
 
-    //     return () => clearInterval(interval);
-    // }, [activeIndex]); // <- Make sure it updates based on latest index
-
-
-    // Carousel render function
     const renderCarouselItem = ({ item }) => (
         <View style={styles.carouselItem}>
             <Image source={item.image} style={styles.carouselImage} />
@@ -303,30 +194,8 @@ function DashboardPage({ navigation, route }) {
         </View>
     );
 
-
-    // Add this new array of menu items above your component
-    const dashboardMenuItems = [
-        { id: '1', name: 'Event Calendar', screen: 'EventCalendar', icon: 'calendar-month' },
-        { id: '2', name: 'Services Directory', screen: 'ServicesDirectory', icon: 'cog-outline' },
-        { id: '3', name: 'Notifications', screen: 'Notifications', icon: 'bell-outline' },
-        { id: '4', name: 'Multilingual Support', screen: 'MultilingualSupport', icon: 'translate' },
-        { id: '5', name: 'Help Request', screen: 'HelpRequest', icon: 'help-circle-outline' },
-        { id: '6', name: 'Profile', screen: 'Profile', icon: 'account' },
-        // { id: '7', name: 'Celebration', icon: 'party-popper' },
-        // { id: '8', name: 'Event', icon: 'calendar' },
-        // { id: '9', name: 'La Madal', icon: 'church' },
-    ];
-
-    // Add this new function to handle icon presses
     const handleIconPress = (itemName) => {
-        console.log(`${itemName} pressed`);
-        let name = itemName;
-        navigation.navigate(name);
-        // You can add navigation logic here based on the item pressed
-        // For example:
-        // if (itemName === 'News') {
-        //     navigation.navigate('NewsScreen');
-        // }
+        navigation.navigate(itemName);
     };
 
     return (
@@ -336,25 +205,17 @@ function DashboardPage({ navigation, route }) {
                     <Icon name="menu" size={26} color="#FFF" />
                 </TouchableOpacity>
 
-                <Text style={styles.title}>Dashboard</Text>
-
-                {/* <Text style={styles.welcomeText}>
-                    👋 Hi {loggedInUserName}! Welcome to Bosco Migrants.{'\n'}Wishing you a lovely day ahead!
-                </Text> */}
-                <Text style={styles.welcomeText}>
-                    👋 Hi {userData?.data.name || 'User'}! Welcome to Bosco Migrants.
+                <Text style={styles.title}>
+                    {languageTexts?.dashboard?.title || 'Dashboard'}
                 </Text>
-                {/* Display user email if available */}
+                <Text style={styles.welcomeText}>
+                    👋 {languageTexts?.dashboard?.welcome?.replace('{name}', userData?.data?.name || 'User') || `Hi ${userData?.data?.name || 'User'}! Welcome to Bosco Migrants.`}
+                </Text>
                 {userData?.data.email && (
                     <Text style={styles.userInfoText}>
-                        Email: {userData.data.email}
+                        {languageTexts?.dashboard?.email?.replace('{email}', userData.data.email) || `Email: ${userData.data.email}`}
                     </Text>
                 )}
-                {/* <Image
-                    // source={require('../asserts/images/dash1.jpg')} // <- replace with your image path
-                    source={require('../asserts/images/bmgp2.png')} // <- replace with your image path
-                    style={styles.welcomeImage}
-                /> */}
                 <View style={styles.carouselContainer}>
                     <FlatList
                         data={carouselItems}
@@ -369,40 +230,7 @@ function DashboardPage({ navigation, route }) {
                         renderItem={renderCarouselItem}
                         keyExtractor={(_, index) => index.toString()}
                     />
-                    {/* <View style={styles.pagination}>
-                        {carouselItems.map((_, index) => (
-                            <View
-                                key={index}
-                                style={[
-                                    styles.paginationDot,
-                                    { opacity: index === activeIndex ? 1 : 0.3 },
-                                ]}
-                            />
-                        ))}
-                    </View> */}
                 </View>
-
-
-                {/* <ScrollView contentContainerStyle={styles.gridContainer}>
-                    {dashboardMenuItems.map((item) => (
-                        <TouchableOpacity
-                            key={item.id}
-                            style={styles.gridItem}
-                            onPress={() => handleIconPress(item.screen)}
-                        >
-                            <View style={styles.iconContainer}>
-                                <Icon 
-                                    name={item.icon} 
-                                    size={26} 
-                                    color="#FFF" 
-                                    style={styles.gridIcon}
-                                />
-                                <Text style={styles.gridText}>{item.name}</Text>
-                            </View>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView> */}
-                {/* // Update the grid item rendering in your JSX: */}
                 <ScrollView contentContainerStyle={styles.gridContainer}>
                     {dashboardMenuItems.map((item) => (
                         <View key={item.id} style={styles.gridItem}>
@@ -418,18 +246,12 @@ function DashboardPage({ navigation, route }) {
                                     />
                                 </View>
                             </TouchableOpacity>
-                            <Text style={styles.gridText}>{item.name}</Text>
+                            <Text style={styles.gridText}>
+                                {languageTexts?.menu?.[item.name] || item.name}
+                            </Text>
                         </View>
                     ))}
                 </ScrollView>
-
-                {/* <View style={styles.bottomContainer}>
-                    <TouchableOpacity style={styles.profileButton} onPress={handleProfileNavigate}>
-                        <Icon name="account" size={20} color="#fff" style={{ marginRight: 10 }} />
-                        <Text style={styles.profileText}>View Profile</Text>
-                    </TouchableOpacity>
-                </View> */}
-
                 {sidebarOpen && (
                     <TouchableWithoutFeedback onPress={closeSidebar}>
                         <View style={styles.overlay} />
@@ -443,49 +265,171 @@ function DashboardPage({ navigation, route }) {
                             transform: [{ translateX: slideAnim }],
                         },
                     ]}
-                    // {...panResponder.panHandlers}
                     {...sidebarPanResponder.panHandlers}
                 >
                     <TouchableOpacity onPress={handleMenuHeaderPress} style={styles.sidebarHeader}>
-                        <Text style={styles.sidebarTitle}>Menus</Text>
+                        <Text style={styles.sidebarTitle}>
+                            {languageTexts?.menu?.menus || 'Menus'}
+                        </Text>
                     </TouchableOpacity>
 
-                    {/* Separate TouchableOpacity for each menu option */}
-                    <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Event Calendar', { screen: 'EventCalendar' })}>
-                        <Icon name="calendar-month" size={22} color="#fff" style={styles.menuIcon} />
-                        <Text style={styles.menuText}>Event Calendar</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Services Directory', { screen: 'ServicesDirectory' })}>
-                        <Icon name="cog-outline" size={22} color="#fff" style={styles.menuIcon} />
-                        <Text style={styles.menuText}>Services Directory</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Notifications', { screen: 'Notifications' })}>
-                        <Icon name="bell-outline" size={22} color="#fff" style={styles.menuIcon} />
-                        <Text style={styles.menuText}>Notifications</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Multilingual Support', { screen: 'MultilingualSupport' })}>
-                        <Icon name="translate" size={22} color="#fff" style={styles.menuIcon} />
-                        <Text style={styles.menuText}>Multilingual Support</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Help Request', { screen: 'HelpRequest' })}>
-                        <Icon name="help-circle-outline" size={22} color="#fff" style={styles.menuIcon} />
-                        <Text style={styles.menuText}>Help Request</Text>
-                    </TouchableOpacity>
-
+                    {dashboardMenuItems.map((item) => (
+                        <TouchableOpacity
+                            key={item.id}
+                            style={styles.menuItem}
+                            onPress={() => handleMenuItemPress(languageTexts?.menu?.[item.name] || item.name, { screen: item.screen })}
+                        >
+                            <Icon name={item.icon} size={22} color="#fff" style={styles.menuIcon} />
+                            <Text style={styles.menuText}>
+                                {languageTexts?.menu?.[item.name] || item.name}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
 
                     <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Logout', { screen: 'Login' })}>
                         <Icon name="logout" size={22} color="#fff" style={styles.menuIcon} />
-                        <Text style={styles.menuText}>Logout</Text>
+                        <Text style={styles.menuText}>
+                            {languageTexts?.menu?.logout || 'Logout'}
+                        </Text>
                     </TouchableOpacity>
                 </Animated.View>
             </LinearGradient>
         </View>
     );
 }
+
+// Assuming styles remain the same
+const styles1 = StyleSheet.create({
+    wrapper: {
+        flex: 1,
+    },
+    container: {
+        flex: 1,
+    },
+    menuButton: {
+        position: 'absolute',
+        top: 40,
+        left: 20,
+        zIndex: 10,
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#FFF',
+        textAlign: 'center',
+        marginTop: 80,
+    },
+    welcomeText: {
+        fontSize: 18,
+        color: '#FFF',
+        textAlign: 'center',
+        marginTop: 10,
+        marginHorizontal: 20,
+    },
+    userInfoText: {
+        fontSize: 16,
+        color: '#FFF',
+        textAlign: 'center',
+        marginTop: 5,
+    },
+    carouselContainer: {
+        height: 200,
+        marginTop: 20,
+    },
+    carouselItem: {
+        width,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    carouselImage: {
+        width: width * 0.9,
+        height: 150,
+        borderRadius: 10,
+    },
+    carouselTitle: {
+        fontSize: 16,
+        color: '#FFF',
+        marginTop: 10,
+        fontWeight: '500',
+    },
+    gridContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-around',
+        padding: 20,
+    },
+    gridItem: {
+        width: '45%',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    iconTouchable: {
+        alignItems: 'center',
+    },
+    iconBackground: {
+        padding: 15,
+        borderRadius: 10,
+    },
+    gridText: {
+        fontSize: 14,
+        color: '#FFF',
+        marginTop: 8,
+        textAlign: 'center',
+    },
+    overlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    sidebar: {
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        width: 250,
+        backgroundColor: '#333',
+        paddingTop: 40,
+    },
+    sidebarHeader: {
+        padding: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#444',
+    },
+    sidebarTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#FFF',
+    },
+    menuItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#444',
+    },
+    menuIcon: {
+        marginRight: 10,
+    },
+    menuText: {
+        fontSize: 16,
+        color: '#FFF',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingBackground: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+    },
+    loadingText: {
+        color: '#FFF',
+        fontSize: 16,
+        marginTop: 10,
+    },
+});
 
 export default DashboardPage;
 
