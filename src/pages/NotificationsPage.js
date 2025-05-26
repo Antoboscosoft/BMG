@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useLanguage } from '../language/commondir';
 
 function NotificationsPage({ navigation }) {
+    const { languageTexts } = useLanguage();
     const fadeAnim = useState(new Animated.Value(0))[0]; // Animation for fade-in effect
 
     useEffect(() => {
@@ -21,7 +23,7 @@ function NotificationsPage({ navigation }) {
             id: '1',
             title: 'New Job Opportunity',
             description: 'A new construction job is available in your area. Apply now!',
-            timestamp: '2 hours ago',
+            timestamp: languageTexts?.notifications?.timestamps?.twoHoursAgo || '2 hours ago',
             date: 'May 16, 2025', // Add this
             unread: true,
         },
@@ -29,7 +31,7 @@ function NotificationsPage({ navigation }) {
             id: '2',
             title: 'Policy Update',
             description: 'New government policy on migrant worker rights announced.',
-            timestamp: '1 day ago',
+            timestamp: languageTexts?.notifications?.timestamps?.oneDayAgo || '1 day ago',
             date: 'May 15, 2025', // Add this
             unread: false,
         },
@@ -37,7 +39,7 @@ function NotificationsPage({ navigation }) {
             id: '3',
             title: 'Event Reminder',
             description: 'Legal consultation session tomorrow at 10 AM.',
-            timestamp: '3 days ago',
+            timestamp: languageTexts?.notifications?.timestamps?.threeDaysAgo || '3 days ago',
             date: 'May 11, 2025', // Add this
             unread: false,
         },
@@ -45,7 +47,7 @@ function NotificationsPage({ navigation }) {
             id: '4',
             title: 'Health Checkup',
             description: 'Free health checkup scheduled for next week.',
-            timestamp: '5 days ago',
+            timestamp:  languageTexts?.notifications?.timestamps?.fiveDaysAgo || '5 days ago',
             date: 'May 9, 2025', // Add this
             unread: false,
         },
@@ -63,9 +65,9 @@ function NotificationsPage({ navigation }) {
                         style={styles.backButton}
                         onPress={() => navigation.goBack()}
                     >
-                        <Text style={styles.backButtonText}>{'< Back'}</Text>
+                        <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text>
                     </TouchableOpacity>
-                    <Text style={styles.titleText}>Notifications</Text>
+                    <Text style={styles.titleText}>{languageTexts?.notifications?.title || 'Notifications'}</Text>
                     <View style={{ width: 60 }} /> 
                 </View>
                 <ScrollView
@@ -94,13 +96,13 @@ function NotificationsPage({ navigation }) {
                                                 color="#2753b2"
                                                 style={styles.notificationIcon}
                                             />
-                                            <Text style={styles.notificationTitle}>{notification.title}</Text>
+                                            <Text style={styles.notificationTitle}>{languageTexts?.notifications?.items?.[notification.titleKey] || notification.title}</Text>
                                             <Text style={styles.notificationTimestamp}>
                                                 {notification.timestamp}
                                             </Text>
                                         </View>
                                         <Text style={styles.notificationDescription}>
-                                            {notification.description}
+                                            {languageTexts?.notifications?.items?.[notification.description] || notification.description}
                                         </Text>
                                         <View style={styles.dateContainer}>
                                             <Text style={styles.notificationDate}>
@@ -112,7 +114,7 @@ function NotificationsPage({ navigation }) {
                             ))
                         ) : (
                             <Text style={styles.noNotificationsText}>
-                                No notifications available.
+                                {languageTexts?.notifications?.empty || 'No notifications available.'}
                             </Text>
                         )}
                     </View>

@@ -6,12 +6,14 @@ import {
     TouchableOpacity,
     Alert,
     TextInput,
-    ScrollView
+    ScrollView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { createServiceRequest, deleteServiceRequest, updateServiceRequest } from '../api/auth';
+import { useLanguage } from '../language/commondir';
 
 function CreateService({ navigation, route }) {
+    const { languageTexts } = useLanguage();
     const { serviceData } = route.params;
     const [isUpdating, setIsUpdating] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -28,12 +30,12 @@ function CreateService({ navigation, route }) {
 
     const handleSubmit = async () => {
         if (!description.trim()) {
-            setError('Description is required');
+            setError(languageTexts?.createService?.error?.description || 'Description is required');
             return;
         }
 
         setError('');
-        
+
         if (serviceData?.isApplied && serviceData?.service_id) {
             if (!isEditing) {
                 setIsEditing(true);
@@ -49,13 +51,16 @@ function CreateService({ navigation, route }) {
 
                 const response = await updateServiceRequest(serviceData?.service_id, requestData);
                 Alert.alert(
-                    'Success',
-                    'Service request updated successfully!',
-                    [{ text: 'OK', onPress: () => navigation.navigate('ServicesDirectory') }],
+                    languageTexts?.createService?.success?.title || 'Success',
+                    languageTexts?.createService?.success?.update || 'Service request updated successfully!',
+                    [{ text: languageTexts?.common?.ok || 'OK', onPress: () => navigation.navigate('ServicesDirectory') }],
                     { cancelable: false }
                 );
             } catch (error) {
-                Alert.alert('Error', 'Failed to update service request. Please try again.');
+                Alert.alert(
+                    languageTexts?.createService?.error?.title || 'Error',
+                    languageTexts?.createService?.error?.update || 'Failed to update service request. Please try again.'
+                );
             } finally {
                 setIsUpdating(false);
                 setIsEditing(false);
@@ -71,13 +76,16 @@ function CreateService({ navigation, route }) {
 
                 const response = await createServiceRequest(requestData);
                 Alert.alert(
-                    'Success',
-                    'Service request created successfully!',
-                    [{ text: 'OK', onPress: () => navigation.navigate('ServicesDirectory') }],
+                    languageTexts?.createService?.success?.title || 'Success',
+                    languageTexts?.createService?.success?.create || 'Service request created successfully!',
+                    [{ text: languageTexts?.common?.ok || 'OK', onPress: () => navigation.navigate('ServicesDirectory') }],
                     { cancelable: false }
                 );
             } catch (error) {
-                Alert.alert('Error', 'Failed to create service request. Please try again.');
+                Alert.alert(
+                    languageTexts?.createService?.error?.title || 'Error',
+                    languageTexts?.createService?.error?.create || 'Failed to create service request. Please try again.'
+                );
             } finally {
                 setIsCreating(false);
             }
@@ -86,23 +94,26 @@ function CreateService({ navigation, route }) {
 
     const handleDeleteRequest = async () => {
         Alert.alert(
-            'Delete Request',
-            'Are you sure you want to delete this service request?',
+            languageTexts?.createService?.delete?.title || 'Delete Request',
+            languageTexts?.createService?.delete?.message || 'Are you sure you want to delete this service request?',
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: languageTexts?.common?.cancel || 'Cancel', style: 'cancel' },
                 {
-                    text: 'Delete',
+                    text: languageTexts?.createService?.delete?.confirm || 'Delete',
                     onPress: async () => {
                         setIsDeleting(true);
                         try {
                             await deleteServiceRequest(serviceData?.service_id);
                             Alert.alert(
-                                'Success',
-                                'Service request deleted successfully!',
-                                [{ text: 'OK', onPress: () => navigation.navigate('ServicesDirectory') }]
+                                languageTexts?.createService?.success?.title || 'Success',
+                                languageTexts?.createService?.success?.delete || 'Service request deleted successfully!',
+                                [{ text: languageTexts?.common?.ok || 'OK', onPress: () => navigation.navigate('ServicesDirectory') }]
                             );
                         } catch (error) {
-                            Alert.alert('Error', 'Failed to delete service request. Please try again.');
+                            Alert.alert(
+                                languageTexts?.createService?.error?.title || 'Error',
+                                languageTexts?.createService?.error?.delete || 'Failed to delete service request. Please try again.'
+                            );
                         } finally {
                             setIsDeleting(false);
                         }
@@ -120,22 +131,30 @@ function CreateService({ navigation, route }) {
                     style={styles.backButton}
                     onPress={() => navigation.navigate('ServicesDirectory')}
                 >
-                    <Text style={styles.backButtonText}>{'< Back'}</Text>
+                    <Text style={styles.backButtonText}>
+                        {languageTexts?.common?.back || '< Back'}
+                    </Text>
                 </TouchableOpacity>
 
                 <View style={styles.header}>
                     <Text style={styles.headerText}>
-                        {serviceData.isApplied ? 'Service Request' : 'Create Service Request'}
+                        {serviceData.isApplied
+                            ? languageTexts?.createService?.title?.update || 'Service Request'
+                            : languageTexts?.createService?.title?.create || 'Create Service Request'}
                     </Text>
                 </View>
 
                 <View style={styles.contentContainer}>
-                    <Text style={styles.label}>Service Category:</Text>
+                    <Text style={styles.label}>
+                        {languageTexts?.createService?.category || 'Service Category:'}
+                    </Text>
                     <View style={styles.categoryBox}>
                         <Text style={styles.categoryText}>{serviceData.category_name}</Text>
                     </View>
 
-                    <Text style={styles.label}>Description:</Text>
+                    <Text style={styles.label}>
+                        {languageTexts?.createService?.description || 'Description:'}
+                    </Text>
                     {serviceData.isApplied && !isEditing ? (
                         <View style={styles.descriptionBox}>
                             <Text style={styles.descriptionText}>{description}</Text>
@@ -143,7 +162,7 @@ function CreateService({ navigation, route }) {
                     ) : (
                         <TextInput
                             style={[styles.input, error ? styles.inputError : null]}
-                            placeholder="Enter your request details"
+                            placeholder={languageTexts?.createService?.placeholder || 'Enter your request details'}
                             placeholderTextColor="#999"
                             multiline
                             numberOfLines={4}
@@ -163,26 +182,31 @@ function CreateService({ navigation, route }) {
                                 <TouchableOpacity
                                     style={[
                                         styles.editButton,
-                                        (isUpdating || isDeleting) && styles.disabledButton
+                                        (isUpdating || isDeleting) && styles.disabledButton,
                                     ]}
                                     onPress={handleSubmit}
                                     disabled={isUpdating || isDeleting}
                                 >
                                     <Text style={styles.buttonText}>
-                                        {isEditing ? (isUpdating ? 'Updating...' : 'Update') : 'Edit'}
+                                        {isEditing
+                                            ? (isUpdating
+                                                ? languageTexts?.createService?.updating || 'Updating...'
+                                                : languageTexts?.createService?.update || 'Update')
+                                            : languageTexts?.createService?.edit || 'Edit'}
                                     </Text>
                                 </TouchableOpacity>
-                                
                                 <TouchableOpacity
                                     style={[
                                         styles.deleteButton,
-                                        (isUpdating || isDeleting) && styles.disabledButton
+                                        (isUpdating || isDeleting) && styles.disabledButton,
                                     ]}
                                     onPress={handleDeleteRequest}
                                     disabled={isUpdating || isDeleting}
                                 >
                                     <Text style={styles.buttonText}>
-                                        {isDeleting ? 'Deleting...' : 'Delete'}
+                                        {isDeleting
+                                            ? languageTexts?.createService?.deleting || 'Deleting...'
+                                            : languageTexts?.createService?.delete?.button || 'Delete'}
                                     </Text>
                                 </TouchableOpacity>
                             </>
@@ -190,13 +214,15 @@ function CreateService({ navigation, route }) {
                             <TouchableOpacity
                                 style={[
                                     styles.submitButton,
-                                    isCreating && styles.disabledButton
+                                    isCreating && styles.disabledButton,
                                 ]}
                                 onPress={handleSubmit}
                                 disabled={isCreating}
                             >
                                 <Text style={styles.buttonText}>
-                                    {isCreating ? 'Submitting...' : 'Submit Request'}
+                                    {isCreating
+                                        ? languageTexts?.createService?.submitting || 'Submitting...'
+                                        : languageTexts?.createService?.submit || 'Submit Request'}
                                 </Text>
                             </TouchableOpacity>
                         )}
@@ -212,17 +238,16 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContainer: {
-        flexGrow: 1,
-        padding: 15,
+        paddingHorizontal: 20,
+        paddingVertical: 30,
     },
     backButton: {
-        position: 'absolute',
-        top: 20,
-        left: 20,
-        padding: 10,
+        alignSelf: 'flex-start',
+        paddingVertical: 6,
+        paddingHorizontal: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
         borderRadius: 8,
-        zIndex: 1,
+        marginBottom: 20,
     },
     backButtonText: {
         fontSize: 16,
@@ -230,110 +255,100 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     header: {
-        alignItems: 'center',
-        paddingTop: 60,
-        paddingBottom: 20,
+        marginBottom: 20,
     },
     headerText: {
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: 'bold',
-        color: '#ffffff',
+        color: '#FFF',
+        textAlign: 'center',
     },
     contentContainer: {
-        marginTop: 20,
-        padding: 20,
-        backgroundColor: '#FFF',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
         borderRadius: 10,
+        padding: 20,
         elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
     },
     label: {
         fontSize: 16,
         fontWeight: '600',
         color: '#333',
-        marginBottom: 8,
+        marginBottom: 10,
     },
     categoryBox: {
-        backgroundColor: '#f5f5f5',
-        padding: 12,
-        borderRadius: 8,
         marginBottom: 20,
-        borderWidth: 1,
-        borderColor: '#e0e0e0',
+        padding: 15,
+        backgroundColor: '#F5F5F5',
+        borderRadius: 8,
     },
     categoryText: {
         fontSize: 16,
-        color: '#2753b2',
-        fontWeight: 'bold',
+        color: '#333',
     },
     input: {
-        borderWidth: 1,
-        borderColor: '#ddd',
+        backgroundColor: '#FFF',
         borderRadius: 8,
-        padding: 12,
+        padding: 15,
         fontSize: 16,
-        minHeight: 100,
-        textAlignVertical: 'top',
+        color: '#333',
+        borderWidth: 1,
+        borderColor: '#DDD',
         marginBottom: 10,
-        backgroundColor: '#f9f9f9',
+        textAlignVertical: 'top',
     },
     inputError: {
-        borderColor: '#ff6b6b',
+        borderColor: '#D32F2F',
     },
     descriptionBox: {
-        backgroundColor: '#f5f5f5',
-        padding: 12,
+        backgroundColor: '#F5F5F5',
         borderRadius: 8,
-        marginBottom: 20,
-        borderWidth: 1,
-        borderColor: '#e0e0e0',
-        minHeight: 100,
+        padding: 15,
+        marginBottom: 10,
     },
     descriptionText: {
         fontSize: 16,
         color: '#333',
     },
     errorText: {
-        color: '#ff6b6b',
         fontSize: 14,
+        color: '#D32F2F',
         marginBottom: 10,
     },
     buttonRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        gap: 10,
-    },
-    editButton: {
-        flex: 1,
-        backgroundColor: '#2753b2',
-        padding: 12,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    deleteButton: {
-        flex: 1,
-        backgroundColor: '#ff4444',
-        padding: 12,
-        borderRadius: 8,
-        alignItems: 'center',
     },
     submitButton: {
         backgroundColor: '#2753b2',
-        padding: 15,
+        paddingVertical: 12,
+        paddingHorizontal: 20,
         borderRadius: 8,
-        alignItems: 'center',
         flex: 1,
+    },
+    editButton: {
+        backgroundColor: '#2753b2',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+        flex: 1,
+        marginRight: 5,
+    },
+    deleteButton: {
+        backgroundColor: '#D32F2F',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+        flex: 1,
+        marginLeft: 5,
+    },
+    disabledButton: {
+        backgroundColor: '#B0BEC5',
     },
     buttonText: {
         color: '#FFF',
         fontSize: 16,
-        fontWeight: 'bold',
-    },
-    disabledButton: {
-        opacity: 0.6,
+        fontWeight: '600',
+        textAlign: 'center',
     },
 });
 

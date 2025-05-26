@@ -3,6 +3,7 @@ import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet, ActivityIndi
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient'; // <-- make sure this is installed
 import { getServiceCategories } from '../api/auth'; // Import the new API function
+import { useLanguage } from '../language/commondir';
 
 
 // Icon mapping for different service types
@@ -35,6 +36,7 @@ const serviceDescriptions = {
 };
 
 function ServicesDirectory({ navigation }) {
+    const { languageTexts } = useLanguage();
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -57,9 +59,9 @@ function ServicesDirectory({ navigation }) {
                     // Transform API data to match our UI structure
                     const formattedServices = response.data.map(service => ({
                         id: service?.id.toString(),
-                        name: service?.name,
+                        name: languageTexts?.servicesDirectory?.services?.[service.name.replace(/\s+/g, '')] || service?.name,
                         icon: serviceIcons[service.name] || serviceIcons['default'],
-                        // description: service.description || 'Service description not available',
+                        description: languageTexts?.servicesDirectory?.descriptions?.[service.name.replace(/\s+/g, '')] || languageTexts?.servicesDirectory?.descriptions?.default || 'Service description not available',
                         // description: serviceDescriptions[service.name] || serviceDescriptions['default'],
                         category_id: service?.id, // Keep the original ID for API calls
                         available: service?.available,
@@ -68,18 +70,18 @@ function ServicesDirectory({ navigation }) {
                     }));
                     setServices(formattedServices);
                 } else {
-                    throw new Error(response?.details || 'Failed to fetch services');
+                    throw new Error(response?.details || languageTexts?.servicesDirectory?.error?.fetch || 'Failed to fetch services');
                 }
             } catch (err) {
                 console.error('Failed to fetch services:', err);
-                setError('Failed to load services. Please try again.');
+                setError(languageTexts?.servicesDirectory?.error?.fetch || 'Failed to load services. Please try again.');
             } finally {
                 setLoading(false);
             }
         };
 
         fetchServices();
-    }, []);
+    }, [languageTexts]);
 
 
 
@@ -156,12 +158,12 @@ function ServicesDirectory({ navigation }) {
                         onPress={() => handleApply(item, isApplied)}
                         activeOpacity={0.8}
                     >
-                        <Text style={[isApplied ? styles.appliedButtonText : styles.applyButtonText]}>{isApplied ? 'Applied' : 'Apply'}</Text>
+                        <Text style={[isApplied ? styles.appliedButtonText : styles.applyButtonText]}>{isApplied ?  languageTexts?.servicesDirectory?.applied || 'Applied' : languageTexts?.servicesDirectory?.apply || 'Apply'}</Text>
                     </TouchableOpacity>
                 ) : (
                     <View style={styles.disabledButton}>
                         {/* <Icon name="close-circle" size={20} color="#ff6b6b" style={styles.unavailableIcon} /> */}
-                        <Text style={styles.disabledButtonText}>Unavailable</Text>
+                        <Text style={styles.disabledButtonText}>{languageTexts?.servicesDirectory?.unavailable || 'Unavailable'}</Text>
                     </View>
                 )}
             </View>
@@ -172,7 +174,7 @@ function ServicesDirectory({ navigation }) {
         return (
             <LinearGradient colors={['#2753b2', '#e6e9f0']} style={[styles.container, styles.loadingContainer]}>
                 <ActivityIndicator size="large" color="#FFF" />
-                <Text style={styles.loadingText}>Loading services...</Text>
+                <Text style={styles.loadingText}>{languageTexts?.servicesDirectory?.loading || 'Loading services...'}</Text>
             </LinearGradient>
         );
     }
@@ -211,7 +213,7 @@ function ServicesDirectory({ navigation }) {
                         }, []);
                     }}
                 >
-                    <Text style={styles.retryButtonText}>Retry</Text>
+                    <Text style={styles.retryButtonText}>{languageTexts?.servicesDirectory?.retry || 'Retry'}</Text>
                 </TouchableOpacity>
             </LinearGradient>
         );
@@ -241,7 +243,7 @@ function ServicesDirectory({ navigation }) {
     if (services.length === 0) {
         return (
             <LinearGradient colors={['#2753b2', '#e6e9f0']} style={[styles.container, styles.emptyContainer]}>
-                <Text style={styles.emptyText}>No services available at the moment.</Text>
+                <Text style={styles.emptyText}>{languageTexts?.servicesDirectory?.empty || 'No services available at the moment.'}</Text>
             </LinearGradient>
         );
     }
@@ -295,7 +297,7 @@ function ServicesDirectory({ navigation }) {
                 // onPress={() => navigation.goBack()}
                 onPress={() => navigation.navigate('Dashboard')}
             >
-                <Text style={styles.backButtonText}>{'< Back'}</Text>
+                <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text>
             </TouchableOpacity>
 
             {/* Header with Logo and Title */}
@@ -305,7 +307,7 @@ function ServicesDirectory({ navigation }) {
                     style={styles.logo}
                     resizeMode="contain"
                 />
-                <Text style={styles.headerText}>Services Directory</Text>
+                <Text style={styles.headerText}>{languageTexts?.menu?.servicesDirectory || 'Services Directory'}</Text>
             </View>
 
             {/* List of Services */}
@@ -317,7 +319,7 @@ function ServicesDirectory({ navigation }) {
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Icon name="emoticon-sad" size={40} color="#666" />
-                        <Text style={styles.emptyText}>No services available at this time</Text>
+                        <Text style={styles.emptyText}>{languageTexts?.servicesDirectory?.emptyList || 'No services available at this time'}</Text>
                     </View>
                 }
             />

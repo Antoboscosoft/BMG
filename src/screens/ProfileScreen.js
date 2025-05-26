@@ -14,6 +14,7 @@ import { getUserData } from '../api/auth';
 import { clearAuthToken } from '../api/axiosInstance';
 import Toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/MaterialIcons'; // Make sure to install this package
+import { useLanguage } from '../language/commondir';
 
 const { width, height } = Dimensions.get('window');
 
@@ -36,6 +37,7 @@ function formatDate(date) {
 }
 
 function ProfileScreen({ navigation }) {
+    const { languageTexts } = useLanguage();
     const [userData, setUserData] = useState(null);
     const [imageUri, setImageUri] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -67,8 +69,8 @@ function ProfileScreen({ navigation }) {
                 console.error('Failed to fetch user data:', error);
                 Toast.show({
                     type: 'error',
-                    text1: 'Error',
-                    text2: error.message || 'Failed to load user data',
+                    text1: languageTexts?.common?.error || 'Error',
+                    text2: error.message || (languageTexts?.profile?.screen?.error?.load || 'Failed to load user data'),
                 });
 
                 if (error.status === 401) {
@@ -88,7 +90,7 @@ function ProfileScreen({ navigation }) {
             <View style={styles.loadingContainer}>
                 <LinearGradient colors={['#5e3b15', '#b06a2c']} style={styles.loadingBackground}>
                     <ActivityIndicator size="large" color="#fff" />
-                    <Text style={styles.loadingText}>Loading your data...</Text>
+                    <Text style={styles.loadingText}>{languageTexts?.profile?.screen?.loading || 'Loading your data...'}</Text>
                 </LinearGradient>
             </View>
         );
@@ -99,9 +101,9 @@ function ProfileScreen({ navigation }) {
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.headerContainer}>
                     <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Dashboard')}>
-                        <Text style={styles.backButtonText}>{'< Back'}</Text>
+                        <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text>
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Your Profile</Text>
+                    <Text style={styles.headerTitle}>{languageTexts?.profile?.screen?.title || 'Your Profile'}</Text>
                     <View style={{ width: 60 }} />
                 </View>
 
@@ -119,19 +121,19 @@ function ProfileScreen({ navigation }) {
 
                     {/* Name */}
                     <View style={styles.row}>
-                        <Text style={styles.label}>Name</Text>
+                        <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.name || 'Name'}</Text>
                         <Text style={styles.value}>{userData?.name || '-'}</Text>
                     </View>
 
                     {/* Email */}
                     <View style={styles.row}>
-                        <Text style={styles.label}>Email</Text>
+                        <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.email || 'Email'}</Text>
                         <Text style={styles.value}>{userData?.email || '-'}</Text>
                     </View>
 
                     {/* Mobile */}
                     <View style={styles.row}>
-                        <Text style={styles.label}>Mobile</Text>
+                        <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.mobile || 'Mobile'}</Text>
                         <Text style={styles.value}>
                             {userData?.mobile_code ? `+${userData.mobile_code}` : '-'} {userData?.mobile_number || '-'}
                         </Text>
@@ -139,74 +141,75 @@ function ProfileScreen({ navigation }) {
 
                     {/* Aadhaar */}
                     <View style={styles.row}>
-                        <Text style={styles.label}>Aadhaar</Text>
+                        <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.aadhaar || 'Aadhaar'}</Text>
                         <Text style={styles.value}>{userData?.aadhaar_number || '-'}</Text>
                     </View>
 
                     {/* Date of Birth */}
                     <View style={styles.row}>
-                        <Text style={styles.label}>Date of Birth</Text>
+                        <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.dob || 'Date of Birth'}</Text>
                         <Text style={styles.value}>{formatDate(userData?.date_of_birth) || '-'}</Text>
                     </View>
 
                     {/* Age */}
                     <View style={styles.row}>
-                        <Text style={styles.label}>Age</Text>
+                        <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.age || 'Age'}</Text>
                         <Text style={styles.value}>{calculateAge(userData?.date_of_birth) || '-'}</Text>
                     </View>
 
                     {/* Current Address */}
                     <View style={styles.row}>
-                        <Text style={styles.label}>Current Address</Text>
+                        <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.currentAddress || 'Current Address'}</Text>
                         <Text style={styles.value}>{userData?.current_address_line || '-'}</Text>
                     </View>
 
                     {/* Current Country */}
                     <View style={styles.row}>
-                        <Text style={styles.label}>Current Country</Text>
+                        <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.currentCountry || 'Current Country'}</Text>
                         <Text style={styles.value}>{userData?.current_country?.name || '-'}</Text>
                     </View>
 
                     {/* Current State */}
                     <View style={styles.row}>
-                        <Text style={styles.label}>Current State</Text>
+                        <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.currentState || 'Current State'}</Text>
                         <Text style={styles.value}>{userData?.current_state?.name || '-'}</Text>
                     </View>
 
                     {/* Current District */}
                     <View style={styles.row}>
-                        <Text style={styles.label}>Current District</Text>
+                        <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.currentDistrict || 'Current District'}</Text>
                         <Text style={styles.value}>{userData?.current_district?.name || '-'}</Text>
                     </View>
 
                     {/* Native Address */}
                     <View style={styles.row}>
-                        <Text style={styles.label}>Native Address</Text>
+                        <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.nativeAddress || 'Native Address'}</Text>
                         <Text style={styles.value}>{userData?.native_address_line || '-'}</Text>
                     </View>
 
                     {/* Native Country */}
                     <View style={styles.row}>
-                        <Text style={styles.label}>Native Country</Text>
+                        <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.nativeCountry || 'Native Country'}</Text>
                         <Text style={styles.value}>{userData?.native_country?.name || '-'}</Text>
                     </View>
 
                     {/* Native State */}
                     <View style={styles.row}>
-                        <Text style={styles.label}>Native State</Text>
+                        <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.nativeState || 'Native State'}</Text>
                         <Text style={styles.value}>{userData?.native_state?.name || '-'}</Text>
                     </View>
 
                     {/* Native District */}
                     <View style={styles.row}>
-                        <Text style={styles.label}>Native District</Text>
+                        <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.nativeDistrict || 'Native District'}</Text>
                         <Text style={styles.value}>{userData?.native_district?.name || '-'}</Text>
                     </View>
 
                     {/* Language Preference */}
                     <View style={styles.row}>
-                        <Text style={styles.label}>Language</Text>
+                        <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.language || 'Language'}</Text>
                         <Text style={styles.value}>
+                            {languageTexts?.profile?.screen?.languages?.[userData?.language_pref] || '-'}
                             {userData?.language_pref === 'en' ? 'English' :
                              userData?.language_pref === 'hi' ? 'Hindi' :
                              userData?.language_pref === 'ta' ? 'Tamil' :
@@ -216,13 +219,13 @@ function ProfileScreen({ navigation }) {
 
                     {/* Skills */}
                     <View style={styles.row}>
-                        <Text style={styles.label}>Skills</Text>
+                        <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.skills || 'Skills'}</Text>
                         <Text style={styles.value}>{userData?.skills || '-'}</Text>
                     </View>
 
                     {/* Job Type */}
                     <View style={styles.row}>
-                        <Text style={styles.label}>Job Type</Text>
+                        <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.jobType || 'Job Type'}</Text>
                         <Text style={styles.value}>{userData?.job_type || '-'}</Text>
                     </View>
 

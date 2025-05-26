@@ -11,7 +11,7 @@
   },
   "menu": {
     "eventCalendar": "कार्यक्रम कैलेंडर",
-    "servicesDirectory": "सेवाएं",
+    "servicesDirectory": "सेवा निर्देशिका",
     "notifications": "सूचनाएं",
     "multilingualSupport": "भाषा",
     "helpRequest": "सहायता",
@@ -80,6 +80,65 @@
       "delete": "पंजीकरण हटाने में विफल।"
     }
   },
+  "servicesDirectory": {
+    "loading": "सेवाएं लोड हो रही हैं...",
+    "empty": "इस समय कोई सेवाएं उपलब्ध नहीं हैं।",
+    "emptyList": "इस समय कोई सेवाएं उपलब्ध नहीं हैं",
+    "apply": "आवेदन करें",
+    "applied": "आवेदन किया गया",
+    "unavailable": "अनुपलब्ध",
+    "retry": "पुनः प्रयास करें",
+    "error": {
+      "fetch": "सेवाएं लोड करने में विफल। कृपया पुनः प्रयास करें।"
+    },
+    "services": {
+      "Healthcare": "स्वास्थ्य सेवा",
+      "Legal": "कानूनी सहायता",
+      "Shelter": "आश्रय",
+      "SkillTraining": "कौशल प्रशिक्षण"
+    },
+    "descriptions": {
+      "Healthcare": "चिकित्सा देखभाल और स्वास्थ्य संसाधनों तक पहुंच",
+      "Legal": "आप्रवास और कानूनी मुद्दों में सहायता प्राप्त करें",
+      "Shelter": "अस्थायी आवास और आश्रय सेवाएं खोजें",
+      "SkillTraining": "रोजगार के अवसरों के लिए नए कौशल सीखें",
+      "default": "प्रवासियों के लिए उपलब्ध सेवा"
+    }
+  },
+  "createService": {
+    "title": {
+      "create": "सेवा अनुरोध बनाएं",
+      "update": "सेवा अनुरोध"
+    },
+    "category": "सेवा श्रेणी:",
+    "description": "विवरण:",
+    "placeholder": "अपने अनुरोध का विवरण दर्ज करें",
+    "submit": "अनुरोध जमा करें",
+    "submitting": "जमा हो रहा है...",
+    "edit": "संपादित करें",
+    "update": "अपडेट करें",
+    "updating": "अपडेट हो रहा है...",
+    "delete": {
+      "button": "हटाएं",
+      "title": "अनुरोध हटाएं",
+      "message": "क्या आप वाकई इस सेवा अनुरोध को हटाना चाहते हैं?",
+      "confirm": "हटाएं"
+    },
+    "deleting": "हटा रहा है...",
+    "success": {
+      "title": "सफलता",
+      "create": "सेवा अनुरोध सफलतापूर्वक बनाया गया!",
+      "update": "सेवा अनुरोध सफलतापूर्वक अपडेट किया गया!",
+      "delete": "सेवा अनुरोध सफलतापूर्वक हटा दिया गया!"
+    },
+    "error": {
+      "title": "त्रुटि",
+      "description": "विवरण आवश्यक है",
+      "create": "सेवा अनुरोध बनाने में विफल। कृपया पुनः प्रयास करें।",
+      "update": "सेवा अनुरोध अपडेट करने में विफल। कृपया पुनः प्रयास करें।",
+      "delete": "सेवा अनुरोध हटाने में विफल। कृपया पुनः प्रयास करें।"
+    }
+  },
   "common": {
     "back": "< वापस",
     "ok": "ठीक है",
@@ -101,5 +160,152 @@
       "रवि", "सोम", "मंगल", "बुध", "गुरु", "शुक्र", "शनि"
     ],
     "today": "आज"
+  },
+  "notifications": {
+    "title": "सूचनाएं",
+    "empty": "कोई सूचनाएं उपलब्ध नहीं हैं।",
+    "timestamps": {
+      "twoHoursAgo": "2 घंटे पहले",
+      "oneDayAgo": "1 दिन पहले",
+      "threeDaysAgo": "3 दिन पहले",
+      "fiveDaysAgo": "5 दिन पहले"
+    },
+    "items": {
+      "newJobOpportunity": "नई नौकरी का अवसर",
+      "newJobOpportunityDesc": "आपके क्षेत्र में एक नई निर्माण नौकरी उपलब्ध है। अभी आवेदन करें!",
+      "policyUpdate": "नीति अपडेट",
+      "policyUpdateDesc": "प्रवासी श्रमिक अधिकारों पर नई सरकारी नीति की घोषणा।",
+      "eventReminder": "आयोजन अनुस्मारक",
+      "eventReminderDesc": "कल सुबह 10 बजे कानूनी परामर्श सत्र।",
+      "healthCheckup": "स्वास्थ्य जांच",
+      "healthCheckupDesc": "अगले सप्ताह के लिए मुफ्त स्वास्थ्य जांच निर्धारित।"
+    }
+  },
+  "helpRequest": {
+    "title": "सहायता अनुरोध",
+    "modalTitle": "नया सहायता अनुरोध",
+    "category": "श्रेणी",
+    "description": "विवरण",
+    "placeholder": "अपने मुद्दे का विस्तार से वर्णन करें...",
+    "submit": "अनुरोध जमा करें",
+    "empty": "कोई अनुरोध नहीं मिला",
+    "categories": {
+      "legalAssistance": "कानूनी सहायता",
+      "jobSupport": "रोजगार सहायता",
+      "healthServices": "स्वास्थ्य सेवाएं",
+      "languageSupport": "भाषा सहायता",
+      "other": "अन्य"
+    },
+    "statuses": {
+      "pending": "लंबित",
+      "inProgress": "प्रगति में",
+      "resolved": "समाधान हो गया"
+    },
+    "descriptions": {
+      "visaDocumentation": "वीजा दस्तावेजों में मदद चाहिए",
+      "itJobOpportunities": "आईटी नौकरी के अवसरों की तलाश में",
+      "localHospitalsInfo": "स्थानीय अस्पतालों की जानकारी चाहिए"
+    },
+    "success": {
+      "title": "सफलता",
+      "message": "आपका सहायता अनुरोध सफलतापूर्वक जमा हो गया!"
+    },
+    "error": {
+      "title": "त्रुटि",
+      "description": "कृपया अपने मुद्दे का विवरण प्रदान करें।"
+    }
+  },
+  "profile": {
+    "screen": {
+      "title": "आपकी प्रोफाइल",
+      "loading": "आपका डेटा लोड हो रहा है...",
+      "years": "वर्ष",
+      "labels": {
+        "name": "नाम",
+        "email": "ईमेल",
+        "mobile": "मोबाइल",
+        "aadhaar": "आधार",
+        "dob": "जन्म तिथि",
+        "age": "आयु",
+        "currentAddress": "वर्तमान पता",
+        "currentCountry": "वर्तमान देश",
+        "currentState": "वर्तमान राज्य",
+        "currentDistrict": "वर्तमान जिला",
+        "nativeAddress": "मूल पता",
+        "nativeCountry": "मूल देश",
+        "nativeState": "मूल राज्य",
+        "nativeDistrict": "मूल जिला",
+        "language": "भाषा",
+        "skills": "कौशल",
+        "jobType": "नौकरी का प्रकार"
+      },
+      "languages": {
+        "en": "अंग्रेजी",
+        "hi": "हिंदी",
+        "ta": "तमिल",
+        "kn": "कन्नड़"
+      },
+      "error": {
+        "load": "उपयोगकर्ता डेटा लोड करने में विफल"
+      }
+    },
+    "edit": {
+      "title": "प्रोफाइल संपादित करें",
+      "save": "परिवर्तन सहेजें",
+      "labels": {
+        "name": "नाम",
+        "email": "ईमेल",
+        "mobile": "मोबाइल",
+        "aadhaar": "आधार",
+        "dob": "जन्म तिथि",
+        "currentAddress": "वर्तमान पता",
+        "currentCountry": "वर्तमान देश",
+        "currentState": "वर्तमान राज्य",
+        "currentDistrict": "वर्तमान जिला",
+        "nativeAddress": "मूल पता",
+        "nativeCountry": "मूल देश",
+        "nativeState": "मूल राज्य",
+        "nativeDistrict": "मूल जिला",
+        "language": "भाषा",
+        "skills": "कौशल",
+        "jobType": "नौकरी का प्रकार"
+      },
+      "placeholders": {
+        "name": "अपना नाम दर्ज करें",
+        "email": "अपना ईमेल दर्ज करें",
+        "mobile": "मोबाइल नंबर",
+        "aadhaar": "12 अंकों का आधार दर्ज करें",
+        "dob": "जन्म तिथि चुनें",
+        "currentAddress": "वर्तमान पता दर्ज करें",
+        "nativeAddress": "मूल पता दर्ज करें",
+        "selectCountry": "देश चुनें",
+        "selectState": "राज्य चुनें",
+        "selectDistrict": "जिला चुनें",
+        "selectLanguage": "भाषा चुनें",
+        "selectCountryFirst": "पहले देश चुनें",
+        "selectStateFirst": "पहले राज्य चुनें",
+        "skills": "अपने कौशल दर्ज करें",
+        "jobType": "अपना नौकरी का प्रकार दर्ज करें"
+      },
+      "error": {
+        "name": "नाम आवश्यक है",
+        "mobile": "मोबाइल नंबर आवश्यक है",
+        "mobileLength": "मोबाइल नंबर 10 अंकों का होना चाहिए",
+        "aadhaar": "आधार 12 अंकों का होना चाहिए",
+        "currentCountry": "वर्तमान देश आवश्यक है",
+        "currentState": "वर्तमान राज्य आवश्यक है",
+        "currentDistrict": "वर्तमान जिला आवश्यक है",
+        "nativeState": "मूल राज्य आवश्यक है जब देश चुना जाता है",
+        "nativeDistrict": "मूल जिला आवश्यक है जब राज्य चुना जाता है",
+        "language": "भाषा प्राथमिकता आवश्यक है",
+        "loadCountries": "देशों को लोड करने में विफल",
+        "loadStates": "राज्यों को लोड करने में विफल",
+        "loadDistricts": "जिलों को लोड करने में विफल",
+        "update": "प्रोफाइल अपडेट करने में विफल",
+        "missingId": "उपयोगकर्ता आईडी गायब है। प्रोफाइल अपडेट नहीं हो सकती।",
+        "image": "छवि चुनने में विफल"
+      },
+      "success": "प्रोफाइल सफलतापूर्वक अपडेट हो गई!"
+    }
   }
 }

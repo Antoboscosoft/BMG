@@ -21,14 +21,15 @@ import { getCountries, getDistricts, getStates, updateUserData } from '../api/au
 import Toast from 'react-native-toast-message';
 import CountryPicker from 'react-native-country-picker-modal';
 import { useForm, Controller } from 'react-hook-form';
+import { useLanguage } from '../language/commondir';
 
 const { width, height } = Dimensions.get('window');
 
 const languageOptions = [
-    { id: 'en', name: 'English' },
-    { id: 'hi', name: 'Hindi' },
-    { id: 'ta', name: 'Tamil' },
-    { id: 'kn', name: 'Kannada' },
+    { id: 'en', nameKey: 'en' },
+    { id: 'hi', nameKey: 'hi' },
+    { id: 'ta', nameKey: 'ta' },
+    { id: 'kn', nameKey: 'kn' },
 ];
 
 function formatDate(date) {
@@ -38,8 +39,8 @@ function formatDate(date) {
 }
 
 function ProfileEdit({ navigation, route }) {
-    const { userData } = route.params; // Get userData passed from ProfileScreen
-
+    const { userData } = route.params;
+    const { languageTexts } = useLanguage();
     const [showDOBPicker, setShowDOBPicker] = useState(false);
     const [imageUri, setImageUri] = useState(userData?.photo || null);
     const [updating, setUpdating] = useState(false);
@@ -92,7 +93,6 @@ function ProfileEdit({ navigation, route }) {
     const nativeCountryId = watch('native_country_id');
     const nativeStateId = watch('native_state_id');
 
-    // Fetch countries on component mount
     useEffect(() => {
         const fetchCountries = async () => {
             setLoadingCountries(true);
@@ -103,8 +103,8 @@ function ProfileEdit({ navigation, route }) {
                 console.error("Error fetching countries:", error);
                 Toast.show({
                     type: 'error',
-                    text1: 'Error',
-                    text2: 'Failed to load countries',
+                    text1: languageTexts?.common?.error || 'Error',
+                    text2: languageTexts?.profile?.edit?.error?.loadCountries || 'Failed to load countries',
                 });
             } finally {
                 setLoadingCountries(false);
@@ -113,7 +113,6 @@ function ProfileEdit({ navigation, route }) {
         fetchCountries();
     }, []);
 
-    // Fetch states for current address on initial load or when currentCountryId changes
     useEffect(() => {
         const fetchCurrentStates = async () => {
             if (currentCountryId) {
@@ -131,8 +130,8 @@ function ProfileEdit({ navigation, route }) {
                     console.error("Error fetching current states:", error);
                     Toast.show({
                         type: 'error',
-                        text1: 'Error',
-                        text2: 'Failed to load states',
+                        text1: languageTexts?.common?.error || 'Error',
+                        text2: languageTexts?.profile?.edit?.error?.loadStates || 'Failed to load states',
                     });
                 } finally {
                     setLoadingCurrentStates(false);
@@ -147,7 +146,6 @@ function ProfileEdit({ navigation, route }) {
         fetchCurrentStates();
     }, [currentCountryId, setValue]);
 
-    // Fetch districts for current address on initial load or when currentStateId changes
     useEffect(() => {
         const fetchCurrentDistricts = async () => {
             if (currentStateId) {
@@ -164,8 +162,8 @@ function ProfileEdit({ navigation, route }) {
                     console.error("Error fetching current districts:", error);
                     Toast.show({
                         type: 'error',
-                        text1: 'Error',
-                        text2: 'Failed to load districts',
+                        text1: languageTexts?.common?.error || 'Error',
+                        text2: languageTexts?.profile?.edit?.error?.loadDistricts || 'Failed to load districts',
                     });
                 } finally {
                     setLoadingCurrentDistricts(false);
@@ -178,7 +176,6 @@ function ProfileEdit({ navigation, route }) {
         fetchCurrentDistricts();
     }, [currentStateId, setValue]);
 
-    // Fetch states for native address on initial load or when nativeCountryId changes
     useEffect(() => {
         const fetchNativeStates = async () => {
             if (nativeCountryId) {
@@ -196,8 +193,8 @@ function ProfileEdit({ navigation, route }) {
                     console.error("Error fetching native states:", error);
                     Toast.show({
                         type: 'error',
-                        text1: 'Error',
-                        text2: 'Failed to load states',
+                        text1: languageTexts?.common?.error || 'Error',
+                        text2: languageTexts?.profile?.edit?.error?.loadStates || 'Failed to load states',
                     });
                 } finally {
                     setLoadingNativeStates(false);
@@ -212,7 +209,6 @@ function ProfileEdit({ navigation, route }) {
         fetchNativeStates();
     }, [nativeCountryId, setValue]);
 
-    // Fetch districts for native address on initial load or when nativeStateId changes
     useEffect(() => {
         const fetchNativeDistricts = async () => {
             if (nativeStateId) {
@@ -229,8 +225,8 @@ function ProfileEdit({ navigation, route }) {
                     console.error("Error fetching native districts:", error);
                     Toast.show({
                         type: 'error',
-                        text1: 'Error',
-                        text2: 'Failed to load districts',
+                        text1: languageTexts?.common?.error || 'Error',
+                        text2: languageTexts?.profile?.edit?.error?.loadDistricts || 'Failed to load districts',
                     });
                 } finally {
                     setLoadingNativeDistricts(false);
@@ -247,23 +243,16 @@ function ProfileEdit({ navigation, route }) {
         try {
             setUpdating(true);
 
-            // Check network status
-            // const netInfo = await NetInfo.fetch();
-            // if (!netInfo.isConnected) {
-            //     throw new Error('No internet connection. Please check your network and try again.');
-            // }
-
-            // Validate user ID
             if (!data.id) {
-                throw new Error('User ID is missing. Cannot update profile.');
+                throw new Error(languageTexts?.profile?.edit?.error?.missingId || 'User ID is missing. Cannot update profile.');
             }
 
-            const submissionData = { ...data,
-                // Only include native address fields if country is selected
-            native_country_id: data.native_country_id || null,
-            native_state_id: data.native_country_id ? data.native_state_id || null : null,
-            native_district_id: data.native_country_id && data.native_state_id ? data.native_district_id || null : null
-             };
+            const submissionData = {
+                ...data,
+                native_country_id: data.native_country_id || null,
+                native_state_id: data.native_country_id ? data.native_state_id || null : null,
+                native_district_id: data.native_country_id && data.native_state_id ? data.native_district_id || null : null
+            };
             delete submissionData.current_country_name;
             delete submissionData.current_state_name;
             delete submissionData.current_district_name;
@@ -271,10 +260,6 @@ function ProfileEdit({ navigation, route }) {
             delete submissionData.native_state_name;
             delete submissionData.native_district_name;
 
-            // Log the data being sent for debugging
-            console.log('Submitting data to API:', submissionData);
-
-            // Retry logic: Attempt the API call up to 2 times
             let response;
             let attempts = 0;
             const maxAttempts = 2;
@@ -282,40 +267,37 @@ function ProfileEdit({ navigation, route }) {
             while (attempts < maxAttempts) {
                 try {
                     response = await updateUserData(data.id, submissionData);
-                    break; // If successful, exit the retry loop
+                    break;
                 } catch (error) {
                     attempts += 1;
                     if (attempts === maxAttempts) {
-                        throw error; // If max attempts reached, throw the error
+                        throw error;
                     }
-                    // Wait 1 second before retrying
                     await new Promise(resolve => setTimeout(resolve, 1000));
                 }
             }
 
-            // Check if the response indicates success
             if (response.status) {
                 Alert.alert(
-                    'Success',
-                    response.details || 'Profile updated successfully!',
+                    languageTexts?.common?.success || 'Success',
+                    response.details || (languageTexts?.profile?.edit?.success || 'Profile updated successfully!'),
                     [
                         {
-                            text: 'OK',
+                            text: languageTexts?.common?.ok || 'OK',
                             onPress: () => navigation.navigate('Profile'),
                         },
                     ],
                     { cancelable: false }
                 );
             } else {
-                throw new Error(response.details || 'Failed to update profile');
+                throw new Error(response.details || (languageTexts?.profile?.edit?.error?.update || 'Failed to update profile'));
             }
         } catch (error) {
-            // Log the exact error for debugging
             console.error('Failed to update user data:', error);
             Toast.show({
                 type: 'error',
-                text1: 'Error',
-                text2: error.message || 'Failed to update user data',
+                text1: languageTexts?.common?.error || 'Error',
+                text2: error.message || (languageTexts?.profile?.edit?.error?.update || 'Failed to update user data'),
             });
         } finally {
             setUpdating(false);
@@ -333,6 +315,11 @@ function ProfileEdit({ navigation, route }) {
             if (response.didCancel) return;
             if (response.errorMessage) {
                 console.error('ImagePicker Error:', response.errorMessage);
+                Toast.show({
+                    type: 'error',
+                    text1: languageTexts?.common?.error || 'Error',
+                    text2: languageTexts?.profile?.edit?.error?.image || 'Failed to pick image',
+                });
                 return;
             }
 
@@ -353,9 +340,13 @@ function ProfileEdit({ navigation, route }) {
                 <ScrollView contentContainerStyle={styles.scrollContainer}>
                     <View style={styles.headerContainer}>
                         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                            <Text style={styles.backButtonText}>{'< Back'}</Text>
+                            <Text style={styles.backButtonText}>
+                                {languageTexts?.common?.back || '< Back'}
+                            </Text>
                         </TouchableOpacity>
-                        <Text style={styles.headerTitle}>Edit Profile</Text>
+                        <Text style={styles.headerTitle}>
+                            {languageTexts?.profile?.edit?.title || 'Edit Profile'}
+                        </Text>
                         <View style={{ width: 60 }} />
                     </View>
 
@@ -379,9 +370,10 @@ function ProfileEdit({ navigation, route }) {
                             </TouchableOpacity>
                         </View>
 
-                        {/* Name Field */}
                         <View style={styles.row}>
-                            <Text style={styles.label}>Name</Text>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.name || 'Name'}
+                            </Text>
                             <Controller
                                 control={control}
                                 render={({ field: { onChange, onBlur, value } }) => (
@@ -390,19 +382,20 @@ function ProfileEdit({ navigation, route }) {
                                         onBlur={onBlur}
                                         onChangeText={onChange}
                                         value={value}
-                                        placeholder="Enter your name"
+                                        placeholder={languageTexts?.profile?.edit?.placeholders?.name || 'Enter your name'}
                                         placeholderTextColor="#FFECD2"
                                     />
                                 )}
                                 name="name"
-                                rules={{ required: 'Name is required' }}
+                                rules={{ required: languageTexts?.profile?.edit?.error?.name || 'Name is required' }}
                             />
                         </View>
                         {errors.name && <Text style={styles.errorText}>{errors.name.message}</Text>}
 
-                        {/* Email Field */}
                         <View style={styles.row}>
-                            <Text style={styles.label}>Email</Text>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.email || 'Email'}
+                            </Text>
                             <Controller
                                 control={control}
                                 render={({ field: { onChange, onBlur, value } }) => (
@@ -412,7 +405,7 @@ function ProfileEdit({ navigation, route }) {
                                         onChangeText={onChange}
                                         value={value || ''}
                                         keyboardType="email-address"
-                                        placeholder="Enter your email"
+                                        placeholder={languageTexts?.profile?.edit?.placeholders?.email || 'Enter your email'}
                                         placeholderTextColor="#FFECD2"
                                     />
                                 )}
@@ -420,9 +413,10 @@ function ProfileEdit({ navigation, route }) {
                             />
                         </View>
 
-                        {/* Mobile Field */}
                         <View style={styles.row}>
-                            <Text style={styles.label}>Mobile</Text>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.mobile || 'Mobile'}
+                            </Text>
                             <View style={[styles.phoneRow, errors.mobile_number && styles.errorInput]}>
                                 <CountryPicker
                                     countryCode={countryCode}
@@ -450,17 +444,17 @@ function ProfileEdit({ navigation, route }) {
                                             }}
                                             value={value}
                                             keyboardType="phone-pad"
-                                            placeholder="Mobile Number"
+                                            placeholder={languageTexts?.profile?.edit?.placeholders?.mobile || 'Mobile Number'}
                                             placeholderTextColor="#FFECD2"
                                             maxLength={15}
                                         />
                                     )}
                                     name="mobile_number"
                                     rules={{
-                                        required: 'Mobile number is required',
+                                        required: languageTexts?.profile?.edit?.error?.mobile || 'Mobile number is required',
                                         minLength: {
                                             value: 10,
-                                            message: 'Mobile number must be 10 digits',
+                                            message: languageTexts?.profile?.edit?.error?.mobileLength || 'Mobile number must be 10 digits',
                                         },
                                     }}
                                 />
@@ -470,9 +464,10 @@ function ProfileEdit({ navigation, route }) {
                             <Text style={styles.errorText}>{errors.mobile_number.message}</Text>
                         )}
 
-                        {/* Aadhaar Field */}
                         <View style={styles.row}>
-                            <Text style={styles.label}>Aadhaar</Text>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.aadhaar || 'Aadhaar'}
+                            </Text>
                             <Controller
                                 control={control}
                                 render={({ field: { onChange, onBlur, value } }) => (
@@ -487,7 +482,7 @@ function ProfileEdit({ navigation, route }) {
                                         }}
                                         value={value}
                                         keyboardType="numeric"
-                                        placeholder="Enter 12-digit Aadhaar"
+                                        placeholder={languageTexts?.profile?.edit?.placeholders?.aadhaar || 'Enter 12-digit Aadhaar'}
                                         placeholderTextColor="#FFECD2"
                                         maxLength={12}
                                     />
@@ -495,7 +490,7 @@ function ProfileEdit({ navigation, route }) {
                                 name="aadhaar_number"
                                 rules={{
                                     validate: (value) =>
-                                        !value || value.length === 12 || 'Aadhaar must be 12 digits',
+                                        !value || value.length === 12 || (languageTexts?.profile?.edit?.error?.aadhaar || 'Aadhaar must be 12 digits'),
                                 }}
                             />
                         </View>
@@ -503,15 +498,16 @@ function ProfileEdit({ navigation, route }) {
                             <Text style={styles.errorText}>{errors.aadhaar_number.message}</Text>
                         )}
 
-                        {/* Date of Birth Field */}
                         <View style={styles.row}>
-                            <Text style={styles.label}>Date of Birth</Text>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.dob || 'Date of Birth'}
+                            </Text>
                             <TouchableOpacity
                                 onPress={() => setShowDOBPicker(true)}
                                 style={{ flex: 1 }}
                             >
                                 <Text style={[styles.input, { color: '#FFF2E0', marginLeft: 20 }]}>
-                                    {formatDate(watch('date_of_birth')) || 'Select DOB'}
+                                    {formatDate(watch('date_of_birth')) || (languageTexts?.profile?.edit?.placeholders?.dob || 'Select DOB')}
                                 </Text>
                                 {showDOBPicker && (
                                     <DateTimePicker
@@ -530,9 +526,10 @@ function ProfileEdit({ navigation, route }) {
                             </TouchableOpacity>
                         </View>
 
-                        {/* Current Address Field */}
                         <View style={styles.row}>
-                            <Text style={styles.label}>Current Address</Text>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.currentAddress || 'Current Address'}
+                            </Text>
                             <Controller
                                 control={control}
                                 render={({ field: { onChange, onBlur, value } }) => (
@@ -541,7 +538,7 @@ function ProfileEdit({ navigation, route }) {
                                         onBlur={onBlur}
                                         onChangeText={onChange}
                                         value={value}
-                                        placeholder="Enter current address"
+                                        placeholder={languageTexts?.profile?.edit?.placeholders?.currentAddress || 'Enter current address'}
                                         placeholderTextColor="#FFECD2"
                                         multiline
                                     />
@@ -550,9 +547,10 @@ function ProfileEdit({ navigation, route }) {
                             />
                         </View>
 
-                        {/* Current Country Field */}
                         <View style={styles.row}>
-                            <Text style={styles.label}>Current Country</Text>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.currentCountry || 'Current Country'}
+                            </Text>
                             {loadingCountries ? (
                                 <ActivityIndicator size="small" color="#FFF2E0" />
                             ) : (
@@ -564,7 +562,10 @@ function ProfileEdit({ navigation, route }) {
                                             style={[styles.picker, errors.current_country_id && styles.errorInput]}
                                             onValueChange={onChange}
                                         >
-                                            <Picker.Item label="Select Country" value="" />
+                                            <Picker.Item
+                                                label={languageTexts?.profile?.edit?.placeholders?.selectCountry || 'Select Country'}
+                                                value=""
+                                            />
                                             {countries.map((country) => (
                                                 <Picker.Item
                                                     key={country.id}
@@ -575,7 +576,7 @@ function ProfileEdit({ navigation, route }) {
                                         </Picker>
                                     )}
                                     name="current_country_id"
-                                    rules={{ required: 'Current Country is required' }}
+                                    rules={{ required: languageTexts?.profile?.edit?.error?.currentCountry || 'Current Country is required' }}
                                 />
                             )}
                         </View>
@@ -583,9 +584,10 @@ function ProfileEdit({ navigation, route }) {
                             <Text style={styles.errorText}>{errors.current_country_id.message}</Text>
                         )}
 
-                        {/* Current State Field */}
                         <View style={styles.row}>
-                            <Text style={styles.label}>Current State</Text>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.currentState || 'Current State'}
+                            </Text>
                             {loadingCurrentStates ? (
                                 <ActivityIndicator size="small" color="#FFF2E0" />
                             ) : (
@@ -600,7 +602,9 @@ function ProfileEdit({ navigation, route }) {
                                         >
                                             <Picker.Item
                                                 label={
-                                                    currentCountryId ? 'Select State' : 'Select Country first'
+                                                    currentCountryId
+                                                        ? (languageTexts?.profile?.edit?.placeholders?.selectState || 'Select State')
+                                                        : (languageTexts?.profile?.edit?.placeholders?.selectCountryFirst || 'Select Country first')
                                                 }
                                                 value=""
                                             />
@@ -614,7 +618,7 @@ function ProfileEdit({ navigation, route }) {
                                         </Picker>
                                     )}
                                     name="current_state_id"
-                                    rules={{ required: 'Current State is required' }}
+                                    rules={{ required: languageTexts?.profile?.edit?.error?.currentState || 'Current State is required' }}
                                 />
                             )}
                         </View>
@@ -622,9 +626,10 @@ function ProfileEdit({ navigation, route }) {
                             <Text style={styles.errorText}>{errors.current_state_id.message}</Text>
                         )}
 
-                        {/* Current District Field */}
                         <View style={styles.row}>
-                            <Text style={styles.label}>Current District</Text>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.currentDistrict || 'Current District'}
+                            </Text>
                             {loadingCurrentDistricts ? (
                                 <ActivityIndicator size="small" color="#FFF2E0" />
                             ) : (
@@ -639,7 +644,9 @@ function ProfileEdit({ navigation, route }) {
                                         >
                                             <Picker.Item
                                                 label={
-                                                    currentStateId ? 'Select District' : 'Select State first'
+                                                    currentStateId
+                                                        ? (languageTexts?.profile?.edit?.placeholders?.selectDistrict || 'Select District')
+                                                        : (languageTexts?.profile?.edit?.placeholders?.selectStateFirst || 'Select State first')
                                                 }
                                                 value=""
                                             />
@@ -653,7 +660,7 @@ function ProfileEdit({ navigation, route }) {
                                         </Picker>
                                     )}
                                     name="current_district_id"
-                                    rules={{ required: 'Current District is required' }}
+                                    rules={{ required: languageTexts?.profile?.edit?.error?.currentDistrict || 'Current District is required' }}
                                 />
                             )}
                         </View>
@@ -661,9 +668,10 @@ function ProfileEdit({ navigation, route }) {
                             <Text style={styles.errorText}>{errors.current_district_id.message}</Text>
                         )}
 
-                        {/* Native Address Field */}
                         <View style={styles.row}>
-                            <Text style={styles.label}>Native Address</Text>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.nativeAddress || 'Native Address'}
+                            </Text>
                             <Controller
                                 control={control}
                                 render={({ field: { onChange, onBlur, value } }) => (
@@ -672,7 +680,7 @@ function ProfileEdit({ navigation, route }) {
                                         onBlur={onBlur}
                                         onChangeText={onChange}
                                         value={value}
-                                        placeholder="Enter native address"
+                                        placeholder={languageTexts?.profile?.edit?.placeholders?.nativeAddress || 'Enter native address'}
                                         placeholderTextColor="#FFECD2"
                                         multiline
                                     />
@@ -681,9 +689,10 @@ function ProfileEdit({ navigation, route }) {
                             />
                         </View>
 
-                        {/* Native Country Field */}
                         <View style={styles.row}>
-                            <Text style={styles.label}>Native Country</Text>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.nativeCountry || 'Native Country'}
+                            </Text>
                             {loadingCountries ? (
                                 <ActivityIndicator size="small" color="#FFF2E0" />
                             ) : (
@@ -695,7 +704,10 @@ function ProfileEdit({ navigation, route }) {
                                             style={[styles.picker, errors.native_country_id && styles.errorInput]}
                                             onValueChange={onChange}
                                         >
-                                            <Picker.Item label="Select Country" value="" />
+                                            <Picker.Item
+                                                label={languageTexts?.profile?.edit?.placeholders?.selectCountry || 'Select Country'}
+                                                value=""
+                                            />
                                             {countries.map((country) => (
                                                 <Picker.Item
                                                     key={country.id}
@@ -706,17 +718,14 @@ function ProfileEdit({ navigation, route }) {
                                         </Picker>
                                     )}
                                     name="native_country_id"
-                                // rules={{ required: 'Native Country is required' }}
                                 />
                             )}
                         </View>
-                        {/* {errors.native_country_id && (
-                            <Text style={styles.errorText}>{errors.native_country_id.message}</Text>
-                        )} */}
 
-                        {/* Native State Field */}
                         <View style={styles.row}>
-                            <Text style={styles.label}>Native State</Text>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.nativeState || 'Native State'}
+                            </Text>
                             {loadingNativeStates ? (
                                 <ActivityIndicator size="small" color="#FFF2E0" />
                             ) : (
@@ -731,7 +740,9 @@ function ProfileEdit({ navigation, route }) {
                                         >
                                             <Picker.Item
                                                 label={
-                                                    nativeCountryId ? 'Select State' : 'Select Country first'
+                                                    nativeCountryId
+                                                        ? (languageTexts?.profile?.edit?.placeholders?.selectState || 'Select State')
+                                                        : (languageTexts?.profile?.edit?.placeholders?.selectCountryFirst || 'Select Country first')
                                                 }
                                                 value=""
                                             />
@@ -745,12 +756,10 @@ function ProfileEdit({ navigation, route }) {
                                         </Picker>
                                     )}
                                     name="native_state_id"
-                                    // rules={{ required: 'Native State is required' }}
                                     rules={{
                                         validate: (value) => {
-                                            // Only validate if native country is selected
                                             if (watch('native_country_id') && !value) {
-                                                return 'Native State is required when country is selected';
+                                                return languageTexts?.profile?.edit?.error?.nativeState || 'Native State is required when country is selected';
                                             }
                                             return true;
                                         }
@@ -762,9 +771,10 @@ function ProfileEdit({ navigation, route }) {
                             <Text style={styles.errorText}>{errors.native_state_id.message}</Text>
                         )}
 
-                        {/* Native District Field */}
                         <View style={styles.row}>
-                            <Text style={styles.label}>Native District</Text>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.nativeDistrict || 'Native District'}
+                            </Text>
                             {loadingNativeDistricts ? (
                                 <ActivityIndicator size="small" color="#FFF2E0" />
                             ) : (
@@ -779,7 +789,9 @@ function ProfileEdit({ navigation, route }) {
                                         >
                                             <Picker.Item
                                                 label={
-                                                    nativeStateId ? 'Select District' : 'Select State first'
+                                                    nativeStateId
+                                                        ? (languageTexts?.profile?.edit?.placeholders?.selectDistrict || 'Select District')
+                                                        : (languageTexts?.profile?.edit?.placeholders?.selectStateFirst || 'Select State first')
                                                 }
                                                 value=""
                                             />
@@ -793,12 +805,10 @@ function ProfileEdit({ navigation, route }) {
                                         </Picker>
                                     )}
                                     name="native_district_id"
-                                    // rules={{ required: 'Native District is required' }}
                                     rules={{
                                         validate: (value) => {
-                                            // Only validate if native state is selected
                                             if (watch('native_state_id') && !value) {
-                                                return 'Native District is required when state is selected';
+                                                return languageTexts?.profile?.edit?.error?.nativeDistrict || 'Native District is required when state is selected';
                                             }
                                             return true;
                                         }
@@ -810,9 +820,10 @@ function ProfileEdit({ navigation, route }) {
                             <Text style={styles.errorText}>{errors.native_district_id.message}</Text>
                         )}
 
-                        {/* Language Preference Field */}
                         <View style={styles.row}>
-                            <Text style={styles.label}>Language</Text>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.language || 'Language'}
+                            </Text>
                             <Controller
                                 control={control}
                                 render={({ field: { onChange, value } }) => (
@@ -821,24 +832,32 @@ function ProfileEdit({ navigation, route }) {
                                         style={[styles.picker, errors.language_pref && styles.errorInput]}
                                         onValueChange={onChange}
                                     >
-                                        <Picker.Item label="Select Language" value="" />
+                                        <Picker.Item
+                                            label={languageTexts?.profile?.edit?.placeholders?.selectLanguage || 'Select Language'}
+                                            value=""
+                                        />
                                         {languageOptions.map((lang) => (
-                                            <Picker.Item key={lang.id} label={lang.name} value={lang.id} />
+                                            <Picker.Item
+                                                key={lang.id}
+                                                label={languageTexts?.profile?.screen?.languages?.[lang.nameKey] || lang.id}
+                                                value={lang.id}
+                                            />
                                         ))}
                                     </Picker>
                                 )}
                                 name="language_pref"
-                                rules={{ required: 'Language preference is required' }}
-                                defaultValue={userData?.language_pref || ''} // Ensure default value is set
+                                rules={{ required: languageTexts?.profile?.edit?.error?.language || 'Language preference is required' }}
+                                defaultValue={userData?.language_pref || ''}
                             />
                         </View>
                         {errors.language_pref && (
                             <Text style={styles.errorText}>{errors.language_pref.message}</Text>
                         )}
 
-                        {/* Skills Field */}
                         <View style={styles.row}>
-                            <Text style={styles.label}>Skills</Text>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.skills || 'Skills'}
+                            </Text>
                             <Controller
                                 control={control}
                                 render={({ field: { onChange, onBlur, value } }) => (
@@ -847,7 +866,7 @@ function ProfileEdit({ navigation, route }) {
                                         onBlur={onBlur}
                                         onChangeText={onChange}
                                         value={value}
-                                        placeholder="Enter your skills"
+                                        placeholder={languageTexts?.profile?.edit?.placeholders?.skills || 'Enter your skills'}
                                         placeholderTextColor="#FFECD2"
                                     />
                                 )}
@@ -855,9 +874,10 @@ function ProfileEdit({ navigation, route }) {
                             />
                         </View>
 
-                        {/* Job Type Field */}
                         <View style={styles.row}>
-                            <Text style={styles.label}>Job Type</Text>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.jobType || 'Job Type'}
+                            </Text>
                             <Controller
                                 control={control}
                                 render={({ field: { onChange, onBlur, value } }) => (
@@ -866,7 +886,7 @@ function ProfileEdit({ navigation, route }) {
                                         onBlur={onBlur}
                                         onChangeText={onChange}
                                         value={value}
-                                        placeholder="Enter your job type"
+                                        placeholder={languageTexts?.profile?.edit?.placeholders?.jobType || 'Enter your job type'}
                                         placeholderTextColor="#FFECD2"
                                     />
                                 )}
@@ -882,7 +902,9 @@ function ProfileEdit({ navigation, route }) {
                             {updating ? (
                                 <ActivityIndicator color="#3D2A1A" />
                             ) : (
-                                <Text style={styles.buttonText}>Save Changes</Text>
+                                <Text style={styles.buttonText}>
+                                    {languageTexts?.profile?.edit?.save || 'Save Changes'}
+                                </Text>
                             )}
                         </TouchableOpacity>
                     </View>

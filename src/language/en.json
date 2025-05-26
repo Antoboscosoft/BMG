@@ -11,7 +11,7 @@
   },
   "menu": {
     "eventCalendar": "Event Calendar",
-    "servicesDirectory": "Services",
+    "servicesDirectory": "Services Directory",
     "notifications": "Notifications",
     "multilingualSupport": "Language",
     "helpRequest": "Help",
@@ -80,6 +80,65 @@
       "delete": "Failed to delete registration."
     }
   },
+  "servicesDirectory": {
+    "loading": "Loading services...",
+    "empty": "No services available at the moment.",
+    "emptyList": "No services available at this time",
+    "apply": "Apply",
+    "applied": "Applied",
+    "unavailable": "Unavailable",
+    "retry": "Retry",
+    "error": {
+      "fetch": "Failed to load services. Please try again."
+    },
+    "services": {
+      "Healthcare": "Healthcare",
+      "Legal": "Legal Aid",
+      "Shelter": "Shelter",
+      "SkillTraining": "Skill Training"
+    },
+    "descriptions": {
+      "Healthcare": "Access medical care and health resources",
+      "Legal": "Get assistance with immigration and legal issues",
+      "Shelter": "Find temporary housing and shelter services",
+      "SkillTraining": "Learn new skills for employment opportunities",
+      "default": "Service available for migrants"
+    }
+  },
+  "createService": {
+    "title": {
+      "create": "Create Service Request",
+      "update": "Service Request"
+    },
+    "category": "Service Category:",
+    "description": "Description:",
+    "placeholder": "Enter your request details",
+    "submit": "Submit Request",
+    "submitting": "Submitting...",
+    "edit": "Edit",
+    "update": "Update",
+    "updating": "Updating...",
+    "delete": {
+      "button": "Delete",
+      "title": "Delete Request",
+      "message": "Are you sure you want to delete this service request?",
+      "confirm": "Delete"
+    },
+    "deleting": "Deleting...",
+    "success": {
+      "title": "Success",
+      "create": "Service request created successfully!",
+      "update": "Service request updated successfully!",
+      "delete": "Service request deleted successfully!"
+    },
+    "error": {
+      "title": "Error",
+      "description": "Description is required",
+      "create": "Failed to create service request. Please try again.",
+      "update": "Failed to update service request. Please try again.",
+      "delete": "Failed to delete service request. Please try again."
+    }
+  },
   "common": {
     "back": "< Back",
     "ok": "OK",
@@ -101,5 +160,152 @@
       "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
     ],
     "today": "Today"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications available.",
+    "timestamps": {
+      "twoHoursAgo": "2 hours ago",
+      "oneDayAgo": "1 day ago",
+      "threeDaysAgo": "3 days ago",
+      "fiveDaysAgo": "5 days ago"
+    },
+    "items": {
+      "newJobOpportunity": "New Job Opportunity",
+      "newJobOpportunityDesc": "A new construction job is available in your area. Apply now!",
+      "policyUpdate": "Policy Update",
+      "policyUpdateDesc": "New government policy on migrant worker rights announced.",
+      "eventReminder": "Event Reminder",
+      "eventReminderDesc": "Legal consultation session tomorrow at 10 AM.",
+      "healthCheckup": "Health Checkup",
+      "healthCheckupDesc": "Free health checkup scheduled for next week."
+    }
+  },
+  "helpRequest": {
+    "title": "Help Requests",
+    "modalTitle": "New Help Request",
+    "category": "Category",
+    "description": "Description",
+    "placeholder": "Describe your issue in detail...",
+    "submit": "Submit Request",
+    "empty": "No requests found",
+    "categories": {
+      "legalAssistance": "Legal Assistance",
+      "jobSupport": "Job Support",
+      "healthServices": "Health Services",
+      "languageSupport": "Language Support",
+      "other": "Other"
+    },
+    "statuses": {
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "resolved": "Resolved"
+    },
+    "descriptions": {
+      "visaDocumentation": "Need help with visa documentation",
+      "itJobOpportunities": "Looking for IT job opportunities",
+      "localHospitalsInfo": "Need information about local hospitals"
+    },
+    "success": {
+      "title": "Success",
+      "message": "Your help request has been submitted successfully!"
+    },
+    "error": {
+      "title": "Error",
+      "description": "Please provide a description of your issue."
+    }
+  },
+  "profile": {
+    "screen": {
+      "title": "Your Profile",
+      "loading": "Loading your data...",
+      "years": "years",
+      "labels": {
+        "name": "Name",
+        "email": "Email",
+        "mobile": "Mobile",
+        "aadhaar": "Aadhaar",
+        "dob": "Date of Birth",
+        "age": "Age",
+        "currentAddress": "Current Address",
+        "currentCountry": "Current Country",
+        "currentState": "Current State",
+        "currentDistrict": "Current District",
+        "nativeAddress": "Native Address",
+        "nativeCountry": "Native Country",
+        "nativeState": "Native State",
+        "nativeDistrict": "Native District",
+        "language": "Language",
+        "skills": "Skills",
+        "jobType": "Job Type"
+      },
+      "languages": {
+        "en": "English",
+        "hi": "Hindi",
+        "ta": "Tamil",
+        "kn": "Kannada"
+      },
+      "error": {
+        "load": "Failed to load user data"
+      }
+    },
+    "edit": {
+      "title": "Edit Profile",
+      "save": "Save Changes",
+      "labels": {
+        "name": "Name",
+        "email": "Email",
+        "mobile": "Mobile",
+        "aadhaar": "Aadhaar",
+        "dob": "Date of Birth",
+        "currentAddress": "Current Address",
+        "currentCountry": "Current Country",
+        "currentState": "Current State",
+        "currentDistrict": "Current District",
+        "nativeAddress": "Native Address",
+        "nativeCountry": "Native Country",
+        "nativeState": "Native State",
+        "nativeDistrict": "Native District",
+        "language": "Language",
+        "skills": "Skills",
+        "jobType": "Job Type"
+      },
+      "placeholders": {
+        "name": "Enter your name",
+        "email": "Enter your email",
+        "mobile": "Mobile Number",
+        "aadhaar": "Enter 12-digit Aadhaar",
+        "dob": "Select DOB",
+        "currentAddress": "Enter current address",
+        "nativeAddress": "Enter native address",
+        "selectCountry": "Select Country",
+        "selectState": "Select State",
+        "selectDistrict": "Select District",
+        "selectLanguage": "Select Language",
+        "selectCountryFirst": "Select Country first",
+        "selectStateFirst": "Select State first",
+        "skills": "Enter your skills",
+        "jobType": "Enter your job type"
+      },
+      "error": {
+        "name": "Name is required",
+        "mobile": "Mobile number is required",
+        "mobileLength": "Mobile number must be 10 digits",
+        "aadhaar": "Aadhaar must be 12 digits",
+        "currentCountry": "Current Country is required",
+        "currentState": "Current State is required",
+        "currentDistrict": "Current District is required",
+        "nativeState": "Native State is required when country is selected",
+        "nativeDistrict": "Native District is required when state is selected",
+        "language": "Language preference is required",
+        "loadCountries": "Failed to load countries",
+        "loadStates": "Failed to load states",
+        "loadDistricts": "Failed to load districts",
+        "update": "Failed to update profile",
+        "missingId": "User ID is missing. Cannot update profile.",
+        "image": "Failed to pick image"
+      },
+      "success": "Profile updated successfully!"
+    }
   }
 }

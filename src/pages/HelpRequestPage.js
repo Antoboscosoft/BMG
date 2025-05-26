@@ -16,14 +16,9 @@ import LinearGradient from 'react-native-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import moment from 'moment';
+import { useLanguage } from '../language/commondir';
 
-const categories = [
-    { label: 'Legal Assistance', value: 'Legal Assistance' },
-    { label: 'Job Support', value: 'Job Support' },
-    { label: 'Health Services', value: 'Health Services' },
-    { label: 'Language Support', value: 'Language Support' },
-    { label: 'Other', value: 'Other' },
-];
+
 
 const statusOptions = [
     { label: 'Pending', value: 'Pending' },
@@ -39,6 +34,7 @@ const sampleRequests = [
 ];
 
 function HelpRequestPage({ navigation }) {
+    const { languageTexts } = useLanguage();
     const [requests, setRequests] = useState(sampleRequests);
     const [modalVisible, setModalVisible] = useState(false);
     const [category, setCategory] = useState('Legal Assistance');
@@ -46,6 +42,13 @@ function HelpRequestPage({ navigation }) {
     const [status, setStatus] = useState('Pending');
     const fadeAnim = useState(new Animated.Value(0))[0];
 
+    const categories = [
+        { label: languageTexts?.helpRequest?.categories?.legalAssistance || 'Legal Assistance', value: 'legalAssistance' },
+        { label: languageTexts?.helpRequest?.categories?.jobSupport || 'Job Support', value: 'jobSupport' },
+        { label: languageTexts?.helpRequest?.categories?.healthServices || 'Health Services', value: 'healthServices' },
+        { label: languageTexts?.helpRequest?.categories?.languageSupport || 'Language Support', value: 'languageSupport' },
+        { label: languageTexts?.helpRequest?.categories?.other || 'Other', value: 'other' },
+    ];
     useEffect(() => {
         Animated.timing(fadeAnim, {
             toValue: 1,
@@ -56,7 +59,7 @@ function HelpRequestPage({ navigation }) {
 
     const handleSubmit = () => {
         if (!description.trim()) {
-            Alert.alert('Error', 'Please provide a description of your issue.');
+            Alert.alert(languageTexts?.helpRequest?.error?.title || 'Error', languageTexts?.helpRequest?.error?.description || 'Please provide a description of your issue.');
             return;
         }
 
@@ -71,7 +74,7 @@ function HelpRequestPage({ navigation }) {
         setRequests([...requests, newRequest]);
         setModalVisible(false);
         setDescription('');
-        Alert.alert('Success', 'Your help request has been submitted successfully!');
+        Alert.alert(languageTexts?.helpRequest?.success?.title || 'Success', languageTexts?.helpRequest?.success?.message || 'Your help request has been submitted successfully!');
     };
 
     const formatTime = (date) => {
@@ -98,15 +101,15 @@ function HelpRequestPage({ navigation }) {
     const renderItem = ({ item }) => (
         <View style={styles.requestItem}>
             <View style={styles.requestHeader}>
-                <Text style={styles.requestCategory}>{item.category}</Text>
+                <Text style={styles.requestCategory}>{languageTexts?.helpRequest?.categories?.[item.category] || item.category}</Text>
                 <Text style={styles.requestTime}>{formatTime(item.createdAt)}</Text>
             </View>
-            <Text style={styles.requestDescription}>{item.description}</Text>
+            <Text style={styles.requestDescription}>{languageTexts?.helpRequest?.descriptions?.[item.description] || item.description}</Text>
             <View style={[styles.statusBadge, { 
                 backgroundColor: item.status === 'Resolved' ? '#4CAF50' : 
                                 item.status === 'In Progress' ? '#FFC107' : '#F44336'
             }]}>
-                <Text style={styles.statusText}>{item.status}</Text>
+                <Text style={styles.statusText}>{languageTexts?.helpRequest?.statuses?.[item.status] || item.status}</Text>
             </View>
         </View>
     );
@@ -122,9 +125,9 @@ function HelpRequestPage({ navigation }) {
                         style={styles.backButton}
                         onPress={() => navigation.goBack()}
                     >
-                        <Text style={styles.backButtonText}>{'< Back'}</Text>
+                        <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text>
                     </TouchableOpacity>
-                    <Text style={styles.titleText}>Help Requests</Text>
+                    <Text style={styles.titleText}>{languageTexts?.helpRequest?.title || 'Help Requests'}</Text>
                     <View style={{ width: 60 }} />
                 </View>
 
@@ -135,7 +138,7 @@ function HelpRequestPage({ navigation }) {
                         keyExtractor={item => item.id}
                         contentContainerStyle={styles.listContent}
                         ListEmptyComponent={
-                            <Text style={styles.emptyText}>No requests found</Text>
+                            <Text style={styles.emptyText}>{languageTexts?.helpRequest?.empty || 'No requests found'}</Text>
                         }
                     />
                 </SafeAreaView>
@@ -158,14 +161,14 @@ function HelpRequestPage({ navigation }) {
                     <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
                             <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>New Help Request</Text>
+                                <Text style={styles.modalTitle}>{languageTexts?.helpRequest?.modalTitle || 'New Help Request'}</Text>
                                 <TouchableOpacity onPress={() => setModalVisible(false)}>
                                     <Icon name="close" size={24} color="#333" />
                                 </TouchableOpacity>
                             </View>
 
                             <ScrollView style={styles.modalScroll}>
-                                <Text style={styles.label}>Category</Text>
+                                <Text style={styles.label}>{languageTexts?.helpRequest?.category || 'Category'}</Text>
                                 <View style={styles.pickerContainer}>
                                     <Picker
                                         selectedValue={category}
@@ -191,10 +194,10 @@ function HelpRequestPage({ navigation }) {
                                     </Picker>
                                 </View> */}
 
-                                <Text style={styles.label}>Description</Text>
+                                <Text style={styles.label}>{languageTexts?.helpRequest?.description || 'Description'}</Text>
                                 <TextInput
                                     style={styles.multilineInput}
-                                    placeholder="Describe your issue in detail..."
+                                    placeholder={languageTexts?.helpRequest?.placeholder || "Describe your issue in detail..."}
                                     placeholderTextColor="#999"
                                     multiline
                                     numberOfLines={5}
@@ -208,7 +211,7 @@ function HelpRequestPage({ navigation }) {
                                 style={styles.modalButton}
                                 onPress={handleSubmit}
                             >
-                                <Text style={styles.buttonText}>Submit Request</Text>
+                                <Text style={styles.buttonText}>{languageTexts?.helpRequest?.submit || 'Submit Request'}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
