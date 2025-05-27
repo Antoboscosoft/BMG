@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useLanguage } from '../language/commondir';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 function MultilingualSupportPage({ navigation }) {
     const { language, changeLanguage, languageTexts } = useLanguage();
@@ -21,7 +22,7 @@ function MultilingualSupportPage({ navigation }) {
         { englishName: 'English', nativeName: 'English', code: 'EN' },
         { englishName: 'Hindi', nativeName: 'हिन्दी', code: 'HI' },
         { englishName: 'Tamil', nativeName: 'தமிழ்', code: 'TA' },
-        { englishName: 'Bengali', nativeName: 'বাংলা', code: 'BN' },
+        // { englishName: 'Bengali', nativeName: 'বাংলা', code: 'BN' },
         // { englishName: 'Arabic', nativeName: 'العربية', code: 'AR' },
     ];
 
@@ -73,7 +74,8 @@ function MultilingualSupportPage({ navigation }) {
                         style={styles.backButton}
                         onPress={() => navigation.goBack()}
                     >
-                        <Text style={styles.backButtonText}>{'< Back'}</Text>
+                        {/* <Text style={styles.backButtonText}>{'< Back'}</Text> */}
+                        <Icon name="arrow-back-ios" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <Text style={styles.titleText}>
                         {languageTexts?.menu?.multilingualSupport || 'Multilingual Support'}

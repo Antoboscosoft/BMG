@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import BackIcon from 'react-native-vector-icons/MaterialIcons';
 import { useLanguage } from '../language/commondir';
 
 function NotificationsPage({ navigation }) {
@@ -65,7 +66,8 @@ function NotificationsPage({ navigation }) {
                         style={styles.backButton}
                         onPress={() => navigation.goBack()}
                     >
-                        <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text>
+                        {/* <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text> */}
+                        <BackIcon name="arrow-back-ios" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <Text style={styles.titleText}>{languageTexts?.notifications?.title || 'Notifications'}</Text>
                     <View style={{ width: 60 }} /> 

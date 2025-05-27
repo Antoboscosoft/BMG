@@ -381,7 +381,8 @@ function EventCalendarPage({ navigation }) {
                         style={styles.backButton}
                         onPress={() => navigation.navigate('Dashboard')}
                     >
-                        <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text>
+                        {/* <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text> */}
+                        <Icon name="arrow-back-ios" size={24} color="#ffffff" />
                     </TouchableOpacity>
                     <Text style={styles.titleText}>
                         {languageTexts?.menu?.eventCalendar || 'Event Calendar'}

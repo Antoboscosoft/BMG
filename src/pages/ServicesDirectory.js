@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import BackIcon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient'; // <-- make sure this is installed
 import { getServiceCategories } from '../api/auth'; // Import the new API function
 import { useLanguage } from '../language/commondir';
@@ -297,7 +298,8 @@ function ServicesDirectory({ navigation }) {
                 // onPress={() => navigation.goBack()}
                 onPress={() => navigation.navigate('Dashboard')}
             >
-                <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text>
+                {/* <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text> */}
+                <BackIcon name="arrow-back-ios" size={24} color="#FFF" />
             </TouchableOpacity>
 
             {/* Header with Logo and Title */}

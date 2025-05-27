@@ -22,6 +22,7 @@ import Toast from 'react-native-toast-message';
 import CountryPicker from 'react-native-country-picker-modal';
 import { useForm, Controller } from 'react-hook-form';
 import { useLanguage } from '../language/commondir';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const { width, height } = Dimensions.get('window');
 
@@ -340,9 +341,11 @@ function ProfileEdit({ navigation, route }) {
                 <ScrollView contentContainerStyle={styles.scrollContainer}>
                     <View style={styles.headerContainer}>
                         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                            <Text style={styles.backButtonText}>
+                            {/* <Text style={styles.backButtonText}>
                                 {languageTexts?.common?.back || '< Back'}
-                            </Text>
+                            </Text> */}
+                                    <Icon name="arrow-back-ios" size={24} color="#FFF" />
+
                         </TouchableOpacity>
                         <Text style={styles.headerTitle}>
                             {languageTexts?.profile?.edit?.title || 'Edit Profile'}

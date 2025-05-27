@@ -125,7 +125,8 @@ function HelpRequestPage({ navigation }) {
                         style={styles.backButton}
                         onPress={() => navigation.goBack()}
                     >
-                        <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text>
+                        {/* <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text> */}
+                        <Icon name="arrow-back-ios" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <Text style={styles.titleText}>{languageTexts?.helpRequest?.title || 'Help Requests'}</Text>
                     <View style={{ width: 60 }} />

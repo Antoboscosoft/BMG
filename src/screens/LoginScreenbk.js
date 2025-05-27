@@ -15,6 +15,9 @@ import {
   Keyboard,
 } from "react-native";
 import loginImg from "../asserts/images/loginImg.jpg";
+// import loginImg from "../asserts/images/sps2.jpg";
+// import loginImg from "../asserts/images/sps4.jpg";
+// import loginImg from "../asserts/images/imgLogin.jpg";
 import CountryPicker from "react-native-country-picker-modal";
 import Toast from "react-native-toast-message";
 import { getLoginOtp, verifyOtp } from "../api/auth";
@@ -24,22 +27,12 @@ const { width, height } = Dimensions.get("window");
 const OTP_TIMEOUT = 30; // 30 seconds countdown
 
 function LoginScreen({ navigation }) {
-  // Tab state
-  const [activeTab, setActiveTab] = useState("migrants");
-  
-  // Migrants login state
   const [mobile, setMobile] = useState("");
   const [otp, setOtp] = useState("");
   const [showOtpField, setShowOtpField] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [countdown, setCountdown] = useState(OTP_TIMEOUT);
   const [canResendOtp, setCanResendOtp] = useState(false);
-  
-  // Staff login state
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  
-  // Common state
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
@@ -49,15 +42,14 @@ function LoginScreen({ navigation }) {
   const textInputRef = useRef(null);
   const countdownRef = useRef(null);
   const [blinkAnim] = useState(new Animated.Value(0));
-  const [yourOtp, setYourOtp] = useState([]);
 
   // Refs for scrolling to input
   const scrollViewRef = useRef(null);
   const mobileInputRef = useRef(null);
   const otpInputRef = useRef(null);
-  const emailInputRef = useRef(null);
-  const passwordInputRef = useRef(null);
-
+  
+  console.log("otp", otp);
+  const [yourOtp, setYourOtp] = useState([]);
   // Add this effect when error occurs
   useEffect(() => {
     if (error.includes("not registered")) {
@@ -79,6 +71,7 @@ function LoginScreen({ navigation }) {
       blinkAnim.setValue(0);
     }
   }, [error]);
+
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -111,7 +104,6 @@ function LoginScreen({ navigation }) {
     navigation.navigate("Splash");
   };
 
-  // Migrants login functions
   const validatePhoneNumber = () => {
     if (!mobile || mobile.length < 10) {
       setError("Please enter a valid 10-digit mobile number");
@@ -126,21 +118,28 @@ function LoginScreen({ navigation }) {
 
     setLoading(true);
     try {
+      console.log("Sending OTP...");
+
       const response = await getLoginOtp(callingCode, mobile);
+      console.log("OTP Response:", response); // Log the response for debugging
       setYourOtp(response.otp);
-      
       if (!response.status) {
+        // User not registered
         Toast.show({
           type: "error",
           text1: "User Not Registered",
           text2: "Please register first to continue",
         });
+
+        // Highlight the register text
         setError("User not registered. Please register first.");
         setShowOtpField(false);
         return;
       }
 
-      const receivedOtp = response.otp;
+      // User is registered - proceed with OTP flow
+      const receivedOtp = response.otp; // Ensure the response has an 'otp' field
+
       Toast.show({
         type: "success",
         text1: "OTP Sent Successfully",
@@ -172,6 +171,40 @@ function LoginScreen({ navigation }) {
     }
   };
 
+//   console.log("Showing toast...");
+// Toast.show({ type: 'success', text1: 'Success', text2: 'Your account has been created successfully!' });
+  // Handle keyboard show/hide events to scroll to the focused input
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      (event) => {
+
+        // const focusedInput = showOtpField ? otpInputRef.current : mobileInputRef.current;
+        // if (focusedInput) {
+        //   focusedInput.measureLayout(
+        //     scrollViewRef.current,
+        //     (x, y) => {
+        //       scrollViewRef.current.scrollTo({ y: y - 50, animated: true }); // Adjust offset as needed
+        //     },
+        //     (error) => console.log("Error measuring layout:", error)
+        //   );
+        // }
+
+        setTimeout(() => {
+      const focusedInput = showOtpField ? otpInputRef.current : mobileInputRef.current;
+      focusedInput?.measure((x, y, width, height, pageX, pageY) => {
+        scrollViewRef.current?.scrollTo({ y: pageY - 100, animated: true });
+      });
+    }, 100); // delay helps with layout settling
+      }
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+    };
+  }, [showOtpField]);
+
+
   const handleResendOtp = async () => {
     setCanResendOtp(false);
     setCountdown(OTP_TIMEOUT);
@@ -191,7 +224,9 @@ function LoginScreen({ navigation }) {
     setVerifying(true);
     try {
       const response = await verifyOtp(callingCode, mobile, otp);
-      
+      console.log("Verify OTP Response:", response); // Log the response for debugging
+      console.log("response.access_token", response.access_token);
+
       if (response?.status) {
         await setAuthToken(response.access_token)
         Toast.show({
@@ -223,246 +258,6 @@ function LoginScreen({ navigation }) {
     }
   };
 
-  // Staff login functions
-  const validateStaffCredentials = () => {
-    if (!email) {
-      setError("Please enter your email");
-      return false;
-    }
-    if (!password) {
-      setError("Please enter your password");
-      return false;
-    }
-    setError("");
-    return true;
-  };
-
-  const handleStaffLogin = async () => {
-    if (!validateStaffCredentials()) return;
-    
-    setLoading(true);
-    try {
-      // Replace with your actual staff login API call
-      // const response = await staffLogin(email, password);
-      
-      // Mock response for demonstration
-      const mockResponse = {
-        status: true,
-        access_token: "staff_access_token_123",
-        user: {
-          id: 1,
-          email: email,
-          role: "staff"
-        }
-      };
-      
-      if (mockResponse?.status) {
-        await setAuthToken(mockResponse.access_token);
-        Toast.show({
-          type: "success",
-          position: "bottom",
-          text1: "Login Successful",
-          text2: "Welcome Staff!",
-          visibilityTime: 5000,
-        });
-        setTimeout(() => {
-          navigation.navigate("Dashboard", {
-            accessToken: mockResponse.access_token,
-          });
-        }, 2000);
-      } else {
-        setError("Invalid credentials. Please try again.");
-      }
-    } catch (error) {
-      console.error("Staff Login Error:", error);
-      const errorMessage = error.message || "Login failed. Please try again.";
-      setError(errorMessage);
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: errorMessage,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Handle keyboard show/hide events to scroll to the focused input
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      "keyboardDidShow",
-      (event) => {
-        setTimeout(() => {
-          let focusedInput;
-          if (activeTab === "migrants") {
-            focusedInput = showOtpField ? otpInputRef.current : mobileInputRef.current;
-          } else {
-            focusedInput = passwordInputRef.current;
-          }
-          
-          focusedInput?.measure((x, y, width, height, pageX, pageY) => {
-            scrollViewRef.current?.scrollTo({ y: pageY - 100, animated: true });
-          });
-        }, 100);
-      }
-    );
-
-    return () => {
-      keyboardDidShowListener.remove();
-    };
-  }, [showOtpField, activeTab]);
-
-  const renderMigrantsLogin = () => (
-    <>
-      {!showOtpField ? (
-        <>
-          <TouchableOpacity
-            style={styles.inputBox}
-            activeOpacity={1}
-            onPress={handleInputFocus}
-          >
-            <View style={styles.phoneRow}>
-              <CountryPicker
-                countryCode={countryCode}
-                withCallingCode
-                withFlag
-                withFilter
-                withEmoji
-                onSelect={(country) => {
-                  setCountryCode(country.cca2);
-                  setCallingCode(country.callingCode[0]);
-                }}
-                containerButtonStyle={styles.countryPicker}
-              />
-              <Text style={styles.callingCode}>+{callingCode}</Text>
-              <TextInput
-                ref={mobileInputRef}
-                placeholder="Mobile Number"
-                placeholderTextColor="#D3B58F"
-                keyboardType="phone-pad"
-                style={[styles.input, { flex: 1 }]}
-                value={mobile}
-                onChangeText={(text) => setMobile(text.replace(/[^0-9]/g, ""))}
-                maxLength={12}
-              />
-            </View>
-          </TouchableOpacity>
-
-          <Text style={styles.registerText}>
-            New user?{" "}
-            <Animated.Text
-              onPress={() => navigation.navigate("Register")}
-              style={[
-                styles.registerBold,
-                error.includes("not registered") && styles.highlightedRegister
-              ]}
-            >
-              Register
-            </Animated.Text>
-          </Text>
-        </>
-      ) : (
-        <View style={styles.otpContainer}>
-          <View style={styles.inputBox}>
-            <TextInput
-              ref={otpInputRef}
-              placeholder="Enter 6-digit OTP"
-              placeholderTextColor="#D3B58F"
-              keyboardType="numeric"
-              style={[styles.input, { textAlign: "center" }]}
-              value={otp}
-              onChangeText={(text) => setOtp(text.replace(/[^0-9]/g, ""))}
-              maxLength={6}
-            />
-          </View>
-          <View style={styles.otpInfoRow}>
-            <Text style={styles.otpText}>Your otp: </Text>
-            <Text style={styles.otpValue}>{yourOtp}</Text>
-            {canResendOtp && (
-              <TouchableOpacity onPress={handleResendOtp}>
-                <Text style={styles.resendText}>Resend OTP</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-      )}
-
-      {!showOtpField ? (
-        <TouchableOpacity
-          style={[styles.button, (!mobile || mobile.length < 10) && styles.disabledButton]}
-          onPress={handleSendOtp}
-          activeOpacity={0.8}
-          disabled={!mobile || mobile.length < 10 || loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#3D2A1A" />
-          ) : (
-            <Text style={styles.buttonText}>Send OTP</Text>
-          )}
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity
-          style={[styles.button, otp.length !== 6 && styles.disabledButton]}
-          onPress={handleVerifyOtp}
-          activeOpacity={0.8}
-          disabled={otp.length !== 6 || verifying}
-        >
-          {verifying ? (
-            <ActivityIndicator color="#3D2A1A" />
-          ) : (
-            <Text style={styles.buttonText}>Continue</Text>
-          )}
-        </TouchableOpacity>
-      )}
-
-      {otpSent && !showOtpField && (
-        <Text style={styles.otpNote}>OTP sent to +{callingCode} {mobile}</Text>
-      )}
-    </>
-  );
-
-  const renderStaffLogin = () => (
-    <>
-      <View style={styles.inputBox}>
-        <TextInput
-          ref={emailInputRef}
-          placeholder="Email"
-          placeholderTextColor="#D3B58F"
-          keyboardType="email-address"
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-        />
-      </View>
-      
-      <View style={styles.inputBox}>
-        <TextInput
-          ref={passwordInputRef}
-          placeholder="Password"
-          placeholderTextColor="#D3B58F"
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-      </View>
-
-      <TouchableOpacity
-        style={[styles.button, (!email || !password) && styles.disabledButton]}
-        onPress={handleStaffLogin}
-        activeOpacity={0.8}
-        disabled={!email || !password || loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="#3D2A1A" />
-        ) : (
-          <Text style={styles.buttonText}>Login</Text>
-        )}
-      </TouchableOpacity>
-    </>
-  );
-
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -476,7 +271,6 @@ function LoginScreen({ navigation }) {
       >
         <View style={styles.overlay} />
         <ScrollView
-          ref={scrollViewRef}
           contentContainerStyle={styles.scrollContainer}
           keyboardShouldPersistTaps="handled"
         >
@@ -494,43 +288,129 @@ function LoginScreen({ navigation }) {
 
             <Text style={styles.subtitle}>Login</Text>
 
-            {/* Tabs */}
-            <View style={styles.tabContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.tabButton,
-                  activeTab === "migrants" && styles.activeTab
-                ]}
-                onPress={() => setActiveTab("migrants")}
-              >
-                <Text style={[
-                  styles.tabText,
-                  activeTab === "migrants" && styles.activeTabText
-                ]}>
-                  Migrants
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[
-                  styles.tabButton,
-                  activeTab === "staff" && styles.activeTab
-                ]}
-                onPress={() => setActiveTab("staff")}
-              >
-                <Text style={[
-                  styles.tabText,
-                  activeTab === "staff" && styles.activeTabText
-                ]}>
-                  Staff
-                </Text>
-              </TouchableOpacity>
-            </View>
-
             <View style={styles.textBottom}>
+              {!showOtpField ? (
+                <>
+                  <TouchableOpacity
+                    style={styles.inputBox}
+                    activeOpacity={1}
+                    onPress={handleInputFocus}
+                  >
+                    <View style={styles.phoneRow}>
+                      <CountryPicker
+                        countryCode={countryCode}
+                        withCallingCode
+                        withFlag
+                        withFilter
+                        withEmoji
+                        onSelect={(country) => {
+                          setCountryCode(country.cca2);
+                          setCallingCode(country.callingCode[0]);
+                        }}
+                        containerButtonStyle={styles.countryPicker}
+                      />
+                      <Text style={styles.callingCode}>+{callingCode}</Text>
+                      <TextInput
+                        // ref={textInputRef}
+                        ref={mobileInputRef}
+
+                        placeholder="Mobile Number"
+                        placeholderTextColor="#D3B58F"
+                        keyboardType="phone-pad"
+                        style={[styles.input, { flex: 1 }]}
+                        value={mobile}
+                        onChangeText={(text) => setMobile(text.replace(/[^0-9]/g, ""))}
+                        maxLength={12}
+                      />
+                    </View>
+                  </TouchableOpacity>
+
+                  <Text style={styles.registerText}>
+                    New user?{" "}
+                    <Animated.Text
+                      onPress={() => navigation.navigate("Register")}
+                      style={[
+                        styles.registerBold,
+                        error.includes("not registered") && styles.highlightedRegister // Add this style
+                      ]}
+                    >
+                      Register
+                    </Animated.Text>
+                  </Text>
+                </>
+              ) : (
+                <View style={styles.otpContainer}>
+                  <View style={styles.inputBox}>
+                    <TextInput
+                      // ref={textInputRef}
+                      ref={otpInputRef}
+                      placeholder="Enter 6-digit OTP"
+                      placeholderTextColor="#D3B58F"
+                      keyboardType="numeric"
+                      style={[styles.input, { textAlign: "center" }]}
+                      value={otp}
+                      onChangeText={(text) => setOtp(text.replace(/[^0-9]/g, ""))}
+                      maxLength={6}
+                    />
+                  </View>
+                  {/* <View style={styles.otpFooter}>
+                    <Text style={styles.countdownText}>
+                      {countdown > 0 ? `Resend OTP in ${countdown}s` : ""}
+                    </Text>
+                    <TouchableOpacity
+                      style={[styles.resendButton, !canResendOtp && styles.disabledButton]}
+                      onPress={handleResendOtp}
+                      disabled={!canResendOtp}
+                    >
+                      <Text style={styles.resendButtonText}>Resend OTP</Text>
+                    </TouchableOpacity>
+                  </View> */}
+                  {/* 👇 New OTP text row */}
+                  <View style={styles.otpInfoRow}>
+                    <Text style={styles.otpText}>Your otp: </Text>
+                    <Text style={styles.otpValue}>{yourOtp}</Text>
+                    {canResendOtp && (
+                      <TouchableOpacity onPress={handleResendOtp}>
+                        <Text style={styles.resendText}>Resend OTP</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              )}
+
               {error ? <Text style={styles.errorText}>{error}</Text> : null}
-              
-              {activeTab === "migrants" ? renderMigrantsLogin() : renderStaffLogin()}
+
+              {!showOtpField ? (
+                <TouchableOpacity
+                  style={[styles.button, (!mobile || mobile.length < 10) && styles.disabledButton]}
+                  onPress={handleSendOtp}
+                  activeOpacity={0.8}
+                  disabled={!mobile || mobile.length < 10 || loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#3D2A1A" />
+                  ) : (
+                    <Text style={styles.buttonText}>Send OTP</Text>
+                  )}
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.button, otp.length !== 6 && styles.disabledButton]}
+                  onPress={handleVerifyOtp}
+                  activeOpacity={0.8}
+                  disabled={otp.length !== 6 || verifying}
+                >
+                  {verifying ? (
+                    <ActivityIndicator color="#3D2A1A" />
+                  ) : (
+                    <Text style={styles.buttonText}>Continue</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+
+              {otpSent && !showOtpField && (
+                <Text style={styles.otpNote}>OTP sent to +{callingCode} {mobile}</Text>
+              )}
             </View>
           </Animated.View>
         </ScrollView>
@@ -540,6 +420,7 @@ function LoginScreen({ navigation }) {
   );
 }
 
+// Styles remain unchanged
 const styles = StyleSheet.create({
   background: {
     flex: 1,
@@ -586,7 +467,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: "#FFECD2",
     textAlign: "center",
-    marginBottom: 350,
+    marginBottom: 450,
     fontWeight: "500",
     textShadowColor: "rgba(0, 0, 0, 0.3)",
     textShadowOffset: { width: 1, height: 1 },
@@ -616,6 +497,31 @@ const styles = StyleSheet.create({
   otpContainer: {
     width: "100%",
     alignItems: "center",
+  },
+  otpFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    marginTop: 5,
+  },
+  countdownText: {
+    color: "#FFECD2",
+    fontSize: 14,
+    flex: 1,
+  },
+  resendButton: {
+    backgroundColor: "rgba(255, 242, 224, 0.2)",
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderWidth: 1,
+    borderColor: "#FFECD2",
+  },
+  resendButtonText: {
+    color: "#FFECD2",
+    fontSize: 14,
+    fontWeight: "500",
   },
   phoneRow: {
     flexDirection: "row",
@@ -681,11 +587,13 @@ const styles = StyleSheet.create({
     color: "#FFD699",
   },
   highlightedRegister: {
-    color: '#FF0000',
+    color: '#FF0000', // Red color
     fontWeight: 'bold',
     textDecorationLine: 'underline',
     fontSize: 16,
   },
+
+
   otpInfoRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -700,42 +608,16 @@ const styles = StyleSheet.create({
   otpValue: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "#FFD700",
+    color: "#FFD700", // Golden color to highlight
     marginLeft: 4,
     marginRight: 8,
   },
   resendText: {
     fontSize: 14,
-    color: "#00BFFF",
+    color: "#00BFFF", // Light Blue
     textDecorationLine: "underline",
   },
-  // Tab styles
-  tabContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginBottom: 20,
-    backgroundColor: "rgba(96, 51, 0, 0.5)",
-    borderRadius: 10,
-    padding: 5,
-  },
-  tabButton: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: "center",
-    borderRadius: 8,
-  },
-  activeTab: {
-    backgroundColor: "rgba(255, 242, 224, 0.3)",
-  },
-  tabText: {
-    color: "#FFF2E0",
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  activeTabText: {
-    fontWeight: "bold",
-    color: "#FFD699",
-  },
+
 });
 
 export default LoginScreen;

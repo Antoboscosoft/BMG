@@ -32,7 +32,7 @@ export const LanguageProvider = ({ children }) => {
       setLanguage(langToLoad);
       await updateLanguageTexts(langToLoad);
     } catch (error) {
-      console.error('Failed to load language:', error);
+      // console.error('Failed to load language:', error);
       // Fallback to English
       setLanguage('EN');
       await updateLanguageTexts('EN');

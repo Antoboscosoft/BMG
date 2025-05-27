@@ -4,8 +4,8 @@ import { Alert } from 'react-native';
 import { navigate } from './navigationRef'; // We'll create this
 
 const axiosInstance = axios.create({
-    // baseURL: 'http://192.168.1.148:8000/',
-    baseURL: 'http://172.105.54.28:8004/',
+    baseURL: 'http://192.168.1.148:8000/',
+    // baseURL: 'http://172.105.54.28:8004/',
     // baseURL: 'http://10.0.2.2:8000/',
     timeout: 10000,
     headers:{
@@ -39,9 +39,9 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("API Error:", error.message);
+    // console.error("API Error:", error.message);
     if (!error.response) {
-      console.error("Network Error: Please check your server or internet connection.");
+      // console.error("Network Error: Please check your server or internet connection.");
     } else {
       console.error("Error Response:", error.response.data);
       console.error("Error Status:", error.response.status);
@@ -81,7 +81,7 @@ axiosInstance.interceptors.response.use(
     }
     
     // Handle other errors
-    console.error("API Error:", error.message);
+    // console.error("API Error:", error.message);
     return Promise.reject(error);
   }
 );

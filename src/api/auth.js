@@ -38,7 +38,7 @@ export const verifyOtp = async (mobile_code, mobile_no, otp) => {
 // Function to get countries
 export const getCountries = async () => {
     try {
-        const response = await axiosInstance.get('user/country?skip=0&limit=25');
+        const response = await axiosInstance.get('user/country?skip=0&limit=0');
         return response.data;
     } catch (error) {
         console.error("Get Countries Error:", error);
@@ -70,8 +70,11 @@ export const getDistricts = async (stateId) => {
 
 // auth.js
 export const registerUser = async (userData) => {
+    console.log("registerUser called with userData:", userData);
     try {
-        const response = await axiosInstance.post('user/register', userData);
+        const response = await axiosInstance.post('user/register', userData, 
+            { headers: { "Content-Type": "multipart/form-data" } }
+        );
         return response.data;
     } catch (error) {
         console.error("Registration Error:", error);
@@ -87,7 +90,7 @@ export const getUserData = async (token) => {
         // console.log("Get User Data Response:", response.data);
         return response.data;
     } catch (error) {
-        console.error("Get User Data Error:", error);
+        // console.error("Get User Data Error:", error);
         if (error.response) {
             console.error("Error response data:", error.response.data);
             console.error("Error status:", error.response.status);
@@ -329,5 +332,82 @@ export const deleteEventRegistration = async (eventId) => {
     } catch (error) {
         console.error("Event Delete Error:", error);
         throw error.response?.data || { message: "Failed to delete registration" };
+    }
+};
+
+// Extract data from identity proof image
+export const extractIdentityData1 = async (image) => {
+    try {
+        // Create FormData object for multipart/form-data
+        const formData = new FormData();
+
+        // Append the image under the 'file' key
+        if (image && image.path) {
+            formData.append('file', {
+                uri: image.path, // Use the image path directly as provided by ImagePicker
+                type: image.mime || 'image/jpeg', // Fallback to jpeg if mime type is unavailable
+                name: image.path.split('/').pop() || 'identity_proof.jpg',
+            });
+        } else {
+            throw new Error('No valid image provided for identity proof extraction');
+        }
+
+        // Make the API call
+        const response = await axiosInstance.post('user/extract_data', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'accept': 'application/json',
+            },
+        });
+
+        console.log("Extract Identity Data Response:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Extract Identity Data Error:", error);
+        if (error.response) {
+            console.error("Error response data:", error.response.data);
+            console.error("Error status:", error.response.status);
+            console.error("Error headers:", error.response.headers);
+        }
+        throw new Error(error.response?.data?.message || 'Failed to extract identity data');
+    }
+};
+
+
+// Extract data from identity proof image (without token)
+export const extractIdentityData = async (image) => {
+    try {
+        // Create FormData object for multipart/form-data
+        const formData = new FormData();
+
+        // Append the image under the 'file' key
+        if (image && image.path) {
+            formData.append('file', {
+                uri: image.path, // Use the image path directly as provided by ImagePicker
+                type: image.mime || 'image/jpeg', // Fallback to jpeg if mime type is unavailable
+                name: image.path.split('/').pop() || 'identity_proof.jpg',
+            });
+        } else {
+            throw new Error('No valid image provided for identity proof extraction');
+        }
+
+        // Make the API call using axiosNoAuth (no token)
+        const response = await axiosInstance.post('user/extract_data', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'accept': 'application/json',
+            },
+        });
+
+        console.log("Extract Identity Data Response:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Extract Identity Data Error:", error);
+        if (error.response) {
+            console.error("Error response data:", error.response.data);
+            console.error("Error status:", error.response.status);
+            console.error("Error headers:", error.response.headers);
+        }
+        throw new Error(error.response?.data?.message || 'Failed to extract identity data');
     }
 };

@@ -101,7 +101,8 @@ function ProfileScreen({ navigation }) {
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.headerContainer}>
                     <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Dashboard')}>
-                        <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text>
+                        {/* <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text> */}
+                        <Icon name="arrow-back-ios" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>{languageTexts?.profile?.screen?.title || 'Your Profile'}</Text>
                     <View style={{ width: 60 }} />
@@ -209,7 +210,7 @@ function ProfileScreen({ navigation }) {
                     <View style={styles.row}>
                         <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.language || 'Language'}</Text>
                         <Text style={styles.value}>
-                            {languageTexts?.profile?.screen?.languages?.[userData?.language_pref] || '-'}
+                            {/* {languageTexts?.profile?.screen?.languages?.[userData?.language_pref] || '-'} */}
                             {userData?.language_pref === 'en' ? 'English' :
                              userData?.language_pref === 'hi' ? 'Hindi' :
                              userData?.language_pref === 'ta' ? 'Tamil' :
@@ -257,9 +258,12 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingTop: 30,
+        paddingTop: Platform.OS === 'ios' ? 50 : 30,
         paddingBottom: 20,
         width: '100%',
+        // backgroundColor: 'rgba(0, 0, 0, 0.2)',
+        // borderBottomWidth: 1,
+        // borderBottomColor: 'rgba(255, 236, 210, 0.3)',
     },
     backButton: {
         padding: 10,
@@ -278,6 +282,9 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         flex: 1,
         paddingHorizontal: 10,
+        textShadowColor: 'rgba(0, 0, 0, 0.3)',
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 3,
     },
     contentContainer: {
         alignItems: 'center',
