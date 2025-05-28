@@ -17,7 +17,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { getCountries, getDistricts, getStates, updateUserData } from '../api/auth';
+import { getCountries, getDistricts, getStates, getUserData, updateUserData } from '../api/auth';
 import Toast from 'react-native-toast-message';
 import CountryPicker from 'react-native-country-picker-modal';
 import { useForm, Controller } from 'react-hook-form';
@@ -58,6 +58,7 @@ function ProfileEdit({ navigation, route }) {
     const [loadingCurrentDistricts, setLoadingCurrentDistricts] = useState(false);
     const [loadingNativeStates, setLoadingNativeStates] = useState(false);
     const [loadingNativeDistricts, setLoadingNativeDistricts] = useState(false);
+// console.log('userData:', userData);
 
     const { control, handleSubmit, reset, formState: { errors }, setValue, watch } = useForm({
         defaultValues: {
@@ -80,6 +81,7 @@ function ProfileEdit({ navigation, route }) {
             language_pref: userData?.language_pref || '',
             photo: userData?.photo || null,
             id: userData?.id || null,
+            role_id: userData?.role_id || null,
             current_country_name: userData?.current_country?.name || '',
             current_state_name: userData?.current_state?.name || '',
             current_district_name: userData?.current_district?.name || '',
@@ -250,6 +252,7 @@ function ProfileEdit({ navigation, route }) {
 
             const submissionData = {
                 ...data,
+                photo: data.photo || null, // Pass base64 string or null
                 native_country_id: data.native_country_id || null,
                 native_state_id: data.native_country_id ? data.native_state_id || null : null,
                 native_district_id: data.native_country_id && data.native_state_id ? data.native_district_id || null : null
@@ -263,7 +266,7 @@ function ProfileEdit({ navigation, route }) {
 
             let response;
             let attempts = 0;
-            const maxAttempts = 2;
+            const maxAttempts = 3;
 
             while (attempts < maxAttempts) {
                 try {
@@ -274,18 +277,27 @@ function ProfileEdit({ navigation, route }) {
                     if (attempts === maxAttempts) {
                         throw error;
                     }
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, 2000));
                 }
             }
 
             if (response.status) {
+                // Fetch the updated user data to ensure all fields (like country/state names) are included
+                const updatedUserResponse = await getUserData();
+                const updatedUser = updatedUserResponse.status && updatedUserResponse.data ? updatedUserResponse.data : submissionData;
+
                 Alert.alert(
                     languageTexts?.common?.success || 'Success',
                     response.details || (languageTexts?.profile?.edit?.success || 'Profile updated successfully!'),
                     [
                         {
                             text: languageTexts?.common?.ok || 'OK',
-                            onPress: () => navigation.navigate('Profile'),
+                            // onPress: () => navigation.navigate('Profile'),
+                            onPress: () => navigation.navigate('MigrantsList', {
+                                updatedUserData: updatedUser,
+                                updateTimestamp: Date.now() // Add timestamp to force refresh
+                            }),
+                            // onPress: () => navigation.goBack(),
                         },
                     ],
                     { cancelable: false }
@@ -327,7 +339,7 @@ function ProfileEdit({ navigation, route }) {
             const uri = response.assets[0].uri;
             const base64 = response.assets[0].base64;
             setImageUri(uri);
-            setValue('photo', base64);
+            setValue('newPhoto', base64);
         });
     };
 

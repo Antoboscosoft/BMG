@@ -3,6 +3,7 @@ import {
     ActivityIndicator,
     Dimensions,
     Image,
+    KeyboardAvoidingView,
     ScrollView,
     StyleSheet,
     Text,
@@ -19,7 +20,7 @@ import { useLanguage } from '../language/commondir';
 const { width, height } = Dimensions.get('window');
 
 function calculateAge(dob) {
-    if (!dob) return '';
+    if (!dob) return '-';
     const birthDate = new Date(dob);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
@@ -31,40 +32,83 @@ function calculateAge(dob) {
 }
 
 function formatDate(date) {
-    if (!date) return '';
+    if (!date) return '-';
     const d = new Date(date);
     return `${d.getDate()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getFullYear()}`;
 }
 
-function ProfileScreen({ navigation }) {
+function ProfileScreen({ navigation, route }) {
     const { languageTexts } = useLanguage();
+    const { userData: passedUserData, updatedUserData, updateTimestamp } = route.params || {};
     const [userData, setUserData] = useState(null);
     const [imageUri, setImageUri] = useState(null);
     const [loading, setLoading] = useState(true);
     const [countryCode, setCountryCode] = useState('IN');
+    const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
     // Fetch user data when component mounts
+    // useEffect(() => {
+    //     const fetchUserData = async () => {
+    //         try {
+    //             setLoading(true);
+    //             const response = await getUserData();
+    //             if (response.status && response.data) {
+    //                 setUserData(response.data);
+    //                 if (response.data.mobile_code) {
+    //                     const countryMapping = {
+    //                         '91': 'IN',
+    //                         '977': 'NP',
+    //                         '94': 'LK',
+    //                     };
+    //                     setCountryCode(countryMapping[response.data.mobile_code] || 'IN');
+    //                 }
+    //                 if (response.data.photo) {
+    //                     setImageUri(response.data.photo);
+    //                 } else {
+    //                     setImageUri(null);
+    //                 }
+    //             }
+    //         } catch (error) {
+    //             console.error('Failed to fetch user data:', error);
+    //             Toast.show({
+    //                 type: 'error',
+    //                 text1: languageTexts?.common?.error || 'Error',
+    //                 text2: error.message || (languageTexts?.profile?.screen?.error?.load || 'Failed to load user data'),
+    //             });
+
+    //             if (error.status === 401) {
+    //                 await clearAuthToken();
+    //                 navigation.replace('Login');
+    //             }
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     };
+
+    //     fetchUserData();
+    // }, [navigation]);
+
     useEffect(() => {
-        const fetchUserData = async () => {
+        const fetchData = async () => {
             try {
                 setLoading(true);
-                const response = await getUserData();
-                if (response.status && response.data) {
-                    setUserData(response.data);
-                    if (response.data.mobile_code) {
-                        const countryMapping = {
-                            '91': 'IN',
-                            '977': 'NP',
-                            '94': 'LK',
-                        };
-                        setCountryCode(countryMapping[response.data.mobile_code] || 'IN');
-                    }
-                    if (response.data.photo) {
-                        setImageUri(response.data.photo);
-                    } else {
-                        setImageUri(null);
+                let user;
+                if (updatedUserData) {
+                    user = updatedUserData;
+                    // setIsSuperAdmin(user?.role?.name === 'Super Admin');
+                } else if (passedUserData) {
+                    user = passedUserData;
+                    setIsSuperAdmin(false);
+                } else {
+                    const response = await getUserData();
+                    if (response.status && response.data) {
+                        user = response.data;
+                        setIsSuperAdmin(response.data?.role?.name === 'Super Admin');
                     }
                 }
+
+                setUserData(user);
+                setImageUri(user?.photo || null);
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
                 Toast.show({
@@ -72,7 +116,6 @@ function ProfileScreen({ navigation }) {
                     text1: languageTexts?.common?.error || 'Error',
                     text2: error.message || (languageTexts?.profile?.screen?.error?.load || 'Failed to load user data'),
                 });
-
                 if (error.status === 401) {
                     await clearAuthToken();
                     navigation.replace('Login');
@@ -82,8 +125,8 @@ function ProfileScreen({ navigation }) {
             }
         };
 
-        fetchUserData();
-    }, [navigation]);
+        fetchData();
+    }, [passedUserData, updatedUserData, navigation]);
 
     if (loading) {
         return (
@@ -97,10 +140,15 @@ function ProfileScreen({ navigation }) {
     }
 
     return (
+        <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
         <LinearGradient colors={['#5e3b15', '#b06a2c']} style={styles.background}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.headerContainer}>
-                    <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Dashboard')}>
+                    <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
                         {/* <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text> */}
                         <Icon name="arrow-back-ios" size={24} color="#FFF" />
                     </TouchableOpacity>
@@ -247,6 +295,7 @@ function ProfileScreen({ navigation }) {
                 {/* <Text style={{ color: '#3D2A1A', fontSize: 16 }}>Edit Profile</Text> */}
             </TouchableOpacity>
         </LinearGradient>
+        </KeyboardAvoidingView>
     );
 }
 

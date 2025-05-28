@@ -31,6 +31,12 @@ function DashboardPage({ navigation, route }) {
     const [loading, setLoading] = useState(true);
     const [activeIndex, setActiveIndex] = useState(0);
     const carouselRef = useRef(null);
+// console.log("userData:", userData);
+
+// console.log("Role base : ", userData?.data.role?.name || 'User');
+    const isSuperAdmin = userData?.data?.role?.name === "Super Admin";
+//   console.log("isSuperAdmin:", isSuperAdmin);
+
 
     const dashboardMenuItems = [
         { id: '1', name: 'eventCalendar', screen: 'EventCalendar', icon: 'calendar-month' },
@@ -39,24 +45,40 @@ function DashboardPage({ navigation, route }) {
         { id: '4', name: 'multilingualSupport', screen: 'MultilingualSupport', icon: 'translate' },
         { id: '5', name: 'helpRequest', screen: 'HelpRequest', icon: 'help-circle-outline' },
         { id: '6', name: 'profile', screen: 'Profile', icon: 'account' },
+        { id: '7', name: 'Migrants', screen: 'MigrantsList', icon: 'account-group' },
     ];
+
+    
+    // Filter menu items based on role
+    const filteredMenuItems = isSuperAdmin
+        ? dashboardMenuItems.filter(item =>
+            ['multilingualSupport', 'profile', 'Migrants'].includes(item.name)
+          )
+        : dashboardMenuItems.filter(item => item.name !== 'Migrants');
+
+    // console.log("Filtered Menu Items:", filteredMenuItems);
 
     const carouselItems = [
         {
             title: languageTexts?.dashboard?.welcome?.replace('{name}', userData?.data?.name || 'User'),
-            image: require('../asserts/images/im2.png'),
+            image: require('../asserts/images/car01.jpg'),
         },
         {
             title: languageTexts?.dashboard?.carousel?.stayUpdated || 'Stay Updated with Events!',
-            image: require('../asserts/images/img1.png'),
+            // image: require('../asserts/images/img1.png'),
+            image: require('../asserts/images/car02.jpg'),
         },
         {
             title: languageTexts?.dashboard?.carousel?.discoverSector || 'Discover Your Sector',
-            image: require('../asserts/images/im3.png'),
+            image: require('../asserts/images/car03.jpg'),
+        },
+        {
+            title: languageTexts?.dashboard?.carousel?.stayUpdated || 'Discover Your Sector',
+            image: require('../asserts/images/car04.jpg'),
         },
         {
             title: languageTexts?.dashboard?.carousel?.discoverSector || 'Discover Your Sector',
-            image: require('../asserts/images/im4.png'),
+            image: require('../asserts/images/car05.jpg'),
         },
     ];
 
@@ -163,6 +185,7 @@ function DashboardPage({ navigation, route }) {
     }, [navigation]);
 
     useEffect(() => {
+        if (!isSuperAdmin) {
         const interval = setInterval(() => {
             setActiveIndex(prev => {
                 const nextIndex = (prev + 1) % carouselItems.length;
@@ -172,7 +195,8 @@ function DashboardPage({ navigation, route }) {
         }, 3000);
 
         return () => clearInterval(interval);
-    }, [carouselItems]);
+        }
+    }, [carouselItems, isSuperAdmin]);
 
     if (loading) {
         return (
@@ -211,11 +235,11 @@ function DashboardPage({ navigation, route }) {
                 <Text style={styles.welcomeText}>
                     👋 {languageTexts?.dashboard?.welcome?.replace('{name}', userData?.data?.name || 'User') || `Hi ${userData?.data?.name || 'User'}! Welcome to Bosco Migrants.`}
                 </Text>
-                {userData?.data.email && (
+                {/* {userData?.data.email && (
                     <Text style={styles.userInfoText}>
                         {languageTexts?.dashboard?.email?.replace('{email}', userData.data.email) || `Email: ${userData.data.email}`}
                     </Text>
-                )}
+                )} */}
                 <View style={styles.carouselContainer}>
                     <FlatList
                         data={carouselItems}
@@ -232,7 +256,7 @@ function DashboardPage({ navigation, route }) {
                     />
                 </View>
                 <ScrollView contentContainerStyle={styles.gridContainer}>
-                    {dashboardMenuItems.map((item) => (
+                    {filteredMenuItems.map((item) => (
                         <View key={item.id} style={styles.gridItem}>
                             <TouchableOpacity
                                 style={styles.iconTouchable}
@@ -273,7 +297,7 @@ function DashboardPage({ navigation, route }) {
                         </Text>
                     </TouchableOpacity>
 
-                    {dashboardMenuItems.map((item) => (
+                    {filteredMenuItems.map((item) => (
                         <TouchableOpacity
                             key={item.id}
                             style={styles.menuItem}

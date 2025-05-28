@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axiosInstance from "./axiosInstance"
 
 // Function to request OTP
@@ -68,11 +69,57 @@ export const getDistricts = async (stateId) => {
     }
 };
 
+// Function for staff login
+// export const staffLoginprev = async (username, password) => {
+//     console.log("staffLogin called with params:", { username, password });
+//     try {
+//         const response = await axiosInstance.post("user/login", {
+//             username,
+//             password,
+//         });
+//         console.log("Staff Login Response:", response.data);
+//         return response.data;
+//     } catch (error) {
+//         console.error("Staff Login Error:", error);
+//         throw error.response?.data || { message: "Staff login failed" };
+//     }
+// };
+
+
+// Function for staff login
+export const staffLogin = async (username, password) => {
+    console.log("staffLogin called with params:", { username, password });
+    if (!username || !password) {
+        console.error("staffLogin: Missing username or password", { username, password });
+        throw new Error("Username and password are required");
+    }
+    try {
+        // const payload = { username, password };
+        const fm = new FormData();
+        fm.append("username", username);
+        fm.append("password", password);
+        // const payload = fm;
+        // console.log("staffLogin: Sending payload:", payload);
+        const response = await axiosInstance.post("user/login", fm, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'accept': 'application/json',
+            },
+        });
+        console.log("Staff Login Response:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Staff Login Error:", error.response?.data || error.message);
+        throw error.response?.data || { message: "Staff login failed" };
+    }
+};
+
+
 // auth.js
 export const registerUser = async (userData) => {
     console.log("registerUser called with userData:", userData);
     try {
-        const response = await axiosInstance.post('user/register', userData, 
+        const response = await axiosInstance.post('user/register', userData,
             { headers: { "Content-Type": "multipart/form-data" } }
         );
         return response.data;
@@ -85,9 +132,9 @@ export const registerUser = async (userData) => {
 // Updated Function to get user data using axiosInstance
 export const getUserData = async (token) => {
     try {
-        // console.log("Making request to /user/me with token:", token);
+        console.log("Making request to /user/me with token:", token);
         const response = await axiosInstance.get('user/me');
-        // console.log("Get User Data Response:", response.data);
+        console.log("Get User Data Response:", response.data);
         return response.data;
     } catch (error) {
         // console.error("Get User Data Error:", error);
@@ -100,6 +147,41 @@ export const getUserData = async (token) => {
     }
 };
 
+// Function to get list of migrant users
+export const getMigrantsList = async () => {
+    try {
+        const token = await AsyncStorage.getItem("accessToken");
+        console.log("Making request to /user with token:", token);
+        const response = await axiosInstance.get("user");
+        console.log("Get Migrants List Response:", response.data);
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            console.error("Error response data:", error.response.data);
+            console.error("Error status:", error.response.status);
+            console.error("Error headers:", error.response.headers);
+        }
+        throw error.response?.data || { message: "Failed to fetch migrants list" };
+    }
+};
+
+// Function to get a single user by ID
+export const getUserById = async (userId) => {
+    try {
+        const token = await AsyncStorage.getItem("accessToken");
+        console.log(`Making request to /user/${userId} with token:`, token);
+        const response = await axiosInstance.get(`user/${userId}`);
+        console.log("Get User By ID Response:", response.data);
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            console.error("Error response data:", error.response.data);
+            console.error("Error status:", error.response.status);
+            console.error("Error headers:", error.response.headers);
+        }
+        throw error.response?.data || { message: "Failed to fetch user data" };
+    }
+};
 // export const updateUserData = async (userId, data) => {
 //     try {
 //         const response = await axiosInstance.put(`user/update/${userId}`, data);
@@ -138,6 +220,7 @@ export const updateUserData = async (userId, userData) => {
             email: userData?.email !== '' ? userData?.email : null,
             mobile_number: userData.mobile_number,
             mobile_code: userData.mobile_code,
+            role_id: userData.role_id || null,
         };
 
         // Create FormData object for multipart/form-data
@@ -159,13 +242,16 @@ export const updateUserData = async (userId, userData) => {
         //         name: 'photo.jpg',
         //     });
         // }
-
+        console.log("userData.photo:", userData.newPhoto);
+        
         // Append the image under the 'profile' key if a new image is selected
         if (userData.photo && typeof userData.photo === 'string') {
+            console.log("Photo included in FormData:", userData.photo.substring(0, 50)); // Log first 50 chars of base64
             // Remove the data URI prefix if present (e.g., "data:image/jpeg;base64,")
-            const base64String = userData.photo.startsWith('data:image')
-                ? userData.photo.split(',')[1]
-                : userData.photo;
+            if(userData.newPhoto){
+            const base64String = userData.newPhoto.startsWith('data:image')
+                ? userData.newPhoto.split(',')[1]
+                : userData.newPhoto;
 
             formData.append('profile', {
                 uri: `data:image/jpeg;base64,${base64String}`,
@@ -173,7 +259,9 @@ export const updateUserData = async (userId, userData) => {
                 name: 'profile.jpg',
             });
         }
-
+        }
+        console.log("FormData contents:", formData);
+        console.log("Sending request to:", `user/update/${userId}`);
         const response = await axiosInstance.put(`user/update/${userId}`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
@@ -184,11 +272,11 @@ export const updateUserData = async (userId, userData) => {
         console.log("Update User Data Response:", response.data);
         return response.data;
     } catch (error) {
-        console.error("Update User Data Error:", error);
+        // console.error("Update User Data Error:", error);
         if (error.response) {
-            console.error("Error response data:", error.response.data);
-            console.error("Error status:", error.response.status);
-            console.error("Error headers:", error.response.headers);
+            // console.error("Error response data:", error.response.data);
+            // console.error("Error status:", error.response.status);
+            // console.error("Error headers:", error.response.headers);
         }
         throw error.response?.data || { message: "Failed to update user data" };
     }
@@ -380,6 +468,15 @@ export const extractIdentityData = async (image) => {
         // Create FormData object for multipart/form-data
         const formData = new FormData();
 
+        // Log image details for debugging
+        console.log("Image details:", {
+            path: image.path,
+            mime: image.mime,
+            size: image.size,
+            width: image.width,
+            height: image.height,
+        });
+
         // Append the image under the 'file' key
         if (image && image.path) {
             formData.append('file', {
@@ -391,11 +488,15 @@ export const extractIdentityData = async (image) => {
             throw new Error('No valid image provided for identity proof extraction');
         }
 
+        // Log FormData contents (for debugging, note: FormData logging might not show all details in React Native)
+        console.log("FormData prepared for extractIdentityData:", formData);
+
         // Make the API call using axiosNoAuth (no token)
         const response = await axiosInstance.post('user/extract_data', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
                 'accept': 'application/json',
+                'Accept-Language': 'en', // Force English response
             },
         });
 

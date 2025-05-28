@@ -165,7 +165,8 @@ const RegisterScreen = ({ navigation }) => {
         photo: null,
         identity: null,
     });
-
+// State for image preview
+    const [isImagePreviewVisible, setIsImagePreviewVisible] = useState(false);
     const [identityProofImage, setIdentityProofImage] = useState(null);
 
     const [isImageLoading, setIsImageLoading] = useState(false);
@@ -240,82 +241,6 @@ const RegisterScreen = ({ navigation }) => {
         }
     };
 
-    // Fetch countries on component mount
-    useEffect(() => {
-
-        const fetchCountries = async () => {
-            setLoadingCountries(true);
-            try {
-                const response = await getCountries();
-                setCountries(response.data || []);
-            } catch (error) {
-                console.error("Error fetching countries:", error);
-                Toast.show({
-                    // type: 'error',
-                    text1: 'Error',
-                    text2: error.message || 'Failed to load countries',
-                });
-            } finally {
-                setLoadingCountries(false);
-            }
-        };
-        fetchCountries();
-    }, []);
-
-    // Fetch states when country changes
-    useEffect(() => {
-        const fetchStates = async () => {
-            if (form.currentCountryId) {
-                setLoadingStates(true);
-                setForm(prev => ({ ...prev, currentStateId: '', currentDistrictId: '' }));
-                setDistricts([]);
-                try {
-                    const response = await getStates(form.currentCountryId);
-                    setStates(response.data || []);
-                } catch (error) {
-                    console.error("Error fetching states:", error);
-                    Toast.show({
-                        // type: 'error',
-                        text1: 'Error',
-                        text2: error.message || 'Failed to load states',
-                    });
-                } finally {
-                    setLoadingStates(false);
-                }
-            } else {
-                setStates([]);
-                setDistricts([]);
-            }
-        };
-        fetchStates();
-    }, [form.currentCountryId]);
-
-    // Fetch districts when state changes
-    useEffect(() => {
-        const fetchDistricts = async () => {
-            if (form.currentStateId) {
-                setLoadingDistricts(true);
-                setForm(prev => ({ ...prev, currentDistrictId: '' }));
-                try {
-                    const response = await getDistricts(form.currentStateId);
-                    setDistricts(response.data || []);
-                } catch (error) {
-                    console.error("Error fetching districts:", error);
-                    Toast.show({
-                        // type: 'error',
-                        text1: 'Error',
-                        text2: error.message || 'Failed to load districts',
-                    });
-                } finally {
-                    setLoadingDistricts(false);
-                }
-            } else {
-                setDistricts([]);
-            }
-        };
-        fetchDistricts();
-    }, [form.currentStateId]);
-
     // Request storage permission based on Android version
     const requestStoragePermission = async () => {
         try {
@@ -368,7 +293,7 @@ const RegisterScreen = ({ navigation }) => {
                         height: 300,
                         cropping: true,
                         cropperCircleOverlay: true,
-                        compressImageQuality: 0.5,
+                        compressImageQuality: 1.0,
                     });
                     setImage(image.path);
                     setForm((prev) => ({ ...prev, photo: image.path })); // Update form.photo
@@ -396,7 +321,7 @@ const RegisterScreen = ({ navigation }) => {
                     height: 300,
                     cropping: true,
                     cropperCircleOverlay: true,
-                    compressImageQuality: 0.5,
+                    compressImageQuality: 1.0,
                 });
                 setImage(image.path);
                 setForm((prev) => ({ ...prev, photo: image.path })); // Update form.photo
@@ -443,7 +368,7 @@ const RegisterScreen = ({ navigation }) => {
             console.log("registrationData", registrationData);
             const fm = new FormData();
             fm.append("user", JSON.stringify(registrationData));
-            
+
             // Append profile photo (mandatory)
             fm.append("profile", {
                 uri: form.photo,
@@ -468,7 +393,8 @@ const RegisterScreen = ({ navigation }) => {
                 Toast.show('Your account has been created successfully!', Toast.LONG);
 
                 setTimeout(() => {
-                    navigation.navigate('Login');
+                    // navigation.navigate('Login');
+                    navigation.goBack();
                 }, 1000);
             } else {
                 let errorMsg = 'Registration failed';
@@ -496,116 +422,6 @@ const RegisterScreen = ({ navigation }) => {
         }
     };
 
-    // Request storage permission for Android
-    const requestStoragePermission1 = async () => {
-        try {
-            const granted = await PermissionsAndroid.request(
-                PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-                {
-                    title: "Storage Permission",
-                    message: "App needs access to your storage",
-                    buttonNeutral: "Ask Me Later",
-                    buttonNegative: "Cancel",
-                    buttonPositive: "OK"
-                }
-            );
-            return granted === PermissionsAndroid.RESULTS.GRANTED;
-        } catch (err) {
-            console.warn(err);
-            return false;
-        }
-    };
-
-    // Image picker function
-    const pickImage11 = async () => {
-        const hasPermission = await requestStoragePermission();
-        if (!hasPermission) {
-            Alert.alert("Permission required", "Need storage permission to select images");
-            return;
-        }
-
-        ImagePicker.openPicker({
-            width: 300,
-            height: 300,
-            cropping: true,
-            cropperCircleOverlay: true,
-            compressImageQuality: 0.7
-        }).then(image => {
-            setImage(image.path);
-        }).catch(err => {
-            console.log(err);
-        });
-    };
-
-
-    const pickImage1 = async () => {
-        try {
-            // For Android
-            if (Platform.OS === 'android') {
-                const granted = await PermissionsAndroid.request(
-                    PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-                    {
-                        title: "Storage Permission",
-                        message: "App needs access to your storage to select images",
-                        buttonPositive: "OK",
-                        buttonNegative: "Cancel",
-                        buttonNeutral: "Ask Me Later"
-                    }
-                );
-
-                if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-                    // Permission granted, proceed with image picking
-                    ImagePicker.openPicker({
-                        width: 300,
-                        height: 300,
-                        cropping: true,
-                        cropperCircleOverlay: true,
-                        compressImageQuality: 0.7
-                    }).then(image => {
-                        setImage(image.path);
-                    }).catch(err => {
-                        console.log('ImagePicker Error: ', err);
-                    });
-                } else if (granted === PermissionsAndroid.RESULTS.DENIED) {
-                    Toast.show('Storage permission denied', Toast.SHORT);
-                } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-                    Toast.show('Storage permission permanently denied', Toast.SHORT);
-                    // Optionally show dialog to guide user to app settings
-                    Alert.alert(
-                        'Permission Required',
-                        'Storage permission is required to select images. Please enable it in app settings.',
-                        [
-                            {
-                                text: 'Cancel',
-                                style: 'cancel'
-                            },
-                            {
-                                text: 'Open Settings',
-                                onPress: () => Linking.openSettings()
-                            }
-                        ]
-                    );
-                }
-            } else {
-                // For iOS, permissions are handled via Info.plist
-                ImagePicker.openPicker({
-                    width: 300,
-                    height: 300,
-                    cropping: true,
-                    cropperCircleOverlay: true,
-                    compressImageQuality: 0.7
-                }).then(image => {
-                    setImage(image.path);
-                }).catch(err => {
-                    console.log('ImagePicker Error: ', err);
-                });
-            }
-        } catch (err) {
-            console.warn('Permission error: ', err);
-            Toast.show('Failed to get storage permission', Toast.SHORT);
-        }
-    };
-
     // Camera function for profile photo
     const takePhoto = async () => {
         const hasPermission = await requestCameraPermission();
@@ -620,7 +436,7 @@ const RegisterScreen = ({ navigation }) => {
                 height: 300,
                 cropping: true,
                 cropperCircleOverlay: true,
-                compressImageQuality: 0.7,
+                compressImageQuality: 1.0,
             });
             setImage(image.path);
             setForm((prev) => ({ ...prev, photo: image.path })); // Update form.photo
@@ -653,9 +469,6 @@ const RegisterScreen = ({ navigation }) => {
             ]
         );
     };
-
-    // Rest of your existing code (useEffect hooks, fetch functions, etc.)
-    // ... (keep all your existing useEffect, fetchCountries, fetchStates, fetchDistricts, etc.)
 
     // Fetch countries on component mount
     useEffect(() => {
@@ -901,7 +714,7 @@ const RegisterScreen = ({ navigation }) => {
                 width: 300,
                 height: 300,
                 cropping: true,
-                compressImageQuality: 0.5,
+                compressImageQuality: 1.0,
             });
 
             setIdentityProofImage(image.path);
@@ -926,7 +739,8 @@ const RegisterScreen = ({ navigation }) => {
                 width: 300,
                 height: 300,
                 cropping: true,
-                compressImageQuality: 0.7,
+                // cropping: false,
+                compressImageQuality: 1.0,
             });
 
             setIdentityProofImage(image.path);
@@ -943,6 +757,7 @@ const RegisterScreen = ({ navigation }) => {
         try {
             const response = await extractIdentityData(image);
             console.log('Identity Proof API Response:', response.data);
+            console.log('Identity Proof API Response (Full):', JSON.stringify(response, null, 2));
             Toast.show('Identity proof processed successfully', Toast.SHORT);
 
             // Map API response to form fields
@@ -953,7 +768,7 @@ const RegisterScreen = ({ navigation }) => {
                     name: data.name || prev.name,
                     mobileNumber: data.mobile_number || prev.mobileNumber,
                     dateOfBirth: data.date_of_birth ? new Date(data.date_of_birth).toISOString() : prev.dateOfBirth,
-                    aadhaarNumber: data.aadhaar_number || prev.aadhaarNumber,
+                    aadhaarNumber: data.aadhaar_number ? data.aadhaar_number.replace(/\s/g, '') : prev.aadhaarNumber,
                     nativeAddressLine: data.native_address_line || prev.nativeAddressLine,
                     currentCountryId: data.native_country_id ? String(data.native_country_id) : prev.currentCountryId,
                     currentStateId: data.native_state_id ? String(data.native_state_id) : prev.currentStateId,
@@ -999,6 +814,9 @@ const RegisterScreen = ({ navigation }) => {
         }
     };
 
+    const handleBackPress = () => {
+        navigation.goBack();
+    };
     return (
         <ImageBackground
             source={RegisterImg}
@@ -1014,7 +832,16 @@ const RegisterScreen = ({ navigation }) => {
                     keyboardShouldPersistTaps="handled"
                 >
                     <View style={styles.formContainer}>
-                        <Text style={styles.title}>Register</Text>
+                        <View style={styles.header}>
+                            <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+                                <Icon name="arrow-left" size={26} color="#FFF" />
+                            </TouchableOpacity>
+                            <Text style={styles.title}>
+                                {/* {languageTexts?.register?.title || "Register"} */}
+                                Register
+                            </Text>
+                            <View style={{ width: 60 }} />
+                        </View>
 
                         {/* Profile Photo Upload */}
                         {/* <View style={styles.photoContainer}>
@@ -1053,7 +880,7 @@ const RegisterScreen = ({ navigation }) => {
                         </View>
 
                         {/* Identity Proof Upload */}
-                        <View style={styles.inputContainer}>
+                        {/* <View style={styles.inputContainer}>
                             <View style={styles.labelContainer}>
                                 <Text style={styles.label}>Identity Proof Upload</Text>
                             </View>
@@ -1080,7 +907,158 @@ const RegisterScreen = ({ navigation }) => {
                                     </TouchableOpacity>
                                 )}
                             </View>
+                        </View> */}
+
+                        <View style={styles.inputContainer}>
+                            <View style={styles.labelContainer}>
+                                <Text style={styles.label}>Identity Proof Upload</Text>
+                            </View>
+                            <View style={styles.fileUploadContainer}>
+                                {identityProofImage ? (
+                                    <View style={styles.filePreviewContainer}>
+                                        <TouchableOpacity
+                                            onPress={() => setIsImagePreviewVisible(true)}
+                                            activeOpacity={0.8}
+                                            style={styles.imageWrapper}
+                                            accessibilityLabel="View identity proof image"
+                                            accessibilityRole="imagebutton"
+                                        >
+                                            <Image source={{ uri: identityProofImage }} style={styles.identityProofImage} />
+                                            <TouchableOpacity
+                                                style={styles.cancelButton}
+                                                onPress={() => {
+                                                    setIdentityProofImage(null);
+                                                    setForm((prev) => ({ ...prev, identity: null }));
+                                                }}
+                                                activeOpacity={0.8}
+                                                accessibilityLabel="Remove identity proof image"
+                                                accessibilityRole="button"
+                                            >
+                                                <Icon name="times-circle" size={20} color="#FF3B30" />
+                                            </TouchableOpacity>
+                                        </TouchableOpacity>
+                                        <View style={styles.iconContainer}>
+                                            <TouchableOpacity
+                                                onPress={pickIdentityProofImage}
+                                                disabled={isImageLoading}
+                                                style={styles.iconButton}
+                                                accessibilityLabel="Choose identity proof from gallery"
+                                                accessibilityRole="button"
+                                            >
+                                                <Icon name="image" size={20} color="#666" />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                onPress={takeIdentityProofPhoto}
+                                                disabled={isImageLoading}
+                                                style={styles.iconButton}
+                                                accessibilityLabel="Take identity proof photo"
+                                                accessibilityRole="button"
+                                            >
+                                                <Icon name="camera" size={20} color="#666" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                ) : (
+                                    <View style={[styles.fileInputContainer, isImageLoading && styles.disabledInput]}>
+                                        <Icon name="upload" size={20} color="#666" style={styles.uploadIcon} />
+                                        <Text style={styles.fileInputText}>Identity Proof</Text>
+                                        <View style={styles.iconContainer}>
+                                            <TouchableOpacity
+                                                onPress={pickIdentityProofImage}
+                                                disabled={isImageLoading}
+                                                style={styles.iconButton}
+                                                accessibilityLabel="Choose identity proof from gallery"
+                                                accessibilityRole="button"
+                                            >
+                                                <Icon name="image" size={24} color="black" />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                onPress={takeIdentityProofPhoto}
+                                                disabled={isImageLoading}
+                                                style={styles.iconButton}
+                                                accessibilityLabel="Take identity proof photo"
+                                                accessibilityRole="button"
+                                            >
+                                                <Icon name="camera" size={24} color="black" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                )}
+                                {isImageLoading && (
+                                    <ActivityIndicator size="small" color="#007AFF" style={styles.loadingIndicator} />
+                                )}
+                            </View>
+
+                            {/* Image Preview Modal */}
+                            <Modal
+                                animationType="fade"
+                                transparent={true}
+                                visible={isImagePreviewVisible}
+                                onRequestClose={() => setIsImagePreviewVisible(false)}
+                            >
+                                <View style={styles.modalOverlay}>
+                                    <View style={styles.imagePreviewContainer}>
+                                        <TouchableOpacity
+                                            style={styles.closePreviewButton}
+                                            onPress={() => setIsImagePreviewVisible(false)}
+                                            accessibilityLabel="Close image preview"
+                                            accessibilityRole="button"
+                                        >
+                                            <Icon name="times" size={24} color="#fff" />
+                                        </TouchableOpacity>
+                                        <Image
+                                            source={{ uri: identityProofImage }}
+                                            style={styles.previewImage}
+                                            resizeMode="contain"
+                                        />
+                                    </View>
+                                </View>
+                            </Modal>
                         </View>
+                        {/* <View style={styles.inputContainer}>
+                            <View style={styles.labelContainer}>
+                                <Text style={styles.label}>Identity Proof Upload</Text>
+                            </View>
+                            <View style={styles.fileUploadContainer}>
+                                {identityProofImage ? (
+                                    <View style={styles.filePreviewContainer}>
+                                        <Image source={{ uri: identityProofImage }} style={styles.identityProofImage} />
+                                        <TouchableOpacity
+                                            style={styles.chooseAgainButton}
+                                            onPress={pickIdentityProofImage} // Default to gallery for "Choose Again"
+                                            activeOpacity={0.8}
+                                        >
+                                            <Text style={styles.chooseAgainButtonText}>Choose Again</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                ) : (
+                                    <View style={[styles.fileInputContainer, isImageLoading && styles.disabledInput]}>
+                                        <Icon name="upload" size={20} color="#666" style={styles.uploadIcon} />
+                                        
+                                        <Text style={styles.fileInputText}>Identity Proof</Text>
+                                        <View style={styles.iconContainer}>
+                                            <TouchableOpacity
+                                                onPress={pickIdentityProofImage}
+                                                disabled={isImageLoading}
+                                                style={styles.iconButton}
+                                            >
+                                                <Icon name="image" size={20} color="#666" />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                onPress={takeIdentityProofPhoto}
+                                                disabled={isImageLoading}
+                                                style={styles.iconButton}
+                                            >
+                                                <Icon name="camera" size={20} color="#666" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                )}
+                                {isImageLoading && (
+                                    <ActivityIndicator size="small" color="#007AFF" style={styles.loadingIndicator} />
+                                )}
+                            </View>
+                        </View> */}
 
                         {/* Full Name */}
                         <View style={styles.inputContainer}>
@@ -1140,40 +1118,6 @@ const RegisterScreen = ({ navigation }) => {
                                 <Text style={styles.errorText}>{errors.mobileNumber}</Text>
                             )}
                         </View>
-
-                        {/* Date of Birth */}
-                        {/* <View style={styles.inputContainer}>
-                            <Text style={styles.label}>Date of Birth</Text>
-                            <TouchableOpacity
-                                style={[styles.input, errors.dateOfBirth && styles.errorInput, styles.dateInputContainer]}
-                                onPress={() => setShowDOBPicker(true)}
-                            >
-                                <Icon name="calendar" size={20} color="#666" style={styles.icon} />
-                                <Text style={!form.dateOfBirth ? styles.placeholderText : styles.dateText}>
-                                    {form.dateOfBirth ?
-                                        new Date(form.dateOfBirth).toLocaleDateString() :
-                                        'Select your date of birth'
-                                    }
-                                </Text>
-                            </TouchableOpacity>
-                            {errors.dateOfBirth && <Text style={styles.errorText}>{errors.dateOfBirth}</Text>}
-                        </View> */}
-
-                        {/* {showDOBPicker && (
-                            <DateTimePicker
-                                value={form.dateOfBirth ? new Date(form.dateOfBirth) : new Date('2000-01-01')}
-                                mode="date"
-                                display="spinner"
-                                onChange={(event, selectedDate) => {
-                                    setShowDOBPicker(false);
-                                    if (selectedDate) {
-                                        handleChange('dateOfBirth', selectedDate.toISOString());
-                                        setErrors(prev => ({ ...prev, dateOfBirth: '' }));
-                                    }
-                                }}
-                                maximumDate={new Date()}
-                            />
-                        )} */}
 
                         <View style={styles.inputContainer}>
                             <View style={styles.labelContainer}>
@@ -1237,106 +1181,11 @@ const RegisterScreen = ({ navigation }) => {
                                 style={[styles.input, styles.aadhaarInput]}
                                 placeholder="Enter 12-digit Aadhaar"
                                 keyboardType="number-pad"
-                                value={formatAadhaar(form.aadhaarNumber)}
+                                value={form.aadhaarNumber ? formatAadhaar(form.aadhaarNumber) : ''}
                                 onChangeText={handleAadhaarChange}
                                 maxLength={14} // 12 digits + 2 spaces
                             />
                         </View>
-
-                        {/* Country */}
-                        {/* <View style={styles.inputContainer}>
-                            <Text style={styles.label}>Country</Text>
-                            {loadingCountries ? (
-                                <ActivityIndicator size="small" color="#0000ff" />
-                            ) : (
-                                <>
-                                    <Picker
-                                        selectedValue={form.currentCountryId}
-                                        onValueChange={(value) => {
-                                            handleChange('currentCountryId', value);
-                                            setErrors(prev => ({ ...prev, currentCountryId: false }));
-                                        }}
-                                        style={[styles.picker, errors.currentCountryId && styles.errorInput]}
-                                    >
-                                        <Picker.Item label="Select Country" value="" />
-                                        {countries.map(country => (
-                                            <Picker.Item
-                                                key={country.id}
-                                                label={country.name}
-                                                value={country.id}
-                                            />
-                                        ))}
-                                    </Picker>
-                                    {errors.currentCountryId && (
-                                        <Text style={styles.errorText}>{errors.currentCountryId}</Text>
-                                    )}
-                                </>
-                            )}
-                        </View> */}
-
-                        {/* State */}
-                        {/* <View style={styles.inputContainer}>
-                            <Text style={styles.label}>State</Text>
-                            {loadingStates ? (
-                                <ActivityIndicator size="small" color="#0000ff" />
-                            ) : (
-                                <>
-                                    <Picker
-                                        selectedValue={form.currentStateId}
-                                        onValueChange={(value) => {
-                                            handleChange('currentStateId', value);
-                                            setErrors(prev => ({ ...prev, currentStateId: '' }));
-                                        }}
-                                        style={[styles.picker, errors.currentStateId && styles.errorInput]}
-                                        enabled={!!form.currentCountryId}
-                                    >
-                                        <Picker.Item label={form.currentCountryId ? "Select State" : "Select Country first"} value="" />
-                                        {states.map(state => (
-                                            <Picker.Item
-                                                key={state.id}
-                                                label={state.name}
-                                                value={state.id}
-                                            />
-                                        ))}
-                                    </Picker>
-                                    {errors.currentStateId && (
-                                        <Text style={styles.errorText}>{errors.currentStateId}</Text>
-                                    )}
-                                </>
-                            )}
-                        </View> */}
-
-                        {/* District */}
-                        {/* <View style={styles.inputContainer}>
-                            <Text style={styles.label}>District</Text>
-                            {loadingDistricts ? (
-                                <ActivityIndicator size="small" color="#0000ff" />
-                            ) : (
-                                <>
-                                    <Picker
-                                        selectedValue={form.currentDistrictId}
-                                        onValueChange={(value) => {
-                                            handleChange('currentDistrictId', value);
-                                            setErrors(prev => ({ ...prev, currentDistrictId: '' }));
-                                        }}
-                                        style={[styles.picker, errors.currentDistrictId && styles.errorInput]}
-                                        enabled={!!form.currentStateId}
-                                    >
-                                        <Picker.Item label={form.currentStateId ? "Select District" : "Select State first"} value="" />
-                                        {districts.map(district => (
-                                            <Picker.Item
-                                                key={district.id}
-                                                label={district.name}
-                                                value={district.id}
-                                            />
-                                        ))}
-                                    </Picker>
-                                    {errors.currentDistrictId && (
-                                        <Text style={styles.errorText}>{errors.currentDistrictId}</Text>
-                                    )}
-                                </>
-                            )}
-                        </View> */}
 
                         {/* Country */}
                         {/* Country */}
@@ -1439,7 +1288,19 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         justifyContent: 'center',
     },
-    
+
+    header: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 20,
+        // marginTop: 50,
+    },
+    backButton: {
+        padding: 10,
+        backgroundColor: "#d0a577",
+        borderRadius: 25,
+    },
     // profie upload extract style:
     identityProofImage: {
         width: 100,
@@ -1474,7 +1335,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 28,
-        marginBottom: 16,
+        // marginBottom: 16,
         fontWeight: '700',
         textAlign: 'center',
         color: '#333',
@@ -1743,7 +1604,18 @@ const styles = StyleSheet.create({
     },
 
     fileUploadContainer: {
-        marginTop: 8,
+        marginTop: 10,
+    },
+    fileInputContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        backgroundColor: "#f5f5f5",
+        borderWidth: 1,
+        borderColor: "#ddd",
+        borderRadius: 8,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
     },
     fileInputButton: {
         flexDirection: 'row',
@@ -1762,6 +1634,14 @@ const styles = StyleSheet.create({
     },
     uploadIcon: {
         marginRight: 12,
+    },
+    iconContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    iconButton: {
+        padding: 8,
+        marginLeft: 8,
     },
     filePreviewContainer: {
         flexDirection: 'row',
@@ -1791,6 +1671,47 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
     },
+    cancelButton: {
+        position: "absolute",
+        top: -8,
+        right: -8,
+        backgroundColor: "#fff",
+        borderRadius: 10,
+        padding: 2,
+    },
+    loadingIndicator: {
+        marginTop: 8,
+    },
+    disabledInput: {
+        opacity: 0.6,
+    },
+
+
+    // Image Preview Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.9)", // Darker background for focus
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imagePreviewContainer: {
+    width: "90%",
+    height: "80%",
+    position: "relative",
+  },
+  previewImage: {
+    width: "100%",
+    height: "100%",
+  },
+  closePreviewButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 15,
+    padding: 8,
+    zIndex: 1,
+  },
 });
 
 export default RegisterScreen;

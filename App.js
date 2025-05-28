@@ -18,6 +18,8 @@ import CreateService from './src/pages/CreateService.js';
 import { navigationRef } from './src/api/navigationRef.js';
 import CreateRegister from './src/pages/CreateRegister.js';
 import { LanguageProvider } from './src/language/commondir.js';
+import MigrantsList from './src/pages/MigrantsList.js';
+import ProfileView from './src/pages/UserProfileView.js';
 
 
 // Custom Toast configuration
@@ -114,6 +116,9 @@ function App() {
         <Stack.Screen name="CreateRegister" component={CreateRegister} options={{ title: 'Create Register' }} />
 
         <Stack.Screen name="CreateEvent" component={CreateEventPage} options={{ title: 'Create Event' }} />
+
+        <Stack.Screen name="MigrantsList" component={MigrantsList} />
+        <Stack.Screen name="ProfileView" component={ProfileView} />
       </Stack.Navigator>
       <Toast />
     </NavigationContainer>

@@ -14,11 +14,13 @@ import {
   ActivityIndicator,
   Keyboard,
 } from "react-native";
-import loginImg from "../asserts/images/loginImg.jpg";
+// import loginImg from "../asserts/images/loginImg.jpg";
+import loginImg from "../asserts/images/spm.jpg";
 import CountryPicker from "react-native-country-picker-modal";
 import Toast from "react-native-toast-message";
-import { getLoginOtp, verifyOtp } from "../api/auth";
+import { getLoginOtp, staffLogin, verifyOtp } from "../api/auth";
 import { setAuthToken } from "../api/axiosInstance";
+import { Controller, useForm } from "react-hook-form";
 
 const { width, height } = Dimensions.get("window");
 const OTP_TIMEOUT = 30; // 30 seconds countdown
@@ -34,10 +36,6 @@ function LoginScreen({ navigation }) {
   const [otpSent, setOtpSent] = useState(false);
   const [countdown, setCountdown] = useState(OTP_TIMEOUT);
   const [canResendOtp, setCanResendOtp] = useState(false);
-  
-  // Staff login state
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   
   // Common state
   const [loading, setLoading] = useState(false);
@@ -57,6 +55,20 @@ function LoginScreen({ navigation }) {
   const otpInputRef = useRef(null);
   const emailInputRef = useRef(null);
   const passwordInputRef = useRef(null);
+
+  // react-hook-form setup for staff login
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isValid },
+    reset,
+  } = useForm({
+    mode: "onChange",
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
   // Add this effect when error occurs
   useEffect(() => {
@@ -80,6 +92,7 @@ function LoginScreen({ navigation }) {
     }
   }, [error]);
 
+  // Fade-in effect for the screen
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -88,6 +101,42 @@ function LoginScreen({ navigation }) {
     }).start();
   }, [fadeAnim]);
 
+  // Inside your LoginScreen component, add this useEffect to auto-fill OTP
+useEffect(() => {
+  if (yourOtp && yourOtp.length === 6) {
+    setOtp(yourOtp); // Auto-fill OTP when received
+    otpInputRef.current?.focus(); // Focus the OTP input field
+  }
+}, [yourOtp]);
+
+// For production SMS auto-retrieval (Android)
+useEffect(() => {
+  if (Platform.OS === 'android') {
+    SmsRetriever.startSmsRetriever()
+      .then((result) => {
+        if (result) {
+          SmsRetriever.addSmsListener((event) => {
+            if (event && event.message) {
+              // Assuming OTP is a 6-digit number in the SMS
+              const otpRegex = /\b\d{6}\b/;
+              const match = event.message.match(otpRegex);
+              if (match) {
+                setOtp(match[0]);
+                otpInputRef.current?.focus();
+              }
+            }
+          });
+        }
+      })
+      .catch((error) => console.error('SMS Retriever Error:', error));
+
+    return () => {
+      SmsRetriever.removeSmsListener();
+    };
+  }
+}, []);
+
+  // Countdown effect for OTP
   useEffect(() => {
     if (otpSent && countdown > 0) {
       countdownRef.current = setTimeout(() => {
@@ -122,8 +171,11 @@ function LoginScreen({ navigation }) {
   };
 
   const handleSendOtp = async () => {
-    if (!validatePhoneNumber()) return;
-
+    Keyboard.dismiss();
+    if (!validatePhoneNumber(mobile)) {
+      setError("Please enter a valid 10-digit mobile number");
+      return;
+    }
     setLoading(true);
     try {
       const response = await getLoginOtp(callingCode, mobile);
@@ -173,6 +225,7 @@ function LoginScreen({ navigation }) {
   };
 
   const handleResendOtp = async () => {
+    Keyboard.dismiss();
     setCanResendOtp(false);
     setCountdown(OTP_TIMEOUT);
     setOtp("");
@@ -183,6 +236,7 @@ function LoginScreen({ navigation }) {
   };
 
   const handleVerifyOtp = async () => {
+    Keyboard.dismiss();
     if (otp.length !== 6) {
       setError("Please enter a valid 6-digit OTP");
       return;
@@ -193,7 +247,7 @@ function LoginScreen({ navigation }) {
       const response = await verifyOtp(callingCode, mobile, otp);
       
       if (response?.status) {
-        await setAuthToken(response.access_token)
+        await setAuthToken(response.access_token);
         Toast.show({
           type: "success",
           position: "bottom",
@@ -237,27 +291,29 @@ function LoginScreen({ navigation }) {
     return true;
   };
 
-  const handleStaffLogin = async () => {
-    if (!validateStaffCredentials()) return;
-    
+  const handleStaffLogin = async (data) => {
+    // if (!validateStaffCredentials()) return;
+    Keyboard.dismiss();
     setLoading(true);
     try {
       // Replace with your actual staff login API call
       // const response = await staffLogin(email, password);
       
       // Mock response for demonstration
-      const mockResponse = {
-        status: true,
-        access_token: "staff_access_token_123",
-        user: {
-          id: 1,
-          email: email,
-          role: "staff"
-        }
-      };
+      // const mockResponse = {
+      //   status: true,
+      //   access_token: "staff_access_token_123",
+      //   user: {
+      //     id: 1,
+      //     email: email,
+      //     role: "staff"
+      //   }
+      // };
       
-      if (mockResponse?.status) {
-        await setAuthToken(mockResponse.access_token);
+      const response = await staffLogin(data.email, data.password); // Use the staffLogin API
+
+      if (response?.status) {
+        await setAuthToken(response.access_token);
         Toast.show({
           type: "success",
           position: "bottom",
@@ -267,7 +323,7 @@ function LoginScreen({ navigation }) {
         });
         setTimeout(() => {
           navigation.navigate("Dashboard", {
-            accessToken: mockResponse.access_token,
+            accessToken: response.access_token,
           });
         }, 2000);
       } else {
@@ -312,6 +368,22 @@ function LoginScreen({ navigation }) {
     };
   }, [showOtpField, activeTab]);
 
+  // Reset form when switching tabs
+  useEffect(() => {
+    if (activeTab === "migrants") {
+      reset({ email: "", password: "" });
+      setError("");
+    } else {
+      setMobile("");
+      setOtp("");
+      setShowOtpField(false);
+      setOtpSent(false);
+      setCountdown(OTP_TIMEOUT);
+      setCanResendOtp(false);
+      setError("");
+    }
+  }, [activeTab, reset]);
+  
   const renderMigrantsLogin = () => (
     <>
       {!showOtpField ? (
@@ -331,6 +403,7 @@ function LoginScreen({ navigation }) {
                 onSelect={(country) => {
                   setCountryCode(country.cca2);
                   setCallingCode(country.callingCode[0]);
+                  setError("");
                 }}
                 containerButtonStyle={styles.countryPicker}
               />
@@ -346,6 +419,7 @@ function LoginScreen({ navigation }) {
                 maxLength={12}
               />
             </View>
+                      {error && !showOtpField && <Text style={styles.errorText}>{error}</Text>}
           </TouchableOpacity>
 
           <Text style={styles.registerText}>
@@ -373,8 +447,29 @@ function LoginScreen({ navigation }) {
               value={otp}
               onChangeText={(text) => setOtp(text.replace(/[^0-9]/g, ""))}
               maxLength={6}
+              textContentType="oneTimeCode" // Enables iOS auto-fill
+            autoComplete="sms-otp" // Enables Android auto-fill
             />
-          </View>
+          
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => {
+              setShowOtpField(false);
+              setOtp("");
+              setOtpSent(false);
+              setCountdown(OTP_TIMEOUT);
+              setCanResendOtp(false);
+              setError("");
+              mobileInputRef.current?.focus(); // Focus mobile input
+            }}
+          >
+            <Text style={styles.cancelText}>✕</Text>
+          </TouchableOpacity></View>
+          {error && showOtpField && <Text style={styles.errorText}>{error}</Text>}
+        {otpSent && countdown > 0 && (
+          <Text style={styles.countdownText}>Resend OTP in {countdown}s</Text>
+        )}
+        
           <View style={styles.otpInfoRow}>
             <Text style={styles.otpText}>Your otp: </Text>
             <Text style={styles.otpValue}>{yourOtp}</Text>
@@ -422,46 +517,94 @@ function LoginScreen({ navigation }) {
   );
 
   const renderStaffLogin = () => (
-    <>
-      <View style={styles.inputBox}>
-        <TextInput
-          ref={emailInputRef}
-          placeholder="Email"
-          placeholderTextColor="#D3B58F"
-          keyboardType="email-address"
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
+  <>
+    <View style={styles.inputContainer}>
+      <View style={[styles.inputBox, errors.email && styles.inputError]}>
+        <Controller
+          control={control}
+          name="email"
+          rules={{
+            required: "Please enter your email",
+            pattern: {
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: "Please enter a valid email address",
+            },
+          }}
+          render={({ field: { onChange, value } }) => (
+            <TextInput
+              ref={emailInputRef}
+              placeholder="Email"
+              placeholderTextColor="#D3B58F"
+              keyboardType="email-address"
+              style={styles.input}
+              value={value}
+              onChangeText={(text) => {
+                onChange(text);
+                if (isValid) setError(""); // Clear general error if form is valid
+              }}
+              autoCapitalize="none"
+            />
+          )}
         />
       </View>
-      
-      <View style={styles.inputBox}>
-        <TextInput
-          ref={passwordInputRef}
-          placeholder="Password"
-          placeholderTextColor="#D3B58F"
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-      </View>
+      {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
+    </View>
 
-      <TouchableOpacity
-        style={[styles.button, (!email || !password) && styles.disabledButton]}
-        onPress={handleStaffLogin}
-        activeOpacity={0.8}
-        disabled={!email || !password || loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="#3D2A1A" />
-        ) : (
-          <Text style={styles.buttonText}>Login</Text>
-        )}
-      </TouchableOpacity>
-    </>
-  );
+    <View style={styles.inputContainer}>
+      <View style={[styles.inputBox, errors.password && styles.inputError]}>
+        <Controller
+          control={control}
+          name="password"
+          rules={{
+            required: "Please enter your password",
+            minLength: {
+              value: 4,
+              message: "Password must be at least 4 characters",
+            },
+            maxLength: {
+              value: 10,
+              message: "Password cannot exceed 10 characters",
+            },
+          }}
+          render={({ field: { onChange, value } }) => (
+            <TextInput
+              ref={passwordInputRef}
+              placeholder="Password"
+              placeholderTextColor="#D3B58F"
+              style={styles.input}
+              value={value}
+              onChangeText={(text) => {
+                onChange(text);
+                if (isValid) setError(""); // Clear general error if form is valid
+              }}
+              secureTextEntry
+              maxLength={10}
+            />
+          )}
+        />
+      </View>
+      {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
+    </View>
+
+    {error && !errors.email && !errors.password && (
+      <Text style={styles.errorText}>{error}</Text>
+    )}
+
+    <TouchableOpacity
+      style={[styles.button, !isValid && styles.disabledButton]}
+      onPress={handleSubmit(handleStaffLogin)}
+      activeOpacity={0.8}
+      disabled={!isValid || loading}
+    >
+      {loading ? (
+        <ActivityIndicator color="#3D2A1A" />
+      ) : (
+        <Text style={styles.buttonText}>Login</Text>
+      )}
+    </TouchableOpacity>
+  </>
+);
+
 
   return (
     <KeyboardAvoidingView
@@ -501,13 +644,17 @@ function LoginScreen({ navigation }) {
                   styles.tabButton,
                   activeTab === "migrants" && styles.activeTab
                 ]}
-                onPress={() => setActiveTab("migrants")}
+                onPress={() => {
+                  setActiveTab("migrants");
+                  reset(); // Reset staff login form
+                  setError("");
+                }}
               >
                 <Text style={[
                   styles.tabText,
                   activeTab === "migrants" && styles.activeTabText
                 ]}>
-                  Migrants
+                  Migrant
                 </Text>
               </TouchableOpacity>
               
@@ -516,7 +663,14 @@ function LoginScreen({ navigation }) {
                   styles.tabButton,
                   activeTab === "staff" && styles.activeTab
                 ]}
-                onPress={() => setActiveTab("staff")}
+                onPress={() =>{
+                  setActiveTab("staff");
+                  setMobile("");
+                  setOtp("");
+                  setShowOtpField(false);
+                  setOtpSent(false);
+                  setError("");
+                }}
               >
                 <Text style={[
                   styles.tabText,
@@ -674,7 +828,10 @@ const styles = StyleSheet.create({
   registerText: {
     color: "#FFF2E0",
     fontSize: 14,
-    bottom: 10,
+    top: 5,
+    marginTop: 10,
+    marginBottom: 10,
+    // bottom: 10,
   },
   registerBold: {
     fontWeight: "bold",
@@ -735,6 +892,62 @@ const styles = StyleSheet.create({
   activeTabText: {
     fontWeight: "bold",
     color: "#FFD699",
+  },
+
+
+
+  inputContainer: {
+    width: "100%",
+    marginBottom: 10, // Space between input fields
+  },
+  inputBox: {
+    backgroundColor: "rgba(96, 51, 0, 0.9)",
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#FFF2E0",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    position: "relative", // For cancel button positioning
+  },
+  input: {
+    fontSize: 18,
+    color: "#FFF7E7",
+    height: 40,
+    top: 2,
+  },
+  inputError: {
+    borderColor: "red", // Highlight the input box border on error
+  },
+  cancelButton: {
+    position: "absolute",
+    top: 12,
+    right: 15,
+    padding: 5,
+  },
+  countdownText: {
+    color: "#FFF2E0",
+    fontSize: 14,
+    marginTop: 5,
+    marginBottom: 10,
+    alignSelf: "center",
+  },
+  cancelText: {
+    color: "#FFF2E0",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  errorText: {
+    color: "red",
+    fontSize: 14,
+    marginTop: 5, // Space between input box and error message
+    alignSelf: "flex-start", // Align error text with input box
+    textAlign: "left",
   },
 });
 
