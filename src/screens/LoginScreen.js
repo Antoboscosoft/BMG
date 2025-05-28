@@ -14,8 +14,8 @@ import {
   ActivityIndicator,
   Keyboard,
 } from "react-native";
-// import loginImg from "../asserts/images/loginImg.jpg";
-import loginImg from "../asserts/images/spm.jpg";
+import loginImg from "../asserts/images/loginImg.jpg";
+// import loginImg from "../asserts/images/spm0.jpg";
 import CountryPicker from "react-native-country-picker-modal";
 import Toast from "react-native-toast-message";
 import { getLoginOtp, staffLogin, verifyOtp } from "../api/auth";
@@ -109,32 +109,32 @@ useEffect(() => {
   }
 }, [yourOtp]);
 
-// For production SMS auto-retrieval (Android)
-useEffect(() => {
-  if (Platform.OS === 'android') {
-    SmsRetriever.startSmsRetriever()
-      .then((result) => {
-        if (result) {
-          SmsRetriever.addSmsListener((event) => {
-            if (event && event.message) {
-              // Assuming OTP is a 6-digit number in the SMS
-              const otpRegex = /\b\d{6}\b/;
-              const match = event.message.match(otpRegex);
-              if (match) {
-                setOtp(match[0]);
-                otpInputRef.current?.focus();
-              }
-            }
-          });
-        }
-      })
-      .catch((error) => console.error('SMS Retriever Error:', error));
+// // For production SMS auto-retrieval (Android)
+// useEffect(() => {
+//   if (Platform.OS === 'android') {
+//     SmsRetriever.startSmsRetriever()
+//       .then((result) => {
+//         if (result) {
+//           SmsRetriever.addSmsListener((event) => {
+//             if (event && event.message) {
+//               // Assuming OTP is a 6-digit number in the SMS
+//               const otpRegex = /\b\d{6}\b/;
+//               const match = event.message.match(otpRegex);
+//               if (match) {
+//                 setOtp(match[0]);
+//                 otpInputRef.current?.focus();
+//               }
+//             }
+//           });
+//         }
+//       })
+//       .catch((error) => console.error('SMS Retriever Error:', error));
 
-    return () => {
-      SmsRetriever.removeSmsListener();
-    };
-  }
-}, []);
+//     return () => {
+//       SmsRetriever.removeSmsListener();
+//     };
+//   }
+// }, []);
 
   // Countdown effect for OTP
   useEffect(() => {
@@ -447,8 +447,6 @@ useEffect(() => {
               value={otp}
               onChangeText={(text) => setOtp(text.replace(/[^0-9]/g, ""))}
               maxLength={6}
-              textContentType="oneTimeCode" // Enables iOS auto-fill
-            autoComplete="sms-otp" // Enables Android auto-fill
             />
           
           <TouchableOpacity
@@ -871,9 +869,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     marginBottom: 20,
-    backgroundColor: "rgba(96, 51, 0, 0.5)",
+    backgroundColor: "rgba(96, 51, 0, 0.7)",
     borderRadius: 10,
     padding: 5,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
   },
   tabButton: {
     flex: 1,
@@ -882,7 +884,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   activeTab: {
-    backgroundColor: "rgba(255, 242, 224, 0.3)",
+    backgroundColor: "rgba(239, 235, 229, 0.3)",
   },
   tabText: {
     color: "#FFF2E0",

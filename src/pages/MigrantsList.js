@@ -67,18 +67,31 @@ function MigrantsList({ navigation }) {
 
             }
             <View style={styles.userInfo}>
-                <Text style={styles.userName}>Name: {item.name || "Unknown User"}</Text>
-                {/* <Text style={styles.userName}>{item.name || "Unknown User"}</Text> */}
-                {/* <Text style={styles.userEmail}>{item.email || "No email"}</Text> */}
-                {/* <Text style={styles.userPhone}>{item.mobile_number || "No phone"}</Text> */}
-                <Text style={styles.userEmail}>Email: {item.email || "No email"}</Text>
-                <Text style={styles.userPhone}>Mobile Number: {item.mobile_number || "No phone"}</Text>
+                <View style={styles.userInfoRow}>
+                    {/* <Icon name="person" size={20} color="#666" /> */}
+                    <Text style={styles.userInfoText}>
+                        {item.name || "Unknown User"}
+                    </Text>
+                </View>
+                <View style={styles.userInfoRow}>
+                    <Icon name="email" size={20} color="#ffffff" />
+                    <Text style={styles.userInfoText}>
+                        {item.email || "No email"}
+                    </Text>
+                </View>
+                <View style={styles.userInfoRow}>
+                    <Icon name="phone" size={20} color="#ffffff" />
+                    <Text style={styles.userInfoText}>
+                        {item.mobile_number || "No phone"}
+                    </Text>
+                </View>
             </View>
             <TouchableOpacity
                 style={styles.actionButton}
                 onPress={() => handleViewUser(item)}
             >
                 <Icon name="eye" size={20} color="#FFF" />
+                 {/* <Text style={styles.actionButtonText}>{languageTexts?.migrantsList?.view || "View"}</Text> */}
             </TouchableOpacity>
         </View>
     );
@@ -186,7 +199,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     userIconContainer: {
-        backgroundColor: "#c5894a",
+        // backgroundColor: "#c5894a",// prev color
+        backgroundColor: "#b06a2c", //ok
+        // backgroundColor: "#dd7d17", //current
         borderRadius: 20,
         padding: 10,
         marginRight: 15,
@@ -194,6 +209,17 @@ const styles = StyleSheet.create({
     userInfo: {
         flex: 1,
     },
+    userInfoRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 5,
+    },
+    userInfoText: {
+        color: "#FFF",
+        fontSize: 14,
+        marginLeft: 5,
+    },
+    
     userName: {
         color: "#FFF",
         fontSize: 16,
@@ -209,6 +235,8 @@ const styles = StyleSheet.create({
     },
     actionButton: {
         padding: 10,
+        backgroundColor: "#dd7d17",
+        borderRadius: 20,
     },
     fab: {
         position: "absolute",

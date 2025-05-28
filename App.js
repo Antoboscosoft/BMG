@@ -20,6 +20,7 @@ import CreateRegister from './src/pages/CreateRegister.js';
 import { LanguageProvider } from './src/language/commondir.js';
 import MigrantsList from './src/pages/MigrantsList.js';
 import ProfileView from './src/pages/UserProfileView.js';
+import NetworkStatus from './src/context/NetworkStatus.js';
 
 
 // Custom Toast configuration
@@ -122,6 +123,7 @@ function App() {
       </Stack.Navigator>
       <Toast />
     </NavigationContainer>
+    <NetworkStatus /> {/* Add NetworkStatus here */}
     </LanguageProvider>
   )
 }
