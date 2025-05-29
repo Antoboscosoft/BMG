@@ -5,8 +5,8 @@ import { navigate } from './navigationRef'; // We'll create this
 
 const axiosInstance = axios.create({
     // baseURL: 'http://192.168.1.148:8000/',
-    baseURL: 'http://172.105.54.28:8004/', // test server
-    // baseURL: 'http://172.105.54.28:8005/', // production server
+    // baseURL: 'http://172.105.54.28:8004/', // test server
+    baseURL: 'http://172.105.54.28:8005/', // production server
     // baseURL: 'http://10.0.2.2:8000/',
     timeout: 10000,
     headers:{

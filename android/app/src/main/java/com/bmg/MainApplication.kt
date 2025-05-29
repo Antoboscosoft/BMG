@@ -1,4 +1,4 @@
-package com.bmg
+package com.boscosoft.dbms
 
 import android.app.Application
 import com.facebook.react.PackageList

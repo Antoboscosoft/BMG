@@ -1,4 +1,4 @@
-package com.bmg
+package com.boscosoft.dbms
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
