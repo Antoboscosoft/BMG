@@ -35,10 +35,10 @@ function DashboardPage({ navigation, route }) {
 
     const dashboardMenuItems = [
         { id: '1', name: 'eventCalendar', screen: 'EventCalendar', icon: 'calendar-month' },
-        { id: '2', name: 'servicesDirectory', screen: 'ServicesDirectory', icon: 'hospital-box' },
+        // { id: '2', name: 'servicesDirectory', screen: 'ServicesDirectory', icon: 'hospital-box' },
         { id: '3', name: 'notifications', screen: 'Notifications', icon: 'bell-outline' },
         { id: '4', name: 'multilingualSupport', screen: 'MultilingualSupport', icon: 'translate' },
-        { id: '5', name: 'helpRequest', screen: 'HelpRequest', icon: 'help-circle-outline' },
+        // { id: '5', name: 'helpRequest', screen: 'HelpRequest', icon: 'help-circle-outline' },
         { id: '6', name: 'profile', screen: 'Profile', icon: 'account' },
         { id: '7', name: 'Migrants', screen: 'MigrantsList', icon: 'account-group' },
     ];
@@ -189,7 +189,7 @@ function DashboardPage({ navigation, route }) {
     const renderCarouselItem = ({ item }) => (
         <View style={styles.carouselItem}>
             <Image source={item.image} style={styles.carouselImage} />
-            <Text style={styles.carouselTitle}>{item.title}</Text>
+            {/* <Text style={styles.carouselTitle}>{item.title}</Text> */}
         </View>
     );
 

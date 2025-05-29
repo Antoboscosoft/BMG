@@ -428,7 +428,7 @@ function LoginScreen({ navigation }) {
             >
               <Text style={styles.cancelText}>✕</Text>
             </TouchableOpacity></View>
-          {error && showOtpField && <Text style={styles.errorText}>{error}</Text>}
+          {/* {error && showOtpField && <Text style={styles.errorText}>{error}</Text>} */}
           {otpSent && countdown > 0 && (
             <Text style={styles.countdownText}>Resend OTP in {countdown}s</Text>
           )}
@@ -482,6 +482,7 @@ function LoginScreen({ navigation }) {
   const renderStaffLogin = () => (
     <>
       <View style={styles.inputContainer}>
+        <Text style={styles.inputLabel}>Staff Login</Text>
         <View style={[styles.inputBox, errors.email && styles.inputError]}>
           <Controller
             control={control}
@@ -514,6 +515,7 @@ function LoginScreen({ navigation }) {
       </View>
 
       <View style={styles.inputContainer}>
+        <Text style={styles.inputLabel}>Password</Text>
         <View style={[styles.inputBox, errors.password && styles.inputError]}>
           <Controller
             control={control}
@@ -612,7 +614,7 @@ function LoginScreen({ navigation }) {
             <Text style={styles.subtitle}>Login</Text>
 
             {/* Tabs */}
-            <View style={styles.tabContainer}>
+            {/* <View style={styles.tabContainer}>
               <TouchableOpacity
                 style={[
                   styles.tabButton,
@@ -653,12 +655,12 @@ function LoginScreen({ navigation }) {
                   Staff
                 </Text>
               </TouchableOpacity>
-            </View>
+            </View> */}
 
             <View style={styles.textBottom}>
               {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-              {activeTab === "migrants" ? renderMigrantsLogin() : renderStaffLogin()}
+                {renderStaffLogin()}
+              {/* {activeTab === "migrants" ? renderMigrantsLogin() : renderStaffLogin()} */}
             </View>
           </Animated.View>
         </ScrollView>
@@ -725,7 +727,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 3,
   },
   textBottom: {
-    marginTop: 20,
+    marginTop: 10,
     justifyContent: "space-between",
     flexDirection: "column",
     alignItems: "center",
@@ -761,19 +763,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginRight: 8,
   },
-  errorText: {
-    color: "red",
-    fontSize: 14,
-    marginBottom: 10,
-    alignSelf: "center",
-    textAlign: "center",
-  },
-  input: {
-    fontSize: 18,
-    color: "#FFF7E7",
-    height: 40,
-    top: 2,
-  },
+  // errorText: {
+  //   color: "red",
+  //   color: "#FF0000",
+  //   fontSize: 14,
+  //   marginBottom: 10,
+  //   alignSelf: "center",
+  //   textAlign: "center",
+  // },
+  // input: {
+  //   fontSize: 18,
+  //   color: "#FFF7E7",
+  //   height: 40,
+  //   top: 2,
+  // },
   button: {
     backgroundColor: "#FFF2E0",
     paddingVertical: 15,
@@ -816,7 +819,7 @@ const styles = StyleSheet.create({
     color: "#FFD699",
   },
   highlightedRegister: {
-    color: '#FF0000',
+    color: '##FFFF00',
     fontWeight: 'bold',
     textDecorationLine: 'underline',
     fontSize: 16,
@@ -882,6 +885,11 @@ const styles = StyleSheet.create({
     width: "100%",
     marginBottom: 10,
   },
+  inputLabel: {
+    fontSize: 16,
+    color: "#FFF2E0",
+    marginBottom: 5,
+  },
   inputBox: {
     backgroundColor: "rgba(96, 51, 0, 0.9)",
     borderRadius: 12,
@@ -911,6 +919,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#FFF7E7",
     height: 40,
+    flex: 1,
     top: 2,
   },
   inputError: {
@@ -935,11 +944,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   errorText: {
-    color: "red",
+    color: "#FFFF00",
     fontSize: 14,
-    marginTop: 5,
-    alignSelf: "flex-start",
-    textAlign: "left",
+    // marginTop: 5,
+    marginBottom: 10,
+    alignSelf: "center",
+    // textAlign: "left",
   },
 });
 

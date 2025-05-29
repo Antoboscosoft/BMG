@@ -22,7 +22,7 @@ const { width, height } = Dimensions.get('window');
 const slides = [
   {
     key: 'slide1',
-    titleTop: 'DON BOSCO MIGRANT DBMS',
+    titleTop: 'DON BOSCO MIGRANT SERVICES',
     description:
       'Works with the Unorganised workers & Migrants, Employers, Government, for a Decent work agenda and Dignified labour for intra and interstate workers.',
     image: splashImg1,
@@ -36,7 +36,7 @@ const slides = [
   },
   {
     key: 'slide3',
-    titleTop: 'DON BOSCO MIGRANT DBMS',
+    titleTop: 'DON BOSCO MIGRANT SERVICES',
     description:
       'Works with the Unorganised workers & Migrants, Employers, Government, for a Decent work agenda and Dignified labour for intra and interstate workers.',
     image: splashImg4,
