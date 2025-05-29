@@ -31,12 +31,7 @@ function DashboardPage({ navigation, route }) {
     const [loading, setLoading] = useState(true);
     const [activeIndex, setActiveIndex] = useState(0);
     const carouselRef = useRef(null);
-// console.log("userData:", userData);
-
-// console.log("Role base : ", userData?.data.role?.name || 'User');
-    const isSuperAdmin = userData?.data?.role?.name === "Super Admin";
-//   console.log("isSuperAdmin:", isSuperAdmin);
-
+    const isSuperAdmin = userData?.data?.role?.name === "Super Admin" || userData?.data?.role?.name === "Admin";
 
     const dashboardMenuItems = [
         { id: '1', name: 'eventCalendar', screen: 'EventCalendar', icon: 'calendar-month' },
@@ -48,16 +43,14 @@ function DashboardPage({ navigation, route }) {
         { id: '7', name: 'Migrants', screen: 'MigrantsList', icon: 'account-group' },
     ];
 
-    
     // Filter menu items based on role
     const filteredMenuItems = isSuperAdmin
         ? dashboardMenuItems.filter(item =>
             ['multilingualSupport', 'profile', 'Migrants'].includes(item.name)
-          )
+        )
         : dashboardMenuItems.filter(item => item.name !== 'Migrants');
 
-    // console.log("Filtered Menu Items:", filteredMenuItems);
-
+    // carousel items
     const carouselItems = [
         {
             title: languageTexts?.dashboard?.welcome?.replace('{name}', userData?.data?.name || 'User'),
@@ -65,7 +58,6 @@ function DashboardPage({ navigation, route }) {
         },
         {
             title: languageTexts?.dashboard?.carousel?.stayUpdated || 'Stay Updated with Events!',
-            // image: require('../asserts/images/img1.png'),
             image: require('../asserts/images/car02.jpg'),
         },
         {
@@ -111,23 +103,6 @@ function DashboardPage({ navigation, route }) {
     const handleMenuHeaderPress = () => {
         closeSidebar();
     };
-
-    const handleProfileNavigate = () => {
-        navigation.navigate('Profile');
-    };
-
-    const panResponder = useRef(
-        PanResponder.create({
-            onMoveShouldSetPanResponder: (_, gestureState) => {
-                return gestureState.dx < -10;
-            },
-            onPanResponderRelease: (_, gestureState) => {
-                if (gestureState.dx < -50) {
-                    closeSidebar();
-                }
-            },
-        })
-    ).current;
 
     const sidebarPanResponder = useRef(
         PanResponder.create({
@@ -186,15 +161,15 @@ function DashboardPage({ navigation, route }) {
 
     useEffect(() => {
         if (!isSuperAdmin) {
-        const interval = setInterval(() => {
-            setActiveIndex(prev => {
-                const nextIndex = (prev + 1) % carouselItems.length;
-                carouselRef.current?.scrollToIndex({ index: nextIndex, animated: true });
-                return nextIndex;
-            });
-        }, 3000);
+            const interval = setInterval(() => {
+                setActiveIndex(prev => {
+                    const nextIndex = (prev + 1) % carouselItems.length;
+                    carouselRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+                    return nextIndex;
+                });
+            }, 3000);
 
-        return () => clearInterval(interval);
+            return () => clearInterval(interval);
         }
     }, [carouselItems, isSuperAdmin]);
 
@@ -235,11 +210,6 @@ function DashboardPage({ navigation, route }) {
                 <Text style={styles.welcomeText}>
                     👋 {languageTexts?.dashboard?.welcome?.replace('{name}', userData?.data?.name || 'User') || `Hi ${userData?.data?.name || 'User'}! Welcome to Bosco Migrants.`}
                 </Text>
-                {/* {userData?.data.email && (
-                    <Text style={styles.userInfoText}>
-                        {languageTexts?.dashboard?.email?.replace('{email}', userData.data.email) || `Email: ${userData.data.email}`}
-                    </Text>
-                )} */}
                 <View style={styles.carouselContainer}>
                     <FlatList
                         data={carouselItems}
@@ -321,139 +291,6 @@ function DashboardPage({ navigation, route }) {
         </View>
     );
 }
-
-// Assuming styles remain the same
-const styles1 = StyleSheet.create({
-    wrapper: {
-        flex: 1,
-    },
-    container: {
-        flex: 1,
-    },
-    menuButton: {
-        position: 'absolute',
-        top: 40,
-        left: 20,
-        zIndex: 10,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#FFF',
-        textAlign: 'center',
-        marginTop: 80,
-    },
-    welcomeText: {
-        fontSize: 18,
-        color: '#FFF',
-        textAlign: 'center',
-        marginTop: 10,
-        marginHorizontal: 20,
-    },
-    userInfoText: {
-        fontSize: 16,
-        color: '#FFF',
-        textAlign: 'center',
-        marginTop: 5,
-    },
-    carouselContainer: {
-        height: 200,
-        marginTop: 20,
-    },
-    carouselItem: {
-        width,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    carouselImage: {
-        width: width * 0.9,
-        height: 150,
-        borderRadius: 10,
-    },
-    carouselTitle: {
-        fontSize: 16,
-        color: '#FFF',
-        marginTop: 10,
-        fontWeight: '500',
-    },
-    gridContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-around',
-        padding: 20,
-    },
-    gridItem: {
-        width: '45%',
-        alignItems: 'center',
-        marginBottom: 20,
-    },
-    iconTouchable: {
-        alignItems: 'center',
-    },
-    iconBackground: {
-        padding: 15,
-        borderRadius: 10,
-    },
-    gridText: {
-        fontSize: 14,
-        color: '#FFF',
-        marginTop: 8,
-        textAlign: 'center',
-    },
-    overlay: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    sidebar: {
-        position: 'absolute',
-        top: 0,
-        bottom: 0,
-        left: 0,
-        width: 250,
-        backgroundColor: '#333',
-        paddingTop: 40,
-    },
-    sidebarHeader: {
-        padding: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#444',
-    },
-    sidebarTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#FFF',
-    },
-    menuItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#444',
-    },
-    menuIcon: {
-        marginRight: 10,
-    },
-    menuText: {
-        fontSize: 16,
-        color: '#FFF',
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    loadingBackground: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: '100%',
-    },
-    loadingText: {
-        color: '#FFF',
-        fontSize: 16,
-        marginTop: 10,
-    },
-});
 
 export default DashboardPage;
 
@@ -602,25 +439,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         margin: 5,
     },
-    // Add these new styles for the grid layout
-    // gridContainer: {
-    //     flexDirection: 'row',
-    //     flexWrap: 'wrap',
-    //     justifyContent: 'space-around',
-    //     paddingHorizontal: 10,
-    //     marginTop: 20,
-    //     marginBottom: 20,
-    // },
-    // gridItem: {
-    //     width: '30%', // 3 items per row
-    //     aspectRatio: 1,
-    //     marginBottom: 15,
-    // },
     iconContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        // backgroundColor: 'rgba(255, 255, 255, 0.2)',
         borderRadius: 10,
         padding: 10,
     },
@@ -630,34 +452,21 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 10,
     },
-    // gridText: {
-    //     color: '#FFF',
-    //     fontSize: 14,
-    //     textAlign: 'center',
-    //     fontWeight: '500',
-    // },
-
-
-
-
-
-
-
     gridContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'space-between', // Changed from 'space-around'
-        paddingHorizontal: 20, // Increased padding
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
         marginTop: 20,
         marginBottom: 20,
     },
     gridItem: {
-        width: '30%', // 3 items per row
-        marginBottom: 25, // Increased space between rows
-        alignItems: 'center', // Center items horizontally
+        width: '30%',
+        marginBottom: 25,
+        alignItems: 'center',
     },
     iconTouchable: {
-        marginBottom: 8, // Space between icon and text
+        marginBottom: 8,
     },
     iconBackground: {
         width: 63,
@@ -672,10 +481,8 @@ const styles = StyleSheet.create({
         fontSize: 14,
         textAlign: 'center',
         fontWeight: '500',
-        paddingHorizontal: 5, // Ensure text doesn't overflow
+        paddingHorizontal: 5,
     },
-
-
     // loading screen
     loadingContainer: {
         flex: 1,
@@ -683,7 +490,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.6)'
     },
-
     loadingBackground: {
         ...StyleSheet.absoluteFillObject,
         justifyContent: 'center',
@@ -691,7 +497,6 @@ const styles = StyleSheet.create({
         opacity: 0.9,
         borderRadius: 10,
     },
-
     loadingText: {
         marginTop: 20,
         color: '#fff',

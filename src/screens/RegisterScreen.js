@@ -126,7 +126,7 @@ const SearchableDropdown = ({
                                         onSelect(item.id);
                                         setModalVisible(false);
                                         setSearchQuery('');
-                                        validateField(item.id); // Validate on selection
+                                        validateField(item.id);
                                     }}
                                     activeOpacity={0.7}
                                 >
@@ -165,7 +165,7 @@ const RegisterScreen = ({ navigation }) => {
         photo: null,
         identity: null,
     });
-// State for image preview
+    // State for image preview
     const [isImagePreviewVisible, setIsImagePreviewVisible] = useState(false);
     const [identityProofImage, setIdentityProofImage] = useState(null);
 
@@ -281,7 +281,6 @@ const RegisterScreen = ({ navigation }) => {
         return status;
     };
 
-    // Image picker function
     // Image picker function for profile photo
     const pickImage = async () => {
         try {
@@ -339,14 +338,11 @@ const RegisterScreen = ({ navigation }) => {
     // };
 
     const handleRegister = async () => {
-        // console.log('Register form submitted:', form);
         // Add validation and submission logic here
         if (!validateForm()) return;
 
         setLoading(true);
         try {
-            console.log("form enter....");
-
             const registrationData = {
                 name: form.name,
                 // email: form.email,
@@ -365,7 +361,6 @@ const RegisterScreen = ({ navigation }) => {
                 photo: '', // You'll need to implement image upload separately
                 age: form.dateOfBirth ? calculateAge(form.dateOfBirth) : 0,
             };
-            console.log("registrationData", registrationData);
             const fm = new FormData();
             fm.append("user", JSON.stringify(registrationData));
 
@@ -383,9 +378,7 @@ const RegisterScreen = ({ navigation }) => {
                 });
             }
 
-            console.log("Sending registration data:", registrationData);
             const response = await registerUser(fm);
-            console.log("Registration response", response);
 
 
             if (response.status || response.success === true) {
@@ -443,7 +436,6 @@ const RegisterScreen = ({ navigation }) => {
             validateField('photo', image.path); // Validate immediately
             setTouched((prev) => ({ ...prev, photo: true }));
         } catch (err) {
-            console.log('Camera Error:', err);
             Toast.show('Failed to capture image', Toast.SHORT);
         }
     };
@@ -676,16 +668,6 @@ const RegisterScreen = ({ navigation }) => {
         return age;
     };
 
-
-    // Show identity proof image picker options
-    const showIdentityProofPickerOptions = () => {
-        Alert.alert('Select Identity Proof', 'Choose an option', [
-            { text: 'Take Photo', onPress: takeIdentityProofPhoto },
-            { text: 'Choose from Gallery', onPress: pickIdentityProofImage },
-            { text: 'Cancel', style: 'cancel' },
-        ]);
-    };
-
     // Pick identity proof image from gallery
     const pickIdentityProofImage = async () => {
         try {
@@ -721,7 +703,6 @@ const RegisterScreen = ({ navigation }) => {
             setForm((prev) => ({ ...prev, identity: image.path }));
             await handleIdentityProofUpload(image);
         } catch (err) {
-            console.log('Identity Proof ImagePicker Error:', err);
             Toast.show('Failed to pick identity proof image', Toast.SHORT);
         }
     };
@@ -747,7 +728,6 @@ const RegisterScreen = ({ navigation }) => {
             setForm((prev) => ({ ...prev, identity: image.path }));
             await handleIdentityProofUpload(image);
         } catch (err) {
-            console.log('Identity Proof Camera Error:', err);
             Toast.show('Failed to capture identity proof image', Toast.SHORT);
         }
     };
@@ -756,8 +736,6 @@ const RegisterScreen = ({ navigation }) => {
     const handleIdentityProofUpload = async (image) => {
         try {
             const response = await extractIdentityData(image);
-            console.log('Identity Proof API Response:', response.data);
-            console.log('Identity Proof API Response (Full):', JSON.stringify(response, null, 2));
             Toast.show('Identity proof processed successfully', Toast.SHORT);
 
             // Map API response to form fields
@@ -844,21 +822,6 @@ const RegisterScreen = ({ navigation }) => {
                         </View>
 
                         {/* Profile Photo Upload */}
-                        {/* <View style={styles.photoContainer}>
-                            <TouchableOpacity onPress={showImagePickerOptions}>
-                                {image ? (
-                                    <Image source={{ uri: image }} style={styles.profileImage} />
-                                ) : (
-                                    <View style={styles.profilePlaceholder}>
-                                        <Icon name="camera" size={30} color="#666" />
-                                        <Text style={styles.photoText}>Add Photo</Text>
-                                    </View>
-                                )}
-                            </TouchableOpacity>
-                            <Text style={styles.photoNote}>(Optional)</Text>
-                        </View> */}
-
-                        {/* Profile Photo Upload */}
                         <View style={styles.inputContainer}>
                             <View style={styles.labelContainer}>
                                 <Text style={styles.label}>Profile Photo</Text>
@@ -878,36 +841,6 @@ const RegisterScreen = ({ navigation }) => {
                             </View>
                             {touched.photo && errors.photo && <Text style={styles.errorText}>{errors.photo}</Text>}
                         </View>
-
-                        {/* Identity Proof Upload */}
-                        {/* <View style={styles.inputContainer}>
-                            <View style={styles.labelContainer}>
-                                <Text style={styles.label}>Identity Proof Upload</Text>
-                            </View>
-                            <View style={styles.fileUploadContainer}>
-                                {identityProofImage ? (
-                                    <View style={styles.filePreviewContainer}>
-                                        <Image source={{ uri: identityProofImage }} style={styles.identityProofImage} />
-                                        <TouchableOpacity
-                                            style={styles.chooseAgainButton}
-                                            onPress={showIdentityProofPickerOptions}
-                                            activeOpacity={0.8}
-                                        >
-                                            <Text style={styles.chooseAgainButtonText}>Choose Again</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                ) : (
-                                    <TouchableOpacity
-                                        style={styles.fileInputButton}
-                                        onPress={showIdentityProofPickerOptions}
-                                        activeOpacity={0.8}
-                                    >
-                                        <Icon name="upload" size={20} color="#666" style={styles.uploadIcon} />
-                                        <Text style={styles.fileInputText}>Choose File</Text>
-                                    </TouchableOpacity>
-                                )}
-                            </View>
-                        </View> */}
 
                         <View style={styles.inputContainer}>
                             <View style={styles.labelContainer}>
@@ -996,7 +929,7 @@ const RegisterScreen = ({ navigation }) => {
                                 visible={isImagePreviewVisible}
                                 onRequestClose={() => setIsImagePreviewVisible(false)}
                             >
-                                <View style={styles.modalOverlay}>
+                                <View style={styles.modalOverlayPreview}>
                                     <View style={styles.imagePreviewContainer}>
                                         <TouchableOpacity
                                             style={styles.closePreviewButton}
@@ -1015,50 +948,6 @@ const RegisterScreen = ({ navigation }) => {
                                 </View>
                             </Modal>
                         </View>
-                        {/* <View style={styles.inputContainer}>
-                            <View style={styles.labelContainer}>
-                                <Text style={styles.label}>Identity Proof Upload</Text>
-                            </View>
-                            <View style={styles.fileUploadContainer}>
-                                {identityProofImage ? (
-                                    <View style={styles.filePreviewContainer}>
-                                        <Image source={{ uri: identityProofImage }} style={styles.identityProofImage} />
-                                        <TouchableOpacity
-                                            style={styles.chooseAgainButton}
-                                            onPress={pickIdentityProofImage} // Default to gallery for "Choose Again"
-                                            activeOpacity={0.8}
-                                        >
-                                            <Text style={styles.chooseAgainButtonText}>Choose Again</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                ) : (
-                                    <View style={[styles.fileInputContainer, isImageLoading && styles.disabledInput]}>
-                                        <Icon name="upload" size={20} color="#666" style={styles.uploadIcon} />
-                                        
-                                        <Text style={styles.fileInputText}>Identity Proof</Text>
-                                        <View style={styles.iconContainer}>
-                                            <TouchableOpacity
-                                                onPress={pickIdentityProofImage}
-                                                disabled={isImageLoading}
-                                                style={styles.iconButton}
-                                            >
-                                                <Icon name="image" size={20} color="#666" />
-                                            </TouchableOpacity>
-                                            <TouchableOpacity
-                                                onPress={takeIdentityProofPhoto}
-                                                disabled={isImageLoading}
-                                                style={styles.iconButton}
-                                            >
-                                                <Icon name="camera" size={20} color="#666" />
-                                            </TouchableOpacity>
-                                        </View>
-                                    </View>
-                                )}
-                                {isImageLoading && (
-                                    <ActivityIndicator size="small" color="#007AFF" style={styles.loadingIndicator} />
-                                )}
-                            </View>
-                        </View> */}
 
                         {/* Full Name */}
                         <View style={styles.inputContainer}>
@@ -1183,11 +1072,10 @@ const RegisterScreen = ({ navigation }) => {
                                 keyboardType="number-pad"
                                 value={form.aadhaarNumber ? formatAadhaar(form.aadhaarNumber) : ''}
                                 onChangeText={handleAadhaarChange}
-                                maxLength={14} // 12 digits + 2 spaces
+                                maxLength={14}
                             />
                         </View>
 
-                        {/* Country */}
                         {/* Country */}
                         <SearchableDropdown
                             label="Country"
@@ -1288,20 +1176,17 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         justifyContent: 'center',
     },
-
     header: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
         marginBottom: 20,
-        // marginTop: 50,
     },
     backButton: {
         padding: 10,
         backgroundColor: "#d0a577",
         borderRadius: 25,
     },
-    // profie upload extract style:
     identityProofImage: {
         width: 100,
         height: 100,
@@ -1323,7 +1208,7 @@ const styles = StyleSheet.create({
     },
 
     formContainer: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)', // Slightly more opaque for better readability
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
         borderRadius: 12,
         padding: 24,
         margin: 20,
@@ -1335,14 +1220,12 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 28,
-        // marginBottom: 16,
         fontWeight: '700',
         textAlign: 'center',
         color: '#333',
     },
     photoContainer: {
         alignItems: 'center',
-        // marginBottom: 24,
         marginBottom: 8,
     },
     profileImage: {
@@ -1367,12 +1250,6 @@ const styles = StyleSheet.create({
         color: '#666',
         fontSize: 14,
     },
-    // photoNote: {
-    //     fontSize: 12,
-    //     color: '#888',
-    //     marginTop: 4,
-    //     fontStyle: 'italic',
-    // },
     inputContainer: {
         marginBottom: 20,
     },
@@ -1537,7 +1414,7 @@ const styles = StyleSheet.create({
     modalOverlay: {
         flex: 1,
         justifyContent: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.6)', // Darker overlay for better contrast
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
     },
     modalContainer: {
         backgroundColor: '#fff',
@@ -1585,7 +1462,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
     },
     selectedItem: {
-        backgroundColor: '#E6F0FF', // Light blue background for selected item
+        backgroundColor: '#E6F0FF',
     },
     modalItemText: {
         fontSize: 16,
@@ -1685,33 +1562,30 @@ const styles = StyleSheet.create({
     disabledInput: {
         opacity: 0.6,
     },
-
-
-    // Image Preview Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.9)", // Darker background for focus
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  imagePreviewContainer: {
-    width: "90%",
-    height: "80%",
-    position: "relative",
-  },
-  previewImage: {
-    width: "100%",
-    height: "100%",
-  },
-  closePreviewButton: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    borderRadius: 15,
-    padding: 8,
-    zIndex: 1,
-  },
+    modalOverlayPreview: {
+        flex: 1,
+        backgroundColor: "rgba(0, 0, 0, 0.9)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    imagePreviewContainer: {
+        width: "90%",
+        height: "80%",
+        position: "relative",
+    },
+    previewImage: {
+        width: "100%",
+        height: "100%",
+    },
+    closePreviewButton: {
+        position: "absolute",
+        top: 10,
+        right: 10,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        borderRadius: 15,
+        padding: 8,
+        zIndex: 1,
+    },
 });
 
 export default RegisterScreen;

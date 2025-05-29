@@ -7,17 +7,6 @@ import { getServiceCategories } from '../api/auth'; // Import the new API functi
 import { useLanguage } from '../language/commondir';
 
 
-// Icon mapping for different service types
-// const serviceIcons = {
-//     'Healthcare Services': 'hospital-box',
-//     'Legal Aid': 'gavel',
-//     'Job Opportunities': 'briefcase',
-//     'Language Support': 'translate',
-//     'Community Support': 'account-group',
-//     // Add more mappings as needed based on your API response
-//     'default': 'help-circle' // Default icon
-// };
-
 // Updated icon mapping based on API response names
 const serviceIcons = {
     'Healthcare': 'hospital-box',
@@ -41,13 +30,6 @@ function ServicesDirectory({ navigation }) {
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    // const services = [
-    //     { id: '1', name: 'Healthcare Services', icon: 'hospital-box', description: 'Access medical care and health resources.' },
-    //     { id: '2', name: 'Legal Aid', icon: 'gavel', description: 'Get assistance with immigration and legal issues.' },
-    //     { id: '3', name: 'Job Opportunities', icon: 'briefcase', description: 'Find employment and career support.' },
-    //     { id: '4', name: 'Language Support', icon: 'translate', description: 'Learn languages and get translation help.' },
-    //     { id: '5', name: 'Community Support', icon: 'account-group', description: 'Connect with local migrant communities.' },
-    // ];
 
     useEffect(() => {
         const fetchServices = async () => {
@@ -74,7 +56,6 @@ function ServicesDirectory({ navigation }) {
                     throw new Error(response?.details || languageTexts?.servicesDirectory?.error?.fetch || 'Failed to fetch services');
                 }
             } catch (err) {
-                console.error('Failed to fetch services:', err);
                 setError(languageTexts?.servicesDirectory?.error?.fetch || 'Failed to load services. Please try again.');
             } finally {
                 setLoading(false);
@@ -84,41 +65,8 @@ function ServicesDirectory({ navigation }) {
         fetchServices();
     }, [languageTexts]);
 
-
-
-    // const renderServiceItem = ({ item }) => (
-    //     <View style={styles.serviceCard}>
-    //         <View style={styles.serviceContent}>
-    //             <Icon name={item.icon} size={30} color={item.available ? "#333" : "#999"} style={styles.serviceIcon} />
-    //             <View style={styles.serviceTextContainer}>
-    //                 <Text style={[styles.serviceName, !item.available && styles.unavailableText]}>{item.name}</Text>
-    //                 <Text style={[styles.serviceDescription, !item.available && styles.unavailableText]}>{item.description}</Text>
-    //                 {!item.available && (
-    //                     <Text style={styles.unavailableNotice}>Currently unavailable</Text>
-    //                 )}
-    //             </View>
-    //         </View>
-    //         {item.available ? (
-    //             <TouchableOpacity
-    //                 style={styles.applyButton}
-    //                 onPress={() => handleApply(item)}
-    //             >
-    //                 <Text style={styles.applyButtonText}>Apply</Text>
-    //             </TouchableOpacity>
-    //         ) : (
-    //             <View style={styles.disabledButton}>
-    //                 <Text style={styles.disabledButtonText}>Not Available</Text>
-    //             </View>
-    //         )}
-    //     </View>
-    // );
-
-
     const renderServiceItem = ({ item }) => {
-        console.log("item from renderServiceItem >>>> ", item);
-        
         const isApplied = item?.services !== null;
-        console.log("isApplied >>>> ", isApplied, item?.services !== null);
         return (
             <View style={[
                 styles.serviceCard,
@@ -142,28 +90,19 @@ function ServicesDirectory({ navigation }) {
                             styles.serviceDescription,
                             !item.available && styles.unavailableText
                         ]}>
-                            {/* {item.description} */}
-                            {/* {serviceDescriptions[item.name] || serviceDescriptions['default']} */}
-
                         </Text>
-                        {/* {isApplied && (
-                            <Text style={styles.serviceDescription}>
-                                {item?.services?.description}
-                            </Text>
-                        )} */}
                     </View>
-                </View>{console.log("item?.services >>>> ", isApplied, services)}
+                </View>
                 {item?.available ? (
                     <TouchableOpacity
                         style={[isApplied ? styles.appliedButton : styles.applyButton]}
                         onPress={() => handleApply(item, isApplied)}
                         activeOpacity={0.8}
                     >
-                        <Text style={[isApplied ? styles.appliedButtonText : styles.applyButtonText]}>{isApplied ?  languageTexts?.servicesDirectory?.applied || 'Applied' : languageTexts?.servicesDirectory?.apply || 'Apply'}</Text>
+                        <Text style={[isApplied ? styles.appliedButtonText : styles.applyButtonText]}>{isApplied ? languageTexts?.servicesDirectory?.applied || 'Applied' : languageTexts?.servicesDirectory?.apply || 'Apply'}</Text>
                     </TouchableOpacity>
                 ) : (
                     <View style={styles.disabledButton}>
-                        {/* <Icon name="close-circle" size={20} color="#ff6b6b" style={styles.unavailableIcon} /> */}
                         <Text style={styles.disabledButtonText}>{languageTexts?.servicesDirectory?.unavailable || 'Unavailable'}</Text>
                     </View>
                 )}
@@ -220,27 +159,6 @@ function ServicesDirectory({ navigation }) {
         );
     }
 
-    // if (error) {
-    //     return (
-    //         <LinearGradient colors={['#2753b2', '#e6e9f0']} style={[styles.container, styles.errorContainer]}>
-    //             <Icon name="alert-circle" size={50} color="#FFF" />
-    //             <Text style={styles.errorText}>{error}</Text>
-    //             <TouchableOpacity
-    //                 style={styles.retryButton}
-    //                 onPress={() => {
-    //                     setError(null);
-    //                     setLoading(true);
-    //                     useEffect(() => {
-    //                         fetchServices();
-    //                     }, []);
-    //                 }}
-    //             >
-    //                 <Text style={styles.retryButtonText}>Retry</Text>
-    //             </TouchableOpacity>
-    //         </LinearGradient>
-    //     );
-    // }
-
     if (services.length === 0) {
         return (
             <LinearGradient colors={['#2753b2', '#e6e9f0']} style={[styles.container, styles.emptyContainer]}>
@@ -251,22 +169,6 @@ function ServicesDirectory({ navigation }) {
 
 
     const handleApply = (service, isApplied) => {
-        console.log("Service selected:", service, service.services?.description);
-
-        // Data to pass to CreateService
-        // const serviceData = {
-        //     category_id: service.category_id,
-        //     service_id: isApplied ? service?.services?.id : null,
-        //     // description: service.description,
-        //     description: isApplied ? service.services?.description : '',
-        //     name: service.name,
-        //     services: service.services, // Pass the entire services object if it exists
-        //     isApplied: isApplied, // Flag to indicate if this is an existing application
-        //     requested_user_id: 0, // Replace with actual user ID if available
-        //     isApplied: isApplied,
-        //     // requested_user_id: 0, // Replace with actual user ID if available
-        // };
-
         // Data to pass to CreateService
         const serviceData = {
             category_id: service.id,
@@ -289,16 +191,10 @@ function ServicesDirectory({ navigation }) {
             //   colors={['#5e3b15', '#b06a2c']}
             style={styles.container}
         >
-            {/* Back Button */}
-            {/* <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Icon name="arrow-left" size={24} color="#333" />
-      </TouchableOpacity> */}
             <TouchableOpacity
                 style={styles.backButton}
-                // onPress={() => navigation.goBack()}
                 onPress={() => navigation.navigate('Dashboard')}
             >
-                {/* <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text> */}
                 <BackIcon name="arrow-back-ios" size={24} color="#FFF" />
             </TouchableOpacity>
 
@@ -407,7 +303,7 @@ const styles = StyleSheet.create({
     serviceCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between', // Space between content and button
+        justifyContent: 'space-between',
         backgroundColor: '#FFF',
         borderRadius: 10,
         padding: 15,
@@ -421,7 +317,7 @@ const styles = StyleSheet.create({
     serviceContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        flex: 1, // Take up remaining space
+        flex: 1,
     },
     serviceIcon: {
         marginRight: 15,
@@ -433,7 +329,6 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '600',
         color: '#333',
-        // marginBottom: -25,
         marginTop: 25,
     },
     serviceDescription: {
@@ -507,106 +402,5 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: 'bold',
     },
-
-    // applyButton: {
-    //     backgroundColor: '#2753b2',
-    //     paddingVertical: 8,
-    //     paddingHorizontal: 15,
-    //     borderRadius: 5,
-    // },
-    // applyButtonText: {
-    //     color: '#FFF',
-    //     fontSize: 14,
-    //     fontWeight: 'bold',
-    // },
 });
 
-
-const styles1 = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    //   single arrow button:
-    //   backButton: {
-    //     position: 'absolute',
-    //     top: 15,
-    //     left: 15,
-    //     zIndex: 10,
-    //     backgroundColor: '#fff',
-    //     borderRadius: 20,
-    //     padding: 6,
-    //     elevation: 4,
-    //     shadowColor: '#000',
-    //     shadowOffset: { width: 0, height: 1 },
-    //     shadowOpacity: 0.2,
-    //     shadowRadius: 2,
-    //   },
-
-    // arrow with box button with text::
-    backButton: {
-        position: 'absolute',
-        top: 20,
-        left: 20,
-        padding: 10,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 8,
-        zIndex: 1,
-    },
-    backButtonText: {
-        fontSize: 16,
-        color: '#FFF',
-        fontWeight: 'bold',
-    },
-    header: {
-        alignItems: 'center',
-        // paddingTop: 60,
-        paddingTop: 6,
-        paddingBottom: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#DDD',
-    },
-    logo: {
-        width: 290,
-        height: 200,
-        // marginBottom: 10,
-    },
-    headerText: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#ffffff',
-        // color: '#333',
-
-    },
-    listContainer: {
-        padding: 15,
-    },
-    serviceCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#FFF',
-        borderRadius: 10,
-        padding: 15,
-        marginBottom: 10,
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-    },
-    serviceIcon: {
-        marginRight: 15,
-    },
-    serviceTextContainer: {
-        flex: 1,
-    },
-    serviceName: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#333',
-    },
-    serviceDescription: {
-        fontSize: 14,
-        color: '#666',
-        marginTop: 5,
-    },
-});

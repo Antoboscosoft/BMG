@@ -11,126 +11,17 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
-// import Toast from 'react-native-toast-message';
-import Toast from 'react-native-simple-toast'; // Changed import
+import Toast from 'react-native-simple-toast';
 import { getEvents } from '../api/auth';
-import Icon from 'react-native-vector-icons/MaterialIcons'; // Add this import
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useLanguage } from '../language/commondir';
 
 function EventCalendarPage({ navigation }) {
     const { languageTexts } = useLanguage();
     const [selectedDate, setSelectedDate] = useState('2025-05-16');
     const [fadeAnim] = useState(new Animated.Value(0));
-    // const [modalVisible, setModalVisible] = useState(false);
-    // const [showTimePicker, setShowTimePicker] = useState(false);
-    // const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-    // const [showEndDatePicker, setShowEndDatePicker] = useState(false);
-
-    // const [newEvent, setNewEvent] = useState({
-    //     title: '',
-    //     time: new Date(),
-    //     location: '',
-    //     description: '',
-    //     startDate: new Date(),
-    //     endDate: new Date(),
-    // });
-
     const [events, setEvents] = useState({});
-
-    // const [events, setEvents] = useState({
-    //     '2025-05-16': [
-    //         {
-    //             id: '1',
-    //             title: 'Legal Consultation',
-    //             date: '2025-05-16',
-    //             time: '10:00 AM',
-    //             location: 'Community Center',
-    //             description: 'Free legal advice session for migrant workers.',
-    //             startDate: '2025-05-16T10:00:00',
-    //             endDate: '2025-05-16T11:00:00',
-    //         },
-    //     ],
-    //     '2025-05-18': [
-    //         {
-    //             id: '2',
-    //             title: 'Job Fair',
-    //             date: '2025-05-18',
-    //             time: '9:00 AM - 3:00 PM',
-    //             location: 'City Hall',
-    //             description: 'Meet employers hiring for construction and hospitality roles.',
-    //             startDate: '2025-05-18T10:00:00',
-    //             endDate: '2025-05-18T11:00:00',
-    //         },
-    //     ],
-    //     '2025-05-18': [
-    //         {
-    //             id: '0',
-    //             title: 'Job Fair',
-    //             date: '2025-05-18',
-    //             time: '9:00 AM - 3:00 PM',
-    //             location: 'City Hall',
-    //             description: 'Meet employers hiring for construction and hospitality roles.',
-    //             startDate: '2025-05-18T10:00:00',
-    //             endDate: '2025-05-18T11:00:00',
-    //         },
-    //     ],
-    //     '2025-05-20': [
-    //         {
-    //             id: '3',
-    //             title: 'Job Fair',
-    //             date: '2025-05-16',
-    //             time: '10:00 AM',
-    //             location: 'Community Center',
-    //             description: 'Free legal advice session for migrant workers.',
-    //             startDate: '2025-05-20T10:00:00',
-    //             endDate: '2025-05-21T11:00:00',
-    //         },
-    //         {
-    //             id: '4',
-    //             title: 'Cultural Festival',
-    //             date: '2025-05-16',
-    //             time: '10:00 AM',
-    //             location: 'Community Center',
-    //             description: 'Free legal advice session for migrant workers.',
-    //             startDate: '2025-05-20T10:00:00',
-    //             endDate: '2025-05-20T11:00:00',
-    //         },
-    //         {
-    //             id: '5',
-    //             title: 'Legal Consultation',
-    //             date: '2025-05-16',
-    //             time: '10:00 AM',
-    //             location: 'Community Center',
-    //             description: 'Free legal advice session for migrant workers.',
-    //             startDate: '2025-05-20T10:00:00',
-    //             endDate: '2025-05-22T11:00:00',
-    //         },
-    //     ],
-    //     '2025-05-23': [
-    //         {
-    //             id: '6',
-    //             title: 'Legal Consultation',
-    //             date: '2025-05-16',
-    //             time: '10:00 AM',
-    //             location: 'Community Center',
-    //             description: 'Free legal advice session for migrant workers.',
-    //             startDate: '2025-05-23T10:00:00',
-    //             endDate: '2025-05-24T11:00:00',
-    //         },
-    //         {
-    //             id: '7',
-    //             title: 'Cultural Festival',
-    //             date: '2025-05-16',
-    //             time: '10:00 AM',
-    //             location: 'Community Center',
-    //             description: 'Free legal advice session for migrant workers.',
-    //             startDate: '2025-05-23T10:00:00',
-    //             endDate: '2025-05-23T11:00:00',
-    //         },
-    //     ],
-    // });
 
     useEffect(() => {
         Animated.timing(fadeAnim, {
@@ -177,7 +68,6 @@ function EventCalendarPage({ navigation }) {
         try {
             // setLoading(true);
             const response = await getEvents();
-            console.log('API Response Events:', response);
             if (response.status && response.data) {
                 // Transform API data to match our UI structure
                 const formattedEvents = {};
@@ -213,53 +103,12 @@ function EventCalendarPage({ navigation }) {
         }
     };
 
-    console.log('Events:', events);
-
-
+    // Fetch events when the component mounts
     useEffect(() => {
-        // Fetch events when the component mounts
         fetchEvents();
     }, []);
 
     const selectedEvents = events[selectedDate] || [];
-
-    // const formatDate = (date) => {
-    //     return date.toISOString().split('T')[0];
-    // };
-
-    // const formatTime = (date) => {
-    //     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    // };
-
-    // const handleTimeChange = (event, selectedTime) => {
-    //     setShowTimePicker(false);
-    //     if (selectedTime) {
-    //         setNewEvent(prev => ({
-    //             ...prev,
-    //             time: selectedTime,
-    //         }));
-    //     }
-    // };
-
-    // const handleStartDateChange = (event, selectedDate) => {
-    //     setShowStartDatePicker(false);
-    //     if (selectedDate) {
-    //         setNewEvent(prev => ({
-    //             ...prev,
-    //             startDate: selectedDate,
-    //         }));
-    //     }
-    // };
-
-    // const handleEndDateChange = (event, selectedDate) => {
-    //     setShowEndDatePicker(false);
-    //     if (selectedDate) {
-    //         setNewEvent(prev => ({
-    //             ...prev,
-    //             endDate: selectedDate,
-    //         }));
-    //     }
-    // };
 
     // Format date range for display
     const formatDateRange = (start, end) => {
@@ -269,7 +118,6 @@ function EventCalendarPage({ navigation }) {
 
         if (startMoment.isSame(endMoment, 'day')) {
             // Same day event only
-            // return `${startMoment.format('MMM D, YYYY')}\n${startMoment.format('h:mm A')} - ${endMoment.format('h:mm A')}`;
             return `${startMoment.format('MMM D, YYYY')}, ${startMoment.format('h:mm A')} - ${endMoment.format('h:mm A')}`;
         } else {
             // Multi-day event
@@ -298,39 +146,7 @@ function EventCalendarPage({ navigation }) {
         }
     };
 
-
-    // Handle registration button click
-    // const handleRegister = (eventTitle) => {
-    //             Toast.show(`You have registered for "${eventTitle}"`, Toast.LONG);
-    // };
-
-    // In your EventCalendarPage.js, modify the handleRegister function:
-    // const handleRegister = (event) => {
-    //     navigation.navigate('CreateRegister', {
-    //         eventData: {
-    //             id: event.id,
-    //             title: event.title,
-    //             description: event.description,
-    //             location: event.location,
-    //             isRegistered: false
-    //         }
-    //     });
-    // };
-
-    // const handleRegistered = (event) => {
-    //     navigation.navigate('CreateRegister', { 
-    //         eventData: {
-    //             id: event.id,
-    //             title: event.title,
-    //             description: event.description,
-    //             location: event.location,
-    //             currentStatus: event.registered,
-    //             isRegistered: true
-    //         } 
-    //     });
-    // };
-
-
+    // Handle registration for an event
     const handleRegister = (event) => {
         try {
             if (!event?.id) {
@@ -351,6 +167,7 @@ function EventCalendarPage({ navigation }) {
         }
     };
 
+    // Handle Registered Button Press
     const handleRegistered = (event) => {
         try {
             if (!event?.id) {
@@ -632,184 +449,3 @@ const styles = StyleSheet.create({
     },
 });
 
-const styles1 = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    innerContainer: {
-        flex: 1,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingTop: 30,
-    },
-    backButton: {
-        paddingVertical: 6,
-        paddingHorizontal: 10,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 8,
-    },
-    backButtonText: {
-        fontSize: 16,
-        color: '#FFF',
-        fontWeight: 'bold',
-    },
-    titleText: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: '#FFF',
-        textAlign: 'center',
-    },
-    contentContainer: {
-        paddingHorizontal: 20,
-        paddingBottom: 20,
-    },
-    subtitleText: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#F0F0F0',
-        marginBottom: 10,
-        textAlign: 'center',
-        lineHeight: 22,
-    },
-    calendarContainer: {
-        width: '100%',
-        marginBottom: 15,
-    },
-    calendarStyle: {
-        borderRadius: 8,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 3,
-    },
-    eventsContainer: {
-        width: '100%',
-        marginBottom: 20,
-    },
-    eventCard: {
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        borderRadius: 8,
-        padding: 10,
-        marginBottom: 15,
-        elevation: 2,
-        flexDirection: 'row', // Add this
-        justifyContent: 'space-between', // Add this
-        alignItems: 'center', // Add this to vertically center
-    },
-    eventContent: {
-        flex: 1, // Take up available space
-    },
-    buttonContainer: {
-        // flexDirection: 'row',
-        // justifyContent: 'center',
-        // alignItems: 'center',
-        marginLeft: 10, // Add some space between content and buttons
-    },
-    noEventsCard: {
-        backgroundColor: 'rgba(255, 255, 255, 0.7)',
-        borderRadius: 8,
-        // padding: 20,
-        padding: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    eventTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#2753b2',
-        // marginBottom: 5,
-    },
-    icon: {
-        marginRight: 8,
-        width: 20,
-    },
-    eventDetailRow: {
-        flexDirection: 'row',
-        // marginBottom: 10,
-        alignItems: 'center',
-        marginBottom: 2,
-    },
-    eventDetailLabel: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#333',
-        width: 80,
-    },
-    eventDetailText: {
-        fontSize: 14,
-        color: '#555',
-        flex: 1,
-    },
-    eventDescription: {
-        fontSize: 14,
-        color: '#666',
-        // marginTop: 5,
-        // marginBottom: 5,
-        lineHeight: 22,
-    },
-    noEventsText: {
-        fontSize: 14,
-        color: '#555',
-        textAlign: 'center',
-    },
-    registerButton: {
-        backgroundColor: '#2753b2',
-        paddingVertical: 8,
-        width: '30%',
-        borderRadius: 6,
-        // paddingHorizontal: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        alignSelf: 'flex-end',
-        marginTop: 2,
-    },
-    registerButtonText: {
-        color: '#FFF',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-
-    registeredButton: {
-        backgroundColor: '#4CAF50',
-        paddingVertical: 8,
-        width: '30%',
-        borderRadius: 6,
-        // paddingHorizontal: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        alignSelf: 'flex-end',
-        marginTop: 2,
-    },
-    registeredButtonText: {
-        color: '#FFF',
-        fontSize: 14,
-        fontWeight: '600',
-    },
-
-
-    loadingText: {
-        color: '#FFF',
-        fontSize: 16,
-        marginTop: 10,
-    },
-    errorText: {
-        color: '#FFF',
-        fontSize: 16,
-        textAlign: 'center',
-        marginBottom: 20,
-    },
-    retryButton: {
-        backgroundColor: '#FFF',
-        padding: 10,
-        borderRadius: 5,
-    },
-    retryButtonText: {
-        color: '#2753b2',
-        fontWeight: 'bold',
-    },
-});

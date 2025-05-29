@@ -15,20 +15,20 @@ import {
   Keyboard,
 } from "react-native";
 import loginImg from "../asserts/images/loginImg.jpg";
-// import loginImg from "../asserts/images/spm0.jpg";
 import CountryPicker from "react-native-country-picker-modal";
 import Toast from "react-native-toast-message";
 import { getLoginOtp, staffLogin, verifyOtp } from "../api/auth";
 import { setAuthToken } from "../api/axiosInstance";
 import { Controller, useForm } from "react-hook-form";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 const { width, height } = Dimensions.get("window");
-const OTP_TIMEOUT = 30; // 30 seconds countdown
+const OTP_TIMEOUT = 30;
 
 function LoginScreen({ navigation }) {
   // Tab state
   const [activeTab, setActiveTab] = useState("migrants");
-  
+
   // Migrants login state
   const [mobile, setMobile] = useState("");
   const [otp, setOtp] = useState("");
@@ -36,7 +36,7 @@ function LoginScreen({ navigation }) {
   const [otpSent, setOtpSent] = useState(false);
   const [countdown, setCountdown] = useState(OTP_TIMEOUT);
   const [canResendOtp, setCanResendOtp] = useState(false);
-  
+
   // Common state
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -48,7 +48,7 @@ function LoginScreen({ navigation }) {
   const countdownRef = useRef(null);
   const [blinkAnim] = useState(new Animated.Value(0));
   const [yourOtp, setYourOtp] = useState([]);
-
+  const [showPassword, setShowPassword] = useState(false);
   // Refs for scrolling to input
   const scrollViewRef = useRef(null);
   const mobileInputRef = useRef(null);
@@ -102,39 +102,12 @@ function LoginScreen({ navigation }) {
   }, [fadeAnim]);
 
   // Inside your LoginScreen component, add this useEffect to auto-fill OTP
-useEffect(() => {
-  if (yourOtp && yourOtp.length === 6) {
-    setOtp(yourOtp); // Auto-fill OTP when received
-    otpInputRef.current?.focus(); // Focus the OTP input field
-  }
-}, [yourOtp]);
-
-// // For production SMS auto-retrieval (Android)
-// useEffect(() => {
-//   if (Platform.OS === 'android') {
-//     SmsRetriever.startSmsRetriever()
-//       .then((result) => {
-//         if (result) {
-//           SmsRetriever.addSmsListener((event) => {
-//             if (event && event.message) {
-//               // Assuming OTP is a 6-digit number in the SMS
-//               const otpRegex = /\b\d{6}\b/;
-//               const match = event.message.match(otpRegex);
-//               if (match) {
-//                 setOtp(match[0]);
-//                 otpInputRef.current?.focus();
-//               }
-//             }
-//           });
-//         }
-//       })
-//       .catch((error) => console.error('SMS Retriever Error:', error));
-
-//     return () => {
-//       SmsRetriever.removeSmsListener();
-//     };
-//   }
-// }, []);
+  useEffect(() => {
+    if (yourOtp && yourOtp.length === 6) {
+      setOtp(yourOtp); // Auto-fill OTP when received
+      otpInputRef.current?.focus(); // Focus the OTP input field
+    }
+  }, [yourOtp]);
 
   // Countdown effect for OTP
   useEffect(() => {
@@ -180,7 +153,7 @@ useEffect(() => {
     try {
       const response = await getLoginOtp(callingCode, mobile);
       setYourOtp(response.otp);
-      
+
       if (!response.status) {
         Toast.show({
           type: "error",
@@ -245,7 +218,7 @@ useEffect(() => {
     setVerifying(true);
     try {
       const response = await verifyOtp(callingCode, mobile, otp);
-      
+
       if (response?.status) {
         await setAuthToken(response.access_token);
         Toast.show({
@@ -296,20 +269,6 @@ useEffect(() => {
     Keyboard.dismiss();
     setLoading(true);
     try {
-      // Replace with your actual staff login API call
-      // const response = await staffLogin(email, password);
-      
-      // Mock response for demonstration
-      // const mockResponse = {
-      //   status: true,
-      //   access_token: "staff_access_token_123",
-      //   user: {
-      //     id: 1,
-      //     email: email,
-      //     role: "staff"
-      //   }
-      // };
-      
       const response = await staffLogin(data.email, data.password); // Use the staffLogin API
 
       if (response?.status) {
@@ -355,7 +314,7 @@ useEffect(() => {
           } else {
             focusedInput = passwordInputRef.current;
           }
-          
+
           focusedInput?.measure((x, y, width, height, pageX, pageY) => {
             scrollViewRef.current?.scrollTo({ y: pageY - 100, animated: true });
           });
@@ -383,7 +342,7 @@ useEffect(() => {
       setError("");
     }
   }, [activeTab, reset]);
-  
+
   const renderMigrantsLogin = () => (
     <>
       {!showOtpField ? (
@@ -419,13 +378,17 @@ useEffect(() => {
                 maxLength={12}
               />
             </View>
-                      {error && !showOtpField && <Text style={styles.errorText}>{error}</Text>}
+            {/* {error && !showOtpField && <Text style={styles.errorText}>{error}</Text>} */}
           </TouchableOpacity>
 
           <Text style={styles.registerText}>
             New user?{" "}
             <Animated.Text
-              onPress={() => navigation.navigate("Register")}
+              onPress={() => {
+                navigation.navigate("Register");
+                setError("");
+                setMobile("");
+              }}
               style={[
                 styles.registerBold,
                 error.includes("not registered") && styles.highlightedRegister
@@ -448,26 +411,26 @@ useEffect(() => {
               onChangeText={(text) => setOtp(text.replace(/[^0-9]/g, ""))}
               maxLength={6}
             />
-          
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => {
-              setShowOtpField(false);
-              setOtp("");
-              setOtpSent(false);
-              setCountdown(OTP_TIMEOUT);
-              setCanResendOtp(false);
-              setError("");
-              mobileInputRef.current?.focus(); // Focus mobile input
-            }}
-          >
-            <Text style={styles.cancelText}>✕</Text>
-          </TouchableOpacity></View>
+
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => {
+                setShowOtpField(false);
+                setOtp("");
+                setOtpSent(false);
+                setCountdown(OTP_TIMEOUT);
+                setCanResendOtp(false);
+                setError("");
+                mobileInputRef.current?.focus(); // Focus mobile input
+              }}
+            >
+              <Text style={styles.cancelText}>✕</Text>
+            </TouchableOpacity></View>
           {error && showOtpField && <Text style={styles.errorText}>{error}</Text>}
-        {otpSent && countdown > 0 && (
-          <Text style={styles.countdownText}>Resend OTP in {countdown}s</Text>
-        )}
-        
+          {otpSent && countdown > 0 && (
+            <Text style={styles.countdownText}>Resend OTP in {countdown}s</Text>
+          )}
+
           <View style={styles.otpInfoRow}>
             <Text style={styles.otpText}>Your otp: </Text>
             <Text style={styles.otpValue}>{yourOtp}</Text>
@@ -515,93 +478,101 @@ useEffect(() => {
   );
 
   const renderStaffLogin = () => (
-  <>
-    <View style={styles.inputContainer}>
-      <View style={[styles.inputBox, errors.email && styles.inputError]}>
-        <Controller
-          control={control}
-          name="email"
-          rules={{
-            required: "Please enter your email",
-            pattern: {
-              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: "Please enter a valid email address",
-            },
-          }}
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              ref={emailInputRef}
-              placeholder="Email"
-              placeholderTextColor="#D3B58F"
-              keyboardType="email-address"
-              style={styles.input}
-              value={value}
-              onChangeText={(text) => {
-                onChange(text);
-                if (isValid) setError(""); // Clear general error if form is valid
-              }}
-              autoCapitalize="none"
-            />
-          )}
-        />
+    <>
+      <View style={styles.inputContainer}>
+        <View style={[styles.inputBox, errors.email && styles.inputError]}>
+          <Controller
+            control={control}
+            name="email"
+            rules={{
+              required: "Please enter your email",
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Please enter a valid email address",
+              },
+            }}
+            render={({ field: { onChange, value } }) => (
+              <TextInput
+                ref={emailInputRef}
+                placeholder="Email"
+                placeholderTextColor="#D3B58F"
+                keyboardType="email-address"
+                style={styles.input}
+                value={value}
+                onChangeText={(text) => {
+                  onChange(text);
+                  if (isValid) setError(""); // Clear general error if form is valid
+                }}
+                autoCapitalize="none"
+              />
+            )}
+          />
+        </View>
+        {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
       </View>
-      {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
-    </View>
 
-    <View style={styles.inputContainer}>
-      <View style={[styles.inputBox, errors.password && styles.inputError]}>
-        <Controller
-          control={control}
-          name="password"
-          rules={{
-            required: "Please enter your password",
-            minLength: {
-              value: 4,
-              message: "Password must be at least 4 characters",
-            },
-            maxLength: {
-              value: 10,
-              message: "Password cannot exceed 10 characters",
-            },
-          }}
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              ref={passwordInputRef}
-              placeholder="Password"
-              placeholderTextColor="#D3B58F"
-              style={styles.input}
-              value={value}
-              onChangeText={(text) => {
-                onChange(text);
-                if (isValid) setError(""); // Clear general error if form is valid
-              }}
-              secureTextEntry
-              maxLength={10}
-            />
-          )}
-        />
+      <View style={styles.inputContainer}>
+        <View style={[styles.inputBox, errors.password && styles.inputError]}>
+          <Controller
+            control={control}
+            name="password"
+            rules={{
+              required: "Please enter your password",
+              minLength: {
+                value: 4,
+                message: "Password must be at least 4 characters",
+              },
+              maxLength: {
+                value: 10,
+                message: "Password cannot exceed 10 characters",
+              },
+            }}
+            render={({ field: { onChange, value } }) => (
+              <View style={styles.passwordInputContainer}>
+                <TextInput
+                  ref={passwordInputRef}
+                  placeholder="Password"
+                  placeholderTextColor="#D3B58F"
+                  style={styles.input}
+                  value={value}
+                  onChangeText={(text) => {
+                    onChange(text);
+                    if (isValid) setError(""); // Clear general error if form is valid
+                  }}
+                  secureTextEntry={showPassword ? false : true}
+                  maxLength={10}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword((prev) => !prev)}
+                  style={styles.eyeButton}
+                >
+                  <Icon
+                    name={showPassword ? "eye-off" : "eye"}
+                    size={24}
+                    color="#D3B58F"
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
+          />
+        </View>
+        {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
       </View>
-      {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
-    </View>
 
-    {error && !errors.email && !errors.password && (
-      <Text style={styles.errorText}>{error}</Text>
-    )}
-
-    <TouchableOpacity
-      style={[styles.button, !isValid && styles.disabledButton]}
-      onPress={handleSubmit(handleStaffLogin)}
-      activeOpacity={0.8}
-      disabled={!isValid || loading}
-    >
-      {loading ? (
-        <ActivityIndicator color="#3D2A1A" />
-      ) : (
-        <Text style={styles.buttonText}>Login</Text>
-      )}
-    </TouchableOpacity>
-  </>
-);
+      <TouchableOpacity
+        style={[styles.button, !isValid && styles.disabledButton]}
+        onPress={handleSubmit(handleStaffLogin)}
+        activeOpacity={0.8}
+        disabled={!isValid || loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#3D2A1A" />
+        ) : (
+          <Text style={styles.buttonText}>Login</Text>
+        )}
+      </TouchableOpacity>
+    </>
+  );
 
 
   return (
@@ -644,7 +615,7 @@ useEffect(() => {
                 ]}
                 onPress={() => {
                   setActiveTab("migrants");
-                  reset(); // Reset staff login form
+                  reset();
                   setError("");
                 }}
               >
@@ -655,13 +626,13 @@ useEffect(() => {
                   Migrant
                 </Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[
                   styles.tabButton,
                   activeTab === "staff" && styles.activeTab
                 ]}
-                onPress={() =>{
+                onPress={() => {
                   setActiveTab("staff");
                   setMobile("");
                   setOtp("");
@@ -681,7 +652,7 @@ useEffect(() => {
 
             <View style={styles.textBottom}>
               {error ? <Text style={styles.errorText}>{error}</Text> : null}
-              
+
               {activeTab === "migrants" ? renderMigrantsLogin() : renderStaffLogin()}
             </View>
           </Animated.View>
@@ -900,7 +871,7 @@ const styles = StyleSheet.create({
 
   inputContainer: {
     width: "100%",
-    marginBottom: 10, // Space between input fields
+    marginBottom: 10,
   },
   inputBox: {
     backgroundColor: "rgba(96, 51, 0, 0.9)",
@@ -915,7 +886,17 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    position: "relative", // For cancel button positioning
+    position: "relative",
+  },
+  passwordInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+  },
+  eyeButton: {
+    position: "absolute",
+    right: 10,
+    top: 10,
   },
   input: {
     fontSize: 18,
@@ -924,7 +905,7 @@ const styles = StyleSheet.create({
     top: 2,
   },
   inputError: {
-    borderColor: "red", // Highlight the input box border on error
+    borderColor: "red",
   },
   cancelButton: {
     position: "absolute",
@@ -947,8 +928,8 @@ const styles = StyleSheet.create({
   errorText: {
     color: "red",
     fontSize: 14,
-    marginTop: 5, // Space between input box and error message
-    alignSelf: "flex-start", // Align error text with input box
+    marginTop: 5,
+    alignSelf: "flex-start",
     textAlign: "left",
   },
 });

@@ -91,7 +91,6 @@ function MigrantsList({ navigation }) {
                 onPress={() => handleViewUser(item)}
             >
                 <Icon name="eye" size={20} color="#FFF" />
-                 {/* <Text style={styles.actionButtonText}>{languageTexts?.migrantsList?.view || "View"}</Text> */}
             </TouchableOpacity>
         </View>
     );
@@ -219,7 +218,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         marginLeft: 5,
     },
-    
+
     userName: {
         color: "#FFF",
         fontSize: 16,

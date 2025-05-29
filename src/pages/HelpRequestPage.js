@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    View, 
-    Text, 
-    StyleSheet, 
-    TouchableOpacity, 
-    Animated, 
-    ScrollView, 
-    TextInput, 
-    Alert, 
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Animated,
+    ScrollView,
+    TextInput,
+    Alert,
     Modal,
     FlatList,
     SafeAreaView
@@ -28,8 +28,8 @@ const statusOptions = [
 
 // Sample data for the list
 const sampleRequests = [
-    { id: '1', category: 'Legal Assistance', description: 'Need help with visa documentation', status: 'Pending', createdAt: moment().subtract(2, 'hours').toDate()  },
-    { id: '2', category: 'Job Support', description: 'Looking for IT job opportunities', status: 'In Progress', createdAt: moment().subtract(1, 'day').toDate()  },
+    { id: '1', category: 'Legal Assistance', description: 'Need help with visa documentation', status: 'Pending', createdAt: moment().subtract(2, 'hours').toDate() },
+    { id: '2', category: 'Job Support', description: 'Looking for IT job opportunities', status: 'In Progress', createdAt: moment().subtract(1, 'day').toDate() },
     { id: '3', category: 'Health Services', description: 'Need information about local hospitals', status: 'Resolved', createdAt: moment().subtract(3, 'days').toDate() },
 ];
 
@@ -81,23 +81,7 @@ function HelpRequestPage({ navigation }) {
         return moment(date).fromNow(); // Shows "2 hours ago", "1 day ago", etc.
     };
 
-    // const renderItem = ({ item }) => (
-    //     <View style={styles.requestItem}>
-    //         <Text style={styles.requestCategory}>{item.category}</Text>
-    //         <Text style={styles.requestTime}>{formatTime(item.createdAt)}</Text>
-    //         <Text style={styles.requestDescription}>{item.description}</Text>
-    //         <View style={[styles.statusBadge, { 
-    //             backgroundColor: item.status === 'Resolved' ? '#4CAF50' : 
-    //                             item.status === 'In Progress' ? '#FFC107' : '#F44336'
-    //         }]}>
-    //             <Text style={styles.statusText}>{item.status}</Text>
-    //         </View>
-    //         <View>
-    //             <Text>{moment().format('MMMM Do YYYY')}</Text>
-    //         </View>
-    //     </View>
-    // );
-
+    // Render each request item
     const renderItem = ({ item }) => (
         <View style={styles.requestItem}>
             <View style={styles.requestHeader}>
@@ -105,9 +89,9 @@ function HelpRequestPage({ navigation }) {
                 <Text style={styles.requestTime}>{formatTime(item.createdAt)}</Text>
             </View>
             <Text style={styles.requestDescription}>{languageTexts?.helpRequest?.descriptions?.[item.description] || item.description}</Text>
-            <View style={[styles.statusBadge, { 
-                backgroundColor: item.status === 'Resolved' ? '#4CAF50' : 
-                                item.status === 'In Progress' ? '#FFC107' : '#F44336'
+            <View style={[styles.statusBadge, {
+                backgroundColor: item.status === 'Resolved' ? '#4CAF50' :
+                    item.status === 'In Progress' ? '#FFC107' : '#F44336'
             }]}>
                 <Text style={styles.statusText}>{languageTexts?.helpRequest?.statuses?.[item.status] || item.status}</Text>
             </View>
@@ -181,19 +165,6 @@ function HelpRequestPage({ navigation }) {
                                         ))}
                                     </Picker>
                                 </View>
-
-                                {/* <Text style={styles.label}>Status</Text>
-                                <View style={styles.pickerContainer}>
-                                    <Picker
-                                        selectedValue={status}
-                                        style={styles.picker}
-                                        onValueChange={(itemValue) => setStatus(itemValue)}
-                                    >
-                                        {statusOptions.map((status) => (
-                                            <Picker.Item key={status.value} label={status.label} value={status.value} />
-                                        ))}
-                                    </Picker>
-                                </View> */}
 
                                 <Text style={styles.label}>{languageTexts?.helpRequest?.description || 'Description'}</Text>
                                 <TextInput

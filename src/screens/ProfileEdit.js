@@ -58,7 +58,6 @@ function ProfileEdit({ navigation, route }) {
     const [loadingCurrentDistricts, setLoadingCurrentDistricts] = useState(false);
     const [loadingNativeStates, setLoadingNativeStates] = useState(false);
     const [loadingNativeDistricts, setLoadingNativeDistricts] = useState(false);
-// console.log('userData:', userData);
 
     const { control, handleSubmit, reset, formState: { errors }, setValue, watch } = useForm({
         defaultValues: {
@@ -252,7 +251,7 @@ function ProfileEdit({ navigation, route }) {
 
             const submissionData = {
                 ...data,
-                photo: data.photo || null, // Pass base64 string or null
+                photo: data.photo || null,
                 native_country_id: data.native_country_id || null,
                 native_state_id: data.native_country_id ? data.native_state_id || null : null,
                 native_district_id: data.native_country_id && data.native_state_id ? data.native_district_id || null : null
@@ -292,12 +291,19 @@ function ProfileEdit({ navigation, route }) {
                     [
                         {
                             text: languageTexts?.common?.ok || 'OK',
-                            // onPress: () => navigation.navigate('Profile'),
-                            onPress: () => navigation.navigate('MigrantsList', {
-                                updatedUserData: updatedUser,
-                                updateTimestamp: Date.now() // Add timestamp to force refresh
-                            }),
-                            // onPress: () => navigation.goBack(),
+                            onPress: () => {
+                                if (updatedUser.isSuperAdmin) {
+                                    navigation.navigate('MigrantsList', {
+                                        updatedUserData: updatedUser,
+                                        updateTimestamp: Date.now() // Add timestamp to force refresh
+                                    });
+                                } else {
+                                    navigation.navigate('Profile', {
+                                        updatedUserData: updatedUser,
+                                        updateTimestamp: Date.now() // Add timestamp to force refresh
+                                    });
+                                }
+                            },
                         },
                     ],
                     { cancelable: false }
@@ -353,11 +359,7 @@ function ProfileEdit({ navigation, route }) {
                 <ScrollView contentContainerStyle={styles.scrollContainer}>
                     <View style={styles.headerContainer}>
                         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                            {/* <Text style={styles.backButtonText}>
-                                {languageTexts?.common?.back || '< Back'}
-                            </Text> */}
-                                    <Icon name="arrow-back-ios" size={24} color="#FFF" />
-
+                            <Icon name="arrow-back-ios" size={24} color="#FFF" />
                         </TouchableOpacity>
                         <Text style={styles.headerTitle}>
                             {languageTexts?.profile?.edit?.title || 'Edit Profile'}
@@ -1058,9 +1060,7 @@ const styles = StyleSheet.create({
     callingCode: {
         color: '#FFF2E0',
         fontSize: 16,
-        // marginRight: 8,
         fontWeight: '600',
-        // minWidth: 40,
     },
     errorInput: {
         borderColor: 'red',
@@ -1073,21 +1073,10 @@ const styles = StyleSheet.create({
         color: 'red',
         fontSize: 12,
         marginTop: 4,
-        marginLeft: '40%', // Align with the input fields
-        textAlign: 'left', // Changed from 'right' to 'left'
+        marginLeft: '40%',
+        textAlign: 'left',
         paddingLeft: 20,
     },
-    // Update the error text style
-    // errorText: {
-    //     color: 'red',
-    //     fontSize: 12,
-    //     marginTop: 4,
-    //     marginLeft: '40%', // Align with the input fields
-    //     textAlign: 'left', // Changed from 'right' to 'left'
-    //     paddingLeft: 20, // Match input margin
-    // },
-
-    // Add a new style for picker container
     pickerContainer: {
         flex: 1,
         marginLeft: 20,

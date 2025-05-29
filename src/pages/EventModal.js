@@ -32,7 +32,6 @@ const EventModal = ({ visible, onClose }) => {
       start_datetime: startDateTime.toISOString(),
       end_datetime: endDateTime.toISOString(),
     };
-    console.log('Saved Event:', event);
     onClose(); // Close modal
   };
 

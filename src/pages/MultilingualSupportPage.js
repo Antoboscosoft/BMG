@@ -14,7 +14,6 @@ function MultilingualSupportPage({ navigation }) {
         'Hindi': 'HI',
         'Tamil': 'TA',
         'Bengali': 'BN',
-        // 'Arabic': 'AR', // Note: Arabic is not implemented in translations yet
     };
 
     // Map language codes to native names for display
@@ -23,7 +22,6 @@ function MultilingualSupportPage({ navigation }) {
         { englishName: 'Hindi', nativeName: 'हिन्दी', code: 'HI' },
         { englishName: 'Tamil', nativeName: 'தமிழ்', code: 'TA' },
         // { englishName: 'Bengali', nativeName: 'বাংলা', code: 'BN' },
-        // { englishName: 'Arabic', nativeName: 'العربية', code: 'AR' },
     ];
 
     // Set initial selected language based on current language
@@ -50,18 +48,6 @@ function MultilingualSupportPage({ navigation }) {
     const handleContinue = () => {
         navigation.navigate('Dashboard');
     };
-
-    // const changeLanguage = async (langCode) => {
-    //     try {
-    //         await AsyncStorage.setItem('languageSelect', langCode);
-    //         setLanguage(langCode);
-    //         await updateLanguageTexts(langCode);
-    //         // Optional: Update backend
-    //         // await updateUserLanguage(langCode.toLowerCase()); // Implement this API call
-    //     } catch (error) {
-    //         console.error('Failed to change language:', error);
-    //     }
-    // };
 
     return (
         <LinearGradient

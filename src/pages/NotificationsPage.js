@@ -48,7 +48,7 @@ function NotificationsPage({ navigation }) {
             id: '4',
             title: 'Health Checkup',
             description: 'Free health checkup scheduled for next week.',
-            timestamp:  languageTexts?.notifications?.timestamps?.fiveDaysAgo || '5 days ago',
+            timestamp: languageTexts?.notifications?.timestamps?.fiveDaysAgo || '5 days ago',
             date: 'May 9, 2025', // Add this
             unread: false,
         },
@@ -70,7 +70,7 @@ function NotificationsPage({ navigation }) {
                         <BackIcon name="arrow-back-ios" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <Text style={styles.titleText}>{languageTexts?.notifications?.title || 'Notifications'}</Text>
-                    <View style={{ width: 60 }} /> 
+                    <View style={{ width: 60 }} />
                 </View>
                 <ScrollView
                     contentContainerStyle={styles.contentContainer}
@@ -136,10 +136,6 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     backButton: {
-        // position: 'absolute',
-        // top: 20,
-        // left: 20,
-        // padding: 10,
         paddingVertical: 6,
         paddingHorizontal: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
@@ -152,8 +148,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: 20,
         paddingTop: 30,
-        // paddingTop: 50,
-        // paddingBottom: 20,
     },
     backButtonText: {
         fontSize: 16,
@@ -162,20 +156,11 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         paddingHorizontal: 20,
-        // paddingTop: 80,
         paddingTop: 40,
         paddingBottom: 40,
         alignItems: 'center',
     },
     titleText: {
-        // fontSize: 32,
-        // fontWeight: 'bold',
-        // color: '#FFF',
-        // marginBottom: 20,
-        // textAlign: 'center',
-        // textShadowColor: 'rgba(0, 0, 0, 0.5)',
-        // textShadowOffset: { width: 1, height: 1 },
-        // textShadowRadius: 3,
         fontSize: 22,
         fontWeight: 'bold',
         color: '#FFF',
@@ -197,7 +182,6 @@ const styles = StyleSheet.create({
     },
     notificationContent: {
         flexDirection: 'column',
-        // alignItems: 'flex-start',
     },
 
     notificationHeader: {
@@ -208,30 +192,27 @@ const styles = StyleSheet.create({
     },
     notificationIcon: {
         marginRight: 10,
-        // marginTop: 2,
     },
 
     unreadNotification: {
         borderLeftWidth: 4,
-        borderLeftColor: '#2753b2', // Blue highlight for unread notifications
+        borderLeftColor: '#2753b2',
     },
     notificationTitle: {
         fontSize: 18,
         fontWeight: '600',
         color: '#333',
-        // marginBottom: 5,
         flex: 1,
     },
     notificationDescription: {
         fontSize: 14,
         color: '#666',
         marginBottom: 5,
-        paddingLeft: 34, // Match icon width + margin for alignment
+        paddingLeft: 34,
     },
     notificationTimestamp: {
         fontSize: 12,
         color: '#999',
-        // textAlign: 'right',
         marginLeft: 20,
     },
     noNotificationsText: {
@@ -245,7 +226,7 @@ const styles = StyleSheet.create({
     },
     dateContainer: {
         flexDirection: 'row',
-        justifyContent: 'flex-end', // Align to right
+        justifyContent: 'flex-end',
         width: '100%',
         marginTop: 4,
     },

@@ -8,7 +8,6 @@ import {
     Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { Picker } from '@react-native-picker/picker';
 import { createEventRegistration, deleteEventRegistration, updateEventRegistration } from '../api/auth';
 import { useLanguage } from '../language/commondir';
 
@@ -114,20 +113,6 @@ function CreateRegister({ navigation, route }) {
                         <Text style={styles.eventDetail}>{eventData.description}</Text>
                         <Text style={styles.eventDetail}>{eventData.location}</Text>
                     </View>
-
-                    {/* <Text style={styles.label}>RSVP Status:</Text>
-                    <View style={styles.pickerContainer}>
-                        <Picker
-                            selectedValue={status}
-                            onValueChange={(itemValue) => setStatus(itemValue)}
-                            style={styles.picker}
-                            dropdownIconColor="#2753b2"
-                        >
-                            <Picker.Item label="Maybe" value="maybe" />
-                            <Picker.Item label="Yes" value="yes" />
-                            <Picker.Item label="No" value="no" />
-                        </Picker>
-                    </View> */}
 
                     <Text style={styles.label}>{languageTexts?.createRegister?.rsvpStatus || 'RSVP Status:'}</Text>
                     <View style={styles.radioContainer}>

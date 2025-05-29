@@ -12,7 +12,7 @@ import HelpRequestPage from './src/pages/HelpRequestPage.js';
 import EventCalendarPage from './src/pages/EventCalendarPage.js';
 import CreateEventPage from './src/pages/CreateEventPage.js';
 import RegisterScreen from './src/screens/RegisterScreen.js';
-import Toast from 'react-native-toast-message';
+import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
 import ProfileEdit from './src/screens/ProfileEdit.js';
 import CreateService from './src/pages/CreateService.js';
 import { navigationRef } from './src/api/navigationRef.js';
@@ -21,6 +21,7 @@ import { LanguageProvider } from './src/language/commondir.js';
 import MigrantsList from './src/pages/MigrantsList.js';
 import ProfileView from './src/pages/UserProfileView.js';
 import NetworkStatus from './src/context/NetworkStatus.js';
+import { Text, View } from 'react-native';
 
 
 // Custom Toast configuration
@@ -121,7 +122,7 @@ function App() {
         <Stack.Screen name="MigrantsList" component={MigrantsList} />
         <Stack.Screen name="ProfileView" component={ProfileView} />
       </Stack.Navigator>
-      <Toast />
+      {/* <Toast config={toastConfig} /> */}
     </NavigationContainer>
     <NetworkStatus /> {/* Add NetworkStatus here */}
     </LanguageProvider>

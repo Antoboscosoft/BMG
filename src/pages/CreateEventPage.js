@@ -28,10 +28,6 @@ const CreateEventPage = ({ navigation }) => {
             location,
         };
 
-        console.log('Created Event:', newEvent);
-
-        // You can now add this event to your state, API, or global context
-
         navigation.goBack(); // Or navigate to calendar
     };
 
@@ -56,19 +52,7 @@ const CreateEventPage = ({ navigation }) => {
                     value={startDateTime}
                     mode="datetime"
                     display="default"
-                    // onChange={(event, date) => {
-                    //     setShowStartPicker(false);
-                    //     if (date) setStartDateTime(date);
-                    // }}
-                    // onChange={(event, date) => {
-                    //     if (event.type === 'set' && date) {
-                    //         setStartDateTime(date);
-                    //     }
-                    //     setShowStartPicker(false); // Always hide after selection/dismiss
-                    // }}
                     onChange={(event, date) => {
-                        console.log('Picker Event:', event);
-    console.log('Selected Date:', date);
                         if (date) {
                             setStartDateTime(date);
                         }
@@ -87,19 +71,7 @@ const CreateEventPage = ({ navigation }) => {
                     value={endDateTime}
                     mode="datetime"
                     display="default"
-                    // onChange={(event, date) => {
-                    //     setShowEndPicker(false);
-                    //     if (date) setEndDateTime(date);
-                    // }}
-                    // onChange={(event, date) => {
-                    //     if (event.type === 'set' && date) {
-                    //         setEndDateTime(date);
-                    //     }
-                    //     setShowEndPicker(false);
-                    // }}
                     onChange={(event, date) => {
-                        console.log('Picker Event:', event);
-    console.log('Selected Date:', date);
                         if (date) {
                             setEndDateTime(date);
                         }
