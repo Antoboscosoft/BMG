@@ -24,7 +24,8 @@ import CountryPicker from 'react-native-country-picker-modal';
 import ImagePicker from 'react-native-image-crop-picker';
 import Toast from 'react-native-simple-toast';
 import { getCountries, getStates, getDistricts, registerUser, extractIdentityData } from '../api/auth';
-import RegisterImg from '../asserts/images/splash1.jpg';
+// import RegisterImg from '../asserts/images/splash1.jpg';
+import RegisterImg from '../asserts/images/loginbg1.jpg';
 
 // Reusable Searchable Dropdown Component
 const SearchableDropdown = ({

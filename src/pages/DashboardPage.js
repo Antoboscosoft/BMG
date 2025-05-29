@@ -35,7 +35,7 @@ function DashboardPage({ navigation, route }) {
 
     const dashboardMenuItems = [
         { id: '1', name: 'eventCalendar', screen: 'EventCalendar', icon: 'calendar-month' },
-        { id: '2', name: 'servicesDirectory', screen: 'ServicesDirectory', icon: 'cog-outline' },
+        { id: '2', name: 'servicesDirectory', screen: 'ServicesDirectory', icon: 'hospital-box' },
         { id: '3', name: 'notifications', screen: 'Notifications', icon: 'bell-outline' },
         { id: '4', name: 'multilingualSupport', screen: 'MultilingualSupport', icon: 'translate' },
         { id: '5', name: 'helpRequest', screen: 'HelpRequest', icon: 'help-circle-outline' },

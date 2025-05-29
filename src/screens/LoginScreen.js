@@ -14,13 +14,15 @@ import {
   ActivityIndicator,
   Keyboard,
 } from "react-native";
-import loginImg from "../asserts/images/loginImg.jpg";
+// import loginImg from "../asserts/images/loginImg.jpg";
+import loginImg from "../asserts/images/loginbg1.jpg";
 import CountryPicker from "react-native-country-picker-modal";
 import Toast from "react-native-toast-message";
 import { getLoginOtp, staffLogin, verifyOtp } from "../api/auth";
 import { setAuthToken } from "../api/axiosInstance";
 import { Controller, useForm } from "react-hook-form";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import BackIcon from 'react-native-vector-icons/MaterialIcons';
 
 const { width, height } = Dimensions.get("window");
 const OTP_TIMEOUT = 30;
@@ -599,10 +601,13 @@ function LoginScreen({ navigation }) {
                 onPress={() => navigateGoBack()}
               >
                 <Text style={styles.backButtonText}>{"< Back"}</Text>
+                {/* <BackIcon name="arrow-back-ios" size={24} color="#ffffff" /> */}
               </TouchableOpacity>
-              <Text style={styles.title}>MIGRANT WORKERS</Text>
+              {/* <Text style={styles.title}>MIGRANT WORKERS</Text> */}
+              {/* <Text style={styles.title}>Don Bosco Migrant Services</Text> */}
               <View style={{ width: 60 }} />
             </View>
+              <Text style={styles.title}>Don Bosco Migrant Services</Text>
 
             <Text style={styles.subtitle}>Login</Text>
 
@@ -690,9 +695,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   backButton: {
-    padding: 10,
+    padding: 8,
     backgroundColor: "rgba(255, 242, 224, 0.2)",
     borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
   backButtonText: {
     fontSize: 16,
@@ -700,16 +707,18 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   title: {
-    fontSize: 22,
+    marginLeft: 10,
+    fontSize: 26,
     fontWeight: "bold",
     color: "#FFF",
     textAlign: "center",
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: 32,
     color: "#FFECD2",
     textAlign: "center",
-    marginBottom: 350,
+    marginTop: 20,
+    marginBottom: 100,
     fontWeight: "500",
     textShadowColor: "rgba(0, 0, 0, 0.3)",
     textShadowOffset: { width: 1, height: 1 },
