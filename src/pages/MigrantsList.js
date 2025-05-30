@@ -7,6 +7,7 @@ import {
     FlatList,
     ActivityIndicator,
     Dimensions,
+    Image,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -16,17 +17,19 @@ import { useLanguage } from "../language/commondir";
 
 const { width } = Dimensions.get("window");
 
-function MigrantsList({ navigation }) {
+function MigrantsList({ navigation, route }) {
     const { languageTexts } = useLanguage();
     const [migrants, setMigrants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isFocused, setIsFocused] = useState(false);
 
     useEffect(() => {
         const fetchMigrants = async () => {
             try {
                 setLoading(true);
                 const response = await getMigrantsList();
+                // console.log("Migrants List Response:", response?.data);
                 setMigrants(response.data || []);
             } catch (error) {
                 console.error("Failed to fetch migrants:", error);
@@ -42,11 +45,38 @@ function MigrantsList({ navigation }) {
             }
         };
 
-        fetchMigrants();
-    }, []);
+        if (isFocused) {
+            fetchMigrants();
+        }
+    }, [isFocused]);
+
+    useEffect(() => {
+        const handleFocus = () => setIsFocused(true);
+        const handleBlur = () => setIsFocused(false);
+
+        navigation.addListener("focus", handleFocus);
+        navigation.addListener("blur", handleBlur);
+
+        return () => {
+            navigation.removeListener("focus", handleFocus);
+            navigation.removeListener("blur", handleBlur);
+        };
+    }, [navigation]);
 
     const handleBackPress = () => {
-        navigation.goBack();
+        // console.log(" route.params:", route.name);
+        if (route?.name == 'MigrantsList') {
+            navigation.navigate("Dashboard");
+        } else {
+            navigation.goBack();
+        }
+        // If coming from ProfileView, navigate back to ProfileView
+        // if (route.params?.from === "ProfileView") {
+        //     navigation.navigate("ProfileView");
+        // } else {
+        //     navigation.goBack();
+        // }
+        // navigation.goBack();
     };
 
     const handleCreateUser = () => {
@@ -60,16 +90,19 @@ function MigrantsList({ navigation }) {
     const renderMigrantItem = ({ item }) => (
         <View style={styles.listItem}>
             <View style={styles.userIconContainer}>
-                <Icon name="account" size={24} color="#FFF" />
+                {item.photo ? 
+                <Image source={{ uri: item.photo }} style={styles.userIcon} />
+            
+                : <Icon name="account" size={75} color="#FFF" />}
             </View>
             {
-                console.log("Rendering migrant item:", item)
+                // console.log("Rendering migrant item:", item)
 
             }
             <View style={styles.userInfo}>
                 <View style={styles.userInfoRow}>
                     {/* <Icon name="person" size={20} color="#666" /> */}
-                    <Text style={styles.userInfoText}>
+                    <Text style={styles.userInfoName}>
                         {item.name || "Unknown User"}
                     </Text>
                 </View>
@@ -185,21 +218,23 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: "bold",
         textAlign: "center",
+        flex: 1,
+        marginLeft: 10,
     },
     listContainer: {
-        paddingBottom: 20,
+        paddingBottom: 50,
     },
     listItem: {
         flexDirection: "row",
         backgroundColor: "rgba(255, 255, 255, 0.2)",
         borderRadius: 10,
-        padding: 15,
+        padding: 5,
         marginBottom: 10,
         alignItems: "center",
     },
     userIconContainer: {
         // backgroundColor: "#c5894a",// prev color
-        backgroundColor: "#b06a2c", //ok
+        // backgroundColor: "#b06a2c", //ok
         // backgroundColor: "#dd7d17", //current
         borderRadius: 20,
         padding: 10,
@@ -212,6 +247,10 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         marginBottom: 5,
+    },
+    userInfoName: {
+      color: "#FFF",
+      fontSize: 18,  
     },
     userInfoText: {
         color: "#FFF",
@@ -236,6 +275,11 @@ const styles = StyleSheet.create({
         padding: 10,
         backgroundColor: "#dd7d17",
         borderRadius: 20,
+        marginLeft: 10,
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 10,
+        elevation: 3,
     },
     fab: {
         position: "absolute",
@@ -288,6 +332,12 @@ const styles = StyleSheet.create({
         fontSize: 16,
         textAlign: "center",
     },
+
+        userIcon: {
+            width: 75,
+            height: 75,
+            borderRadius: 40,
+        },
 });
 
 export default MigrantsList;

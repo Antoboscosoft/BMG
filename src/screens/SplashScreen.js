@@ -70,7 +70,7 @@ function SplashScreen({ navigation }) {
       try {
         // Check if token exists in AsyncStorage
         const token = await AsyncStorage.getItem('accessToken');
-        console.log("Token in SplashScreen:", token);
+        // console.log("Token in SplashScreen:", token);
 
         // Simulate a delay for the splash screen (e.g., 2 seconds)
         setTimeout(() => {

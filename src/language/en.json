@@ -307,5 +307,11 @@
       },
       "success": "Profile updated successfully!"
     }
+  },
+  "migrantsList": {
+    "title": "Migrants List",
+    "loading": "Loading migrants list...",
+    "empty": "No migrants found",
+    "error": "Failed to load migrants list"
   }
 }

@@ -50,7 +50,7 @@ export const getCountries = async () => {
 // Function to get states based on country ID
 export const getStates = async (countryId) => {
     try {
-        const response = await axiosInstance.get(`user/state?country_id=${countryId}`);
+        const response = await axiosInstance.get(`user/state?country_id=${countryId}&skip=0&limit=0`);
         return response.data;
     } catch (error) {
         console.error("Get States Error:", error);
@@ -61,7 +61,7 @@ export const getStates = async (countryId) => {
 // Function to get districts based on state ID
 export const getDistricts = async (stateId) => {
     try {
-        const response = await axiosInstance.get(`user/district?state_id=${stateId}`);
+        const response = await axiosInstance.get(`user/district?state_id=${stateId}&skip=0&limit=0`);
         return response.data;
     } catch (error) {
         console.error("Get Districts Error:", error);

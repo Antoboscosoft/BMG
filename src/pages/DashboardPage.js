@@ -40,15 +40,15 @@ function DashboardPage({ navigation, route }) {
         { id: '4', name: 'multilingualSupport', screen: 'MultilingualSupport', icon: 'translate' },
         // { id: '5', name: 'helpRequest', screen: 'HelpRequest', icon: 'help-circle-outline' },
         { id: '6', name: 'profile', screen: 'Profile', icon: 'account' },
-        { id: '7', name: 'Migrants', screen: 'MigrantsList', icon: 'account-group' },
+        { id: '7', name: 'migrants', screen: 'MigrantsList', icon: 'account-group' },
     ];
 
     // Filter menu items based on role
     const filteredMenuItems = isSuperAdmin
         ? dashboardMenuItems.filter(item =>
-            ['multilingualSupport', 'profile', 'Migrants'].includes(item.name)
+            ['multilingualSupport', 'profile', 'migrants', 'eventCalendar'].includes(item.name)
         )
-        : dashboardMenuItems.filter(item => item.name !== 'Migrants');
+        : dashboardMenuItems.filter(item => item.name !== 'migrants');
 
     // carousel items
     const carouselItems = [

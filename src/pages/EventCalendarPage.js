@@ -23,6 +23,10 @@ function EventCalendarPage({ navigation }) {
     const [fadeAnim] = useState(new Animated.Value(0));
     const [events, setEvents] = useState({});
 
+    const stripHtmlTags = (html) => {
+        return html.replace(/<[^>]+>/g, '');
+    };
+
     useEffect(() => {
         Animated.timing(fadeAnim, {
             toValue: 1,
@@ -68,6 +72,7 @@ function EventCalendarPage({ navigation }) {
         try {
             // setLoading(true);
             const response = await getEvents();
+            console.log('API Response: event >>>>>>>>', response);
             if (response.status && response.data) {
                 // Transform API data to match our UI structure
                 const formattedEvents = {};
@@ -81,7 +86,8 @@ function EventCalendarPage({ navigation }) {
                         location: event.location,
                         startDate: event.start_datetime,
                         endDate: event.end_datetime,
-                        registered: event.registered
+                        registered: event.registered,
+                        eventData: event,
                     };
 
                     if (!formattedEvents[eventDate]) {
@@ -158,7 +164,8 @@ function EventCalendarPage({ navigation }) {
                     title: event.title,
                     description: event.description,
                     location: event.location,
-                    isRegistered: false
+                    isRegistered: false,
+                    eventData: event.eventData,
                 }
             });
         } catch (error) {
@@ -180,7 +187,8 @@ function EventCalendarPage({ navigation }) {
                     description: event.description,
                     location: event.location,
                     currentStatus: event.registered?.status?.toLowerCase() || 'maybe',
-                    isRegistered: true
+                    isRegistered: true,
+                    eventData: event.eventData,
                 }
             });
         } catch (error) {
@@ -267,7 +275,7 @@ function EventCalendarPage({ navigation }) {
                                             <Icon name="notes" size={20} color="#2753b2" style={styles.icon} />
                                             <Text style={styles.eventDescription}>
                                                 {languageTexts?.eventCalendar?.descriptions?.[event.descriptionKey] ||
-                                                    event.description}
+                                                    stripHtmlTags(event.description)}
                                             </Text>
                                         </View>
                                         <View style={styles.buttonContainer}>

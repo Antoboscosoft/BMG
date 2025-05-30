@@ -387,7 +387,7 @@ function LoginScreen({ navigation }) {
             New user?{" "}
             <Animated.Text
               onPress={() => {
-                navigation.navigate("Register");
+                navigation.navigate("Register", { from: "Login" });
                 setError("");
                 setMobile("");
               }}

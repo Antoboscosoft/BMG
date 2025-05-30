@@ -149,7 +149,7 @@ const SearchableDropdown = ({
     );
 };
 
-const RegisterScreen = ({ navigation }) => {
+const RegisterScreen = ({ navigation, route }) => {
     const [form, setForm] = useState({
         name: '',
         mobileNumber: '',
@@ -166,6 +166,8 @@ const RegisterScreen = ({ navigation }) => {
         photo: null,
         identity: null,
     });
+    console.log("RegisterScreen form state:", route.params.from);
+    
     // State for image preview
     const [isImagePreviewVisible, setIsImagePreviewVisible] = useState(false);
     const [identityProofImage, setIdentityProofImage] = useState(null);
@@ -282,6 +284,21 @@ const RegisterScreen = ({ navigation }) => {
         return status;
     };
 
+    // Handle country selection
+    const handleBack = () => {
+        // Get the 'from' parameter from route params
+        //   const from = route.params?.from || 'Login';
+
+        //   // Navigate based on the 'from' parameter
+        //   if (from === 'MigrantsList') {
+        //     navigation.navigate('MigrantsList');
+        //   } else {
+        //     navigation.navigate('Login');
+        //   }
+
+        navigation.navigate(route.params.from || 'Login');
+    };
+
     // Image picker function for profile photo
     const pickImage = async () => {
         try {
@@ -388,7 +405,8 @@ const RegisterScreen = ({ navigation }) => {
 
                 setTimeout(() => {
                     // navigation.navigate('Login');
-                    navigation.goBack();
+                    // navigation.goBack();
+                    handleBack();
                 }, 1000);
             } else {
                 let errorMsg = 'Registration failed';
@@ -793,9 +811,7 @@ const RegisterScreen = ({ navigation }) => {
         }
     };
 
-    const handleBackPress = () => {
-        navigation.goBack();
-    };
+
     return (
         <ImageBackground
             source={RegisterImg}
@@ -812,7 +828,7 @@ const RegisterScreen = ({ navigation }) => {
                 >
                     <View style={styles.formContainer}>
                         <View style={styles.header}>
-                            <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+                            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
                                 <Icon name="arrow-left" size={26} color="#FFF" />
                             </TouchableOpacity>
                             <Text style={styles.title}>

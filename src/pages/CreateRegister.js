@@ -8,8 +8,27 @@ import {
     Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { createEventRegistration, deleteEventRegistration, updateEventRegistration } from '../api/auth';
 import { useLanguage } from '../language/commondir';
+
+// Utility function to strip HTML tags
+const stripHtmlTags = (html) => {
+    return html.replace(/<[^>]+>/g, '');
+};
+
+// Utility function to format datetime to date (e.g., "May 29, 2025")
+const formatDate = (datetime) => {
+    const date = new Date(datetime);
+    return date.toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
+};
+
+// Utility function to format datetime to time (e.g., "3:30 AM")
+const formatTime = (datetime) => {
+    const date = new Date(datetime);
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+};
+
 
 function CreateRegister({ navigation, route }) {
     const { languageTexts } = useLanguage();
@@ -18,6 +37,9 @@ function CreateRegister({ navigation, route }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [error, setError] = useState('');
+
+    console.log('Event Data:', eventData);
+
 
     const handleSubmit = async () => {
         if (!status) {
@@ -110,8 +132,49 @@ function CreateRegister({ navigation, route }) {
                     <Text style={styles.label}>{languageTexts?.createRegister?.event || 'Event:'}</Text>
                     <View style={styles.eventBox}>
                         <Text style={styles.eventTitle}>{eventData.title}</Text>
-                        <Text style={styles.eventDetail}>{eventData.description}</Text>
-                        <Text style={styles.eventDetail}>{eventData.location}</Text>
+                        <View style={styles.eventDetailRow}>
+                            <Icon name="calendar-today" size={20} color="#555" style={styles.icon} />
+                            <Text style={styles.eventDetail}>
+                                {languageTexts?.createRegister?.startDate || 'Start Date'}: {formatDate(eventData.eventData.start_datetime)}
+                            </Text>
+                        </View>
+                        <View style={styles.eventDetailRow}>
+                            <Icon name="calendar-today" size={20} color="#555" style={styles.icon} />
+                            <Text style={styles.eventDetail}>
+                                {languageTexts?.createRegister?.endDate || 'End Date'}: {formatDate(eventData.eventData.end_datetime)}
+                            </Text>
+                        </View>
+                        <View style={styles.eventDetailRow}>
+                            <Icon name="access-time" size={20} color="#555" style={styles.icon} />
+                            <Text style={styles.eventDetail}>
+                                {languageTexts?.createRegister?.startTime || 'Start Time'}: {formatTime(eventData.eventData.start_datetime)}
+                            </Text>
+                        </View>
+                        <View style={styles.eventDetailRow}>
+                            <Icon name="access-time" size={20} color="#555" style={styles.icon} />
+                            <Text style={styles.eventDetail}>
+                                {languageTexts?.createRegister?.endTime || 'End Time'}: {formatTime(eventData.eventData.end_datetime)}
+                            </Text>
+                        </View>
+                        <View style={styles.eventDetailRow}>
+                            <Icon name="event" size={20} color="#555" style={styles.icon} />
+                            <Text style={styles.eventDetail}>
+                                {languageTexts?.createRegister?.allDay || 'All Day'}: {eventData.eventData.all_day ? 'Yes' : 'No'}
+                            </Text>
+                        </View>
+                        <View style={styles.eventDetailRow}>
+                            <Icon name="location-on" size={20} color="#555" style={styles.icon} />
+                            <Text style={styles.eventDetail}>
+                                {languageTexts?.createRegister?.location || 'Location'}: {eventData.location}
+                            </Text>
+                        </View>
+                        <View style={styles.eventDetailRow}>
+                            <Icon name="description" size={20} color="#555" style={styles.icon} />
+                            <Text style={styles.eventDetail}>
+                                {languageTexts?.createRegister?.description || 'Description'}: {stripHtmlTags(eventData.description)}
+                            </Text>
+                        </View>
+
                     </View>
 
                     <Text style={styles.label}>{languageTexts?.createRegister?.rsvpStatus || 'RSVP Status:'}</Text>
@@ -150,7 +213,7 @@ function CreateRegister({ navigation, route }) {
                     {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
                     <View style={styles.buttonRow}>
-                        {eventData.isRegistered && (
+                        {/* {eventData.isRegistered && (
                             <TouchableOpacity
                                 style={[styles.deleteButton, (isSubmitting || isDeleting) && styles.disabledButton]}
                                 onPress={handleDelete}
@@ -160,7 +223,7 @@ function CreateRegister({ navigation, route }) {
                                     {isDeleting ? languageTexts?.createRegister?.deleting || 'Deleting...' : languageTexts?.createRegister?.delete?.button || 'Delete'}
                                 </Text>
                             </TouchableOpacity>
-                        )}
+                        )} */}
                         <TouchableOpacity
                             style={[styles.submitButton, (isSubmitting || isDeleting) && styles.disabledButton]}
                             onPress={handleSubmit}
@@ -240,10 +303,25 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 5,
     },
+    eventDetailRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 6,
+    },
+    icon: {
+        marginRight: 8,
+        // color: '#555',
+        // fontSize: 20,
+        
+        alignItems: 'flex-start',
+        alignSelf: 'flex-start',
+        justifyContent: 'flex-start',
+    },
     eventDetail: {
         fontSize: 14,
         color: '#555',
         marginBottom: 3,
+        marginLeft: 8,
     },
     pickerContainer: {
         borderWidth: 1,
