@@ -22,6 +22,7 @@ import MigrantsList from './src/pages/MigrantsList.js';
 import ProfileView from './src/pages/UserProfileView.js';
 import NetworkStatus from './src/context/NetworkStatus.js';
 import { Text, View } from 'react-native';
+import CreateEvent from './src/pages/CreateEvent.js';
 
 
 // Custom Toast configuration
@@ -117,10 +118,12 @@ function App() {
         <Stack.Screen name="EventCalendar" component={EventCalendarPage} />
         <Stack.Screen name="CreateRegister" component={CreateRegister} options={{ title: 'Create Register' }} />
 
-        <Stack.Screen name="CreateEvent" component={CreateEventPage} options={{ title: 'Create Event' }} />
+        <Stack.Screen name="CreateEventPage" component={CreateEventPage} options={{ title: 'Create Event Page' }} />
 
         <Stack.Screen name="MigrantsList" component={MigrantsList} />
         <Stack.Screen name="ProfileView" component={ProfileView} />
+        <Stack.Screen name="CreateEvent" component={CreateEvent} options={{ title: 'Create Event' }} />
+
       </Stack.Navigator>
       {/* <Toast config={toastConfig} /> */}
     </NavigationContainer>

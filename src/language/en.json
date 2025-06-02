@@ -10,8 +10,9 @@
     }
   },
   "menu": {
-    "eventCalendar": "Event Calendar",
+    "eventCalendar": "Events",
     "servicesDirectory": "Services Directory",
+    "migrants": "Migrants",
     "notifications": "Notifications",
     "multilingualSupport": "Language",
     "helpRequest": "Help",

@@ -34,14 +34,32 @@ function DashboardPage({ navigation, route }) {
     const isSuperAdmin = userData?.data?.role?.name === "Super Admin" || userData?.data?.role?.name === "Admin";
 
     const dashboardMenuItems = [
+        { id: '6', name: 'profile', screen: 'Profile', icon: 'account' },
         { id: '1', name: 'eventCalendar', screen: 'EventCalendar', icon: 'calendar-month' },
         // { id: '2', name: 'servicesDirectory', screen: 'ServicesDirectory', icon: 'hospital-box' },
         { id: '3', name: 'notifications', screen: 'Notifications', icon: 'bell-outline' },
         { id: '4', name: 'multilingualSupport', screen: 'MultilingualSupport', icon: 'translate' },
         // { id: '5', name: 'helpRequest', screen: 'HelpRequest', icon: 'help-circle-outline' },
-        { id: '6', name: 'profile', screen: 'Profile', icon: 'account' },
         { id: '7', name: 'migrants', screen: 'MigrantsList', icon: 'account-group' },
     ];
+
+    // use asyncStorage to setItem for role which user has logged in:
+    useEffect(() => {
+        const setRoleInAsyncStorage = async () => {
+            console.log("test ------------", userData?.data?.role?.name);
+            
+            try {
+                const role = userData?.data?.role?.name || 'User';
+                await AsyncStorage.setItem('userRole', role);
+            } catch (error) {
+                console.error('Failed to set user role in AsyncStorage:', error);
+            }
+        };
+
+        if (userData) {
+            setRoleInAsyncStorage();
+        }
+    }, [userData]);
 
     // Filter menu items based on role
     const filteredMenuItems = isSuperAdmin
@@ -194,7 +212,13 @@ function DashboardPage({ navigation, route }) {
     );
 
     const handleIconPress = (itemName) => {
-        navigation.navigate(itemName);
+        if (itemName === 'EventCalendar') {
+            navigation.navigate('EventCalendar', { userData: userData });
+        }  else if (itemName === 'CreateEvent') {
+        navigation.navigate('CreateEvent', { userData: userData });
+        } else {
+            navigation.navigate(itemName);
+        }
     };
 
     return (

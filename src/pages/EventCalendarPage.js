@@ -8,6 +8,7 @@ import {
     ScrollView,
     TextInput,
     Modal,
+    Image,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
@@ -16,16 +17,43 @@ import Toast from 'react-native-simple-toast';
 import { getEvents } from '../api/auth';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useLanguage } from '../language/commondir';
+import { useRoute } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function EventCalendarPage({ navigation }) {
     const { languageTexts } = useLanguage();
-    const [selectedDate, setSelectedDate] = useState('2025-05-16');
+    const [selectedDate, setSelectedDate] = useState(moment().format('YYYY-MM-DD'));
     const [fadeAnim] = useState(new Animated.Value(0));
     const [events, setEvents] = useState({});
+    const route = useRoute();
+
+//     const userData = route.params?.userData || null; // Assuming userData is passed from the previous screen
+//     const isSuperAdmin = userData?.data?.role?.name === "Super Admin" || userData?.data?.role?.name === "Admin";
+// console.log('User Data:', isSuperAdmin);
+    const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
     const stripHtmlTags = (html) => {
         return html.replace(/<[^>]+>/g, '');
     };
+
+    // to getuser role logged in from getItem using asyncstorage:
+    // Fetch user role from AsyncStorage
+    useEffect(() => {
+        const getUserRole = async () => {
+            try {
+                const role = await AsyncStorage.getItem('userRole');
+                console.log('Retrieved userRole from AsyncStorage:', role);
+                setIsSuperAdmin(role === 'Super Admin' || role === 'Admin');
+            } catch (error) {
+                console.error('Failed to retrieve user role from AsyncStorage:', error);
+                setIsSuperAdmin(false); // Fallback to non-admin
+            }
+        };
+
+        getUserRole();
+    }, []);
+console.log("isSuperAdmin:", isSuperAdmin);
+
 
     useEffect(() => {
         Animated.timing(fadeAnim, {
@@ -72,7 +100,7 @@ function EventCalendarPage({ navigation }) {
         try {
             // setLoading(true);
             const response = await getEvents();
-            console.log('API Response: event >>>>>>>>', response);
+            // console.log('API Response: event >>>>>>>>', response);
             if (response.status && response.data) {
                 // Transform API data to match our UI structure
                 const formattedEvents = {};
@@ -212,7 +240,23 @@ function EventCalendarPage({ navigation }) {
                     <Text style={styles.titleText}>
                         {languageTexts?.menu?.eventCalendar || 'Event Calendar'}
                     </Text>
-                    <View style={{ width: 60 }} />
+                    {/* <View style={{ width: 60 }} /> */}
+                    { isSuperAdmin ?
+                    (
+                    <TouchableOpacity
+                        style={styles.createButton}
+                        onPress={() => navigation.navigate('CreateEvent')}
+                    >
+                        {/* <Icon name="add-circle" size={24} color="#ffffff" /> */}
+                        <Image
+                            source={require('../asserts/images/calendar1.png')}
+                            style={{ width: 24, height: 24, tintColor: '#ffffff' }}
+                        />
+                        {/* <Icon name="add-circle" size={24} color="#ffffff" /> */}
+                    </TouchableOpacity>
+                    ) : (
+                        <View style={{ width: 60 }} />
+                    )}
                 </View>
 
                 <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
@@ -334,6 +378,13 @@ const styles = StyleSheet.create({
         paddingTop: 30,
     },
     backButton: {
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: 8,
+        zIndex: 1,
+    },
+     createButton: {
         paddingVertical: 6,
         paddingHorizontal: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',

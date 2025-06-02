@@ -6,10 +6,16 @@ import {
     TouchableOpacity,
     ScrollView,
     Alert,
+    ActivityIndicator,
+    Image,
+    Linking,
+    FlatList,
+    Dimensions,
+    Modal,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { createEventRegistration, deleteEventRegistration, updateEventRegistration } from '../api/auth';
+import { createEventRegistration, deleteEventRegistration, getEventById, updateEventRegistration } from '../api/auth';
 import { useLanguage } from '../language/commondir';
 
 // Utility function to strip HTML tags
@@ -18,28 +24,99 @@ const stripHtmlTags = (html) => {
 };
 
 // Utility function to format datetime to date (e.g., "May 29, 2025")
-const formatDate = (datetime) => {
-    const date = new Date(datetime);
-    return date.toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
-};
+// const formatDate = (datetime) => {
+//     const date = new Date(datetime);
+//     return date.toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
+// };
 
 // Utility function to format datetime to time (e.g., "3:30 AM")
-const formatTime = (datetime) => {
-    const date = new Date(datetime);
-    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+// const formatTime = (datetime) => {
+//     const date = new Date(datetime);
+//     return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+// };
+
+// Utility function to format datetime to date (e.g., "May 23, 2025")
+const formatDate = (startDatetime, endDatetime) => {
+    const start = new Date(startDatetime);
+    const end = new Date(endDatetime);
+    const startFormatted = start.toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
+    const endFormatted = end.toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
+    return startFormatted === endFormatted ? startFormatted : `${startFormatted} - ${endFormatted}`;
 };
+
+// Utility function to format datetime to time (e.g., "3:30 AM - 6:29 PM")
+const formatTime = (startDatetime, endDatetime) => {
+    const start = new Date(startDatetime);
+    const end = new Date(endDatetime);
+
+    // 12 hour format
+     const options = {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true // This ensures 12-hour format with AM/PM
+    };
+    
+    const startFormatted = start.toLocaleTimeString([], options);
+    const endFormatted = end.toLocaleTimeString([], options);
+
+    // 24 hour format
+    // const startFormatted = start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    // const endFormatted = end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+    return startFormatted === endFormatted ? startFormatted : `${startFormatted} - ${endFormatted}`;
+};
+
+// Utility function to format file size (e.g., from bytes to KB/MB)
+const formatFileSize = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+// Utility function to check if a file is an image
+const isImageFile = (fileName) => {
+    const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.bmp'];
+    return imageExtensions.some(ext => fileName.toLowerCase().endsWith(ext));
+};
+
 
 
 function CreateRegister({ navigation, route }) {
     const { languageTexts } = useLanguage();
-    const { eventData } = route.params;
+    const { eventData } = route.params; // Expect eventId from route.params
     const [status, setStatus] = useState(eventData.currentStatus || 'maybe');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(true);
+    const eventId = eventData?.eventData?.id; // Use the event ID from the route params
+    const [eventAttachments, setEventAttachments] = useState([]); // State to hold event attachments
+    // console.log('Event Attachments:', eventAttachments);
 
-    console.log('Event Data:', eventData);
+    const [isModalVisible, setModalVisible] = useState(false);
+    const [selectedImageUrl, setSelectedImageUrl] = useState(null);
 
+    // Fetch event data when component mounts or eventId changes
+    useEffect(() => {
+        const fetchEventData = async () => {
+            setLoading(true);
+            try {
+                const data = await getEventById(eventId);
+                // setEventData(data);/
+                // setStatus(data.currentStatus || 'maybe');
+                // console.log('Fetched Event Data:', data);
+                // console.log("data?.event_attachments", data?.data?.event_attachments);
+                setEventAttachments(data?.data?.event_attachments || []);
+            } catch (error) {
+                console.error('Fetch Event Error:', error);
+                setError(error.message || (languageTexts?.createRegister?.error?.fetch || 'Failed to fetch event details.'));
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchEventData();
+    }, [eventId, languageTexts]);
 
     const handleSubmit = async () => {
         if (!status) {
@@ -112,6 +189,33 @@ function CreateRegister({ navigation, route }) {
         );
     };
 
+    if (loading) {
+        return (
+            <LinearGradient colors={['#2753b2', '#e6e9f0']} style={styles.container}>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#ffffff" />
+                    <Text style={styles.loadingText}>{languageTexts?.common?.loading || 'Loading...'}</Text>
+                </View>
+            </LinearGradient>
+        );
+    }
+    if (error && !eventData) {
+        return (
+            <LinearGradient colors={['#2753b2', '#e6e9f0']} style={styles.container}>
+                <View style={styles.errorContainer}>
+                    <Text style={styles.errorText}>{error}</Text>
+                    <TouchableOpacity
+                        style={styles.retryButton}
+                        onPress={() => navigation.navigate('EventCalendar')}
+                    >
+                        <Text style={styles.buttonText}>{languageTexts?.common?.back || 'Back'}</Text>
+                    </TouchableOpacity>
+                </View>
+            </LinearGradient>
+        );
+    }
+
+
     return (
         <LinearGradient colors={['#2753b2', '#e6e9f0']} style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -132,7 +236,7 @@ function CreateRegister({ navigation, route }) {
                     <Text style={styles.label}>{languageTexts?.createRegister?.event || 'Event:'}</Text>
                     <View style={styles.eventBox}>
                         <Text style={styles.eventTitle}>{eventData.title}</Text>
-                        <View style={styles.eventDetailRow}>
+                        {/* <View style={styles.eventDetailRow}>
                             <Icon name="calendar-today" size={20} color="#555" style={styles.icon} />
                             <Text style={styles.eventDetail}>
                                 {languageTexts?.createRegister?.startDate || 'Start Date'}: {formatDate(eventData.eventData.start_datetime)}
@@ -155,6 +259,18 @@ function CreateRegister({ navigation, route }) {
                             <Text style={styles.eventDetail}>
                                 {languageTexts?.createRegister?.endTime || 'End Time'}: {formatTime(eventData.eventData.end_datetime)}
                             </Text>
+                        </View> */}
+                        <View style={styles.eventDetailRow}>
+                            <Icon name="calendar-today" size={20} color="#555" style={styles.icon} />
+                            <Text style={styles.eventDetail}>
+                                {languageTexts?.createRegister?.date || 'Date'}: {formatDate(eventData?.eventData?.start_datetime, eventData?.eventData?.end_datetime)}
+                            </Text>
+                        </View>
+                        <View style={styles.eventDetailRow}>
+                            <Icon name="access-time" size={20} color="#555" style={styles.icon} />
+                            <Text style={styles.eventDetail}>
+                                {languageTexts?.createRegister?.time || 'Time'}: {formatTime(eventData?.eventData?.start_datetime, eventData?.eventData?.end_datetime)}
+                            </Text>
                         </View>
                         <View style={styles.eventDetailRow}>
                             <Icon name="event" size={20} color="#555" style={styles.icon} />
@@ -174,7 +290,138 @@ function CreateRegister({ navigation, route }) {
                                 {languageTexts?.createRegister?.description || 'Description'}: {stripHtmlTags(eventData.description)}
                             </Text>
                         </View>
-
+                        {/* {eventAttachments.length > 0 && (
+                            <View style={styles.eventDetailRow}>
+                                <Icon name="attachment" size={20} color="#555" style={styles.icon} />
+                                <View style={styles.attachmentContainer}>
+                                    <Text style={styles.eventDetail}>
+                                        {languageTexts?.createRegister?.attachments || 'Attachments'}:
+                                    </Text>
+                                    Image Slider
+                                    {eventAttachments.some(attachment => isImageFile(attachment.file_name)) && (
+                                        <FlatList
+                                            data={eventAttachments.filter(attachment => isImageFile(attachment.file_name))}
+                                            horizontal
+                                            showsHorizontalScrollIndicator={false}
+                                            keyExtractor={(item) => item.id.toString()}
+                                            renderItem={({ item }) => (
+                                                <TouchableOpacity
+                                                    style={styles.sliderItem}
+                                                    onPress={() => Linking.openURL(item.file_url)}
+                                                >
+                                                    <Image
+                                                        source={{ uri: item.file_url }}
+                                                        style={styles.attachmentImage}
+                                                        resizeMode="cover"
+                                                    />
+                                                    <Text style={styles.attachmentText} numberOfLines={1}>
+                                                        {item.file_name} ({formatFileSize(item.file_size)})
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            )}
+                                            contentContainerStyle={styles.sliderContainer}
+                                        />
+                                    )}
+                                    Non-Image Attachments
+                                    {eventAttachments.some(attachment => !isImageFile(attachment.file_name)) && (
+                                        <View style={styles.nonImageContainer}>
+                                            {eventAttachments
+                                                .filter(attachment => !isImageFile(attachment.file_name))
+                                                .map((attachment) => (
+                                                    <TouchableOpacity
+                                                        key={attachment.id}
+                                                        style={styles.attachmentItem}
+                                                        onPress={() => Linking.openURL(attachment.file_url)}
+                                                    >
+                                                        <Text style={styles.attachmentText}>
+                                                            {attachment.file_name} ({formatFileSize(attachment.file_size)})
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                ))}
+                                        </View>
+                                    )}
+                                </View>
+                            </View>
+                        )} */}
+                        {eventAttachments.length > 0 && (
+                            <View style={styles.eventDetailRow}>
+                                <Icon name="attachment" size={20} color="#555" style={styles.icon} />
+                                <View style={styles.attachmentContainer}>
+                                    <Text style={styles.eventDetail}>
+                                        {languageTexts?.createRegister?.attachments || 'Attachments'}:
+                                    </Text>
+                                    {/* Image Slider */}
+                                    {eventAttachments.some(attachment => isImageFile(attachment.file_name)) && (
+                                        <FlatList
+                                            data={eventAttachments.filter(attachment => isImageFile(attachment.file_name))}
+                                            horizontal
+                                            showsHorizontalScrollIndicator={false}
+                                            keyExtractor={(item) => item.id.toString()}
+                                            renderItem={({ item }) => (
+                                                <TouchableOpacity
+                                                    style={styles.sliderItem}
+                                                    onPress={() => {
+                                                        setSelectedImageUrl(item.file_url);
+                                                        setModalVisible(true);
+                                                    }}
+                                                >
+                                                    <Image
+                                                        source={{ uri: item.file_url }}
+                                                        style={styles.attachmentImage}
+                                                        resizeMode="cover"
+                                                    />
+                                                    {/* <Text style={styles.attachmentText} numberOfLines={1}>
+                                {item.file_name} ({formatFileSize(item.file_size)})
+                            </Text> */}
+                                                </TouchableOpacity>
+                                            )}
+                                            contentContainerStyle={styles.sliderContainer}
+                                        />
+                                    )}
+                                    {/* Non-Image Attachments */}
+                                    {eventAttachments.some(attachment => !isImageFile(attachment.file_name)) && (
+                                        <View style={styles.nonImageContainer}>
+                                            {eventAttachments
+                                                .filter(attachment => !isImageFile(attachment.file_name))
+                                                .map((attachment) => (
+                                                    <TouchableOpacity
+                                                        key={attachment.id}
+                                                        style={styles.attachmentItem}
+                                                        onPress={() => Linking.openURL(attachment.file_url)}
+                                                    >
+                                                        <Text style={styles.attachmentText}>
+                                                            {attachment.file_name} ({formatFileSize(attachment.file_size)})
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                ))}
+                                        </View>
+                                    )}
+                                </View>
+                            </View>
+                        )}
+                        {/* Image Modal */}
+                        <Modal
+                            visible={isModalVisible}
+                            transparent={true}
+                            animationType="fade"
+                            onRequestClose={() => setModalVisible(false)}
+                        >
+                            <View style={styles.modalContainer}>
+                                {selectedImageUrl && (
+                                    <Image
+                                        source={{ uri: selectedImageUrl }}
+                                        style={styles.modalImage}
+                                        resizeMode="contain"
+                                    />
+                                )}
+                                <TouchableOpacity
+                                    style={styles.closeButton}
+                                    onPress={() => setModalVisible(false)}
+                                >
+                                    <Icon name="close" size={24} style={styles.closeIcon} />
+                                </TouchableOpacity>
+                            </View>
+                        </Modal>
                     </View>
 
                     <Text style={styles.label}>{languageTexts?.createRegister?.rsvpStatus || 'RSVP Status:'}</Text>
@@ -248,6 +495,34 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         padding: 15,
     },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        color: '#FFF',
+        fontSize: 16,
+        marginTop: 10,
+    },
+    errorContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    errorText: {
+        color: '#ff6b6b',
+        fontSize: 16,
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+    retryButton: {
+        backgroundColor: '#2753b2',
+        padding: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
     backButton: {
         position: 'absolute',
         top: 20,
@@ -312,7 +587,7 @@ const styles = StyleSheet.create({
         marginRight: 8,
         // color: '#555',
         // fontSize: 20,
-        
+
         alignItems: 'flex-start',
         alignSelf: 'flex-start',
         justifyContent: 'flex-start',
@@ -322,6 +597,58 @@ const styles = StyleSheet.create({
         color: '#555',
         marginBottom: 3,
         marginLeft: 8,
+    },
+    attachmentContainer: {
+        flex: 1,
+    },
+    attachmentItem: {
+        marginTop: 8,
+    },
+    attachmentImage: {
+        width: 100,
+        height: 100,
+        borderRadius: 8,
+        marginBottom: 4,
+    },
+    attachmentText: {
+        fontSize: 14,
+        color: '#2753b2',
+        textDecorationLine: 'underline',
+    },
+    sliderContainer: {
+        paddingVertical: 8,
+    },
+    sliderItem: {
+        // width: (Dimensions.get('window').width - 80) / 2, // Two items visible (minus container padding)
+        width: (Dimensions.get('window').width) / 4, // Two items visible (minus container padding)
+        marginRight: 8,
+        alignItems: 'center',
+    },
+    nonImageContainer: {
+        marginTop: 8,
+    },
+
+    modalContainer: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalImage: {
+        width: Dimensions.get('window').width * 0.9,
+        height: Dimensions.get('window').height * 0.7,
+        borderRadius: 8,
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 40,
+        right: 20,
+        padding: 10,
+        backgroundColor: 'rgba(255, 255, 255, 0.3)',
+        borderRadius: 20,
+    },
+    closeIcon: {
+        color: '#FFF',
     },
     pickerContainer: {
         borderWidth: 1,

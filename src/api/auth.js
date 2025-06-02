@@ -361,6 +361,32 @@ export const getEvents = async () => {
     }
 };
 
+// to call event get by id:
+export const getEventById = async (eventId) => {
+    console.log("Fetching event details for ID:", eventId);
+    try {
+        const response = await axiosInstance.get(`event/${eventId}`);
+        return response.data;
+    } catch (error) {
+        console.error("Get Event By ID Error:", error);
+        throw error.response?.data || { message: "Failed to fetch event details" };
+    }
+};
+
+export const createEvent = async (formData) => {
+    try {
+        const response = await axiosInstance.post('event', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Create Event Error:", error);
+        throw error.response?.data || { message: "Failed to create event" };
+    }
+};
+
 // Add this to your auth.js file
 export const createEventRegistration = async (eventId, status) => {
     console.log("Creating event registration with eventId:", eventId, "and status:", status);

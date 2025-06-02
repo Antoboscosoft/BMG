@@ -23,6 +23,8 @@ import { setAuthToken } from "../api/axiosInstance";
 import { Controller, useForm } from "react-hook-form";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import BackIcon from 'react-native-vector-icons/MaterialIcons';
+// import OtpInputs from 'react-native-otp-inputs';
+// import RNOtpVerify from 'react-native-otp-verify';
 
 const { width, height } = Dimensions.get("window");
 const OTP_TIMEOUT = 30;
@@ -72,6 +74,26 @@ function LoginScreen({ navigation }) {
     },
   });
 
+  // Initialize OTP Verify
+  // useEffect(() => {
+  //   if (Platform.OS === 'android') {
+  //     RNOtpVerify.getHash()
+  //       .then(hash => console.log('App Hash:', hash))
+  //       .catch(error => console.error('Hash Error:', error));
+  //     RNOtpVerify.startOtpListener(message => {
+  //       if (message) {
+  //         const otpMatch = message.match(/(\d{5})/);
+  //         if (otpMatch) {
+  //           setOtp(otpMatch[0]);
+  //           setError("");
+  //           otpInputRef.current?.focus();
+  //         }
+  //       }
+  //     });
+  //     return () => RNOtpVerify.removeListener();
+  //   }
+  // }, []);
+
   // Add this effect when error occurs
   useEffect(() => {
     if (error.includes("not registered")) {
@@ -105,7 +127,7 @@ function LoginScreen({ navigation }) {
 
   // Inside your LoginScreen component, add this useEffect to auto-fill OTP
   useEffect(() => {
-    if (yourOtp && yourOtp.length === 6) {
+    if (yourOtp && yourOtp.length === 5) {
       setOtp(yourOtp); // Auto-fill OTP when received
       otpInputRef.current?.focus(); // Focus the OTP input field
     }
@@ -173,13 +195,13 @@ function LoginScreen({ navigation }) {
         text1: "OTP Sent Successfully",
         text2: `OTP has been sent to +${callingCode} ${mobile}`,
       });
-
-      Toast.show({
-        type: "info",
-        text1: "Your OTP (for testing)",
-        text2: `OTP: ${receivedOtp}`,
-        visibilityTime: 5000,
-      });
+      setError("");
+      // Toast.show({
+      //   type: "info",
+      //   text1: "Your OTP (for testing)",
+      //   text2: `OTP: ${receivedOtp}`,
+      //   visibilityTime: 5000,
+      // });
 
       setShowOtpField(true);
       setOtpSent(true);
@@ -212,8 +234,8 @@ function LoginScreen({ navigation }) {
 
   const handleVerifyOtp = async () => {
     Keyboard.dismiss();
-    if (otp.length !== 6) {
-      setError("Please enter a valid 6-digit OTP");
+    if (otp.length !== 5) {
+      setError("Please enter a valid 5-digit OTP");
       return;
     }
 
@@ -230,6 +252,7 @@ function LoginScreen({ navigation }) {
           text2: "Welcome to the Dashboard!",
           visibilityTime: 5000,
         });
+        setError("");
         setTimeout(() => {
           navigation.navigate("Dashboard", {
             accessToken: response.access_token,
@@ -405,16 +428,63 @@ function LoginScreen({ navigation }) {
           <View style={styles.inputBox}>
             <TextInput
               ref={otpInputRef}
-              placeholder="Enter 6-digit OTP"
+              placeholder="Enter 5-digit OTP"
               placeholderTextColor="#D3B58F"
               keyboardType="numeric"
               style={[styles.input, { textAlign: "center" }]}
               value={otp}
-              onChangeText={(text) => setOtp(text.replace(/[^0-9]/g, ""))}
-              maxLength={6}
+              onChangeText={(text) => {
+                setOtp(text.replace(/[^0-9]/g, ""));
+                if (text.length === 5 && error) setError(""); // Clear error when OTP is correctly entered
+              }}
+              // onChangeText={(text) => setOtp(text.replace(/[^0-9]/g, ""))}
+              maxLength={5}
             />
 
+            {/* <OtpInputs
+              ref={otpInputRef}
+              handleChange={(code) => {
+                setOtp(code.replace(/[^0-9]/g, ""));
+                if (code.length === 5 && error) setError("");
+              }}
+              numberOfInputs={5}
+              inputStyles={[styles.input, styles.otpInput]}
+              inputContainerStyles={styles.otpInputContainer}
+              autofillFromClipboard={false}
+              keyboardType="numeric"
+              textContentType="oneTimeCode"
+              autoComplete="sms-otp"
+              autoFocus
+            /> */}
+
+            {/* Clear input icon (positioned at the right of the input) */}
+            {otp.length > 0 && (
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={() => setOtp("")}
+              >
+                <Text style={styles.clearText}>✕</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Cancel OTP field icon (positioned at top-right corner) */}
             <TouchableOpacity
+              style={styles.cancelOtpButton}
+              onPress={() => {
+                setShowOtpField(false);
+                setOtp("");
+                setOtpSent(false);
+                setCountdown(OTP_TIMEOUT);
+                setCanResendOtp(false);
+                setError("");
+                mobileInputRef.current?.focus();
+              }}
+            >
+              <Text style={styles.cancelOtpText}>✕</Text>
+            </TouchableOpacity>
+
+
+            {/* <TouchableOpacity
               style={styles.cancelButton}
               onPress={() => {
                 setShowOtpField(false);
@@ -427,15 +497,16 @@ function LoginScreen({ navigation }) {
               }}
             >
               <Text style={styles.cancelText}>✕</Text>
-            </TouchableOpacity></View>
+            </TouchableOpacity> */}
+          </View>
           {/* {error && showOtpField && <Text style={styles.errorText}>{error}</Text>} */}
           {otpSent && countdown > 0 && (
             <Text style={styles.countdownText}>Resend OTP in {countdown}s</Text>
           )}
 
           <View style={styles.otpInfoRow}>
-            <Text style={styles.otpText}>Your otp: </Text>
-            <Text style={styles.otpValue}>{yourOtp}</Text>
+            {/* <Text style={styles.otpText}>Your otp: </Text>
+            <Text style={styles.otpValue}>{yourOtp}</Text> */}
             {canResendOtp && (
               <TouchableOpacity onPress={handleResendOtp}>
                 <Text style={styles.resendText}>Resend OTP</Text>
@@ -460,10 +531,10 @@ function LoginScreen({ navigation }) {
         </TouchableOpacity>
       ) : (
         <TouchableOpacity
-          style={[styles.button, otp.length !== 6 && styles.disabledButton]}
+          style={[styles.button, otp.length !== 5 && styles.disabledButton]}
           onPress={handleVerifyOtp}
           activeOpacity={0.8}
-          disabled={otp.length !== 6 || verifying}
+          disabled={otp.length !== 5 || verifying}
         >
           {verifying ? (
             <ActivityIndicator color="#3D2A1A" />
@@ -609,12 +680,12 @@ function LoginScreen({ navigation }) {
               {/* <Text style={styles.title}>Don Bosco Migrant Services</Text> */}
               <View style={{ width: 60 }} />
             </View>
-              <Text style={styles.title}>Don Bosco Migrant Services</Text>
+            <Text style={styles.title}>Don Bosco Migrant Services</Text>
 
             <Text style={styles.subtitle}>Login</Text>
 
             {/* Tabs */}
-            {/* <View style={styles.tabContainer}>
+            <View style={styles.tabContainer}>
               <TouchableOpacity
                 style={[
                   styles.tabButton,
@@ -655,12 +726,12 @@ function LoginScreen({ navigation }) {
                   Staff
                 </Text>
               </TouchableOpacity>
-            </View> */}
+            </View>
 
             <View style={styles.textBottom}>
               {error ? <Text style={styles.errorText}>{error}</Text> : null}
-                {renderStaffLogin()}
-              {/* {activeTab === "migrants" ? renderMigrantsLogin() : renderStaffLogin()} */}
+              {/* {renderStaffLogin()} */}
+              {activeTab === "migrants" ? renderMigrantsLogin() : renderStaffLogin()}
             </View>
           </Animated.View>
         </ScrollView>
@@ -931,6 +1002,38 @@ const styles = StyleSheet.create({
     right: 15,
     padding: 5,
   },
+
+  clearButton: {
+  position: "absolute",
+  right: 15,
+  top: 12,
+  padding: 5,
+},
+clearText: {
+  color: "#FFF2E0",
+  fontSize: 18,
+  fontWeight: "bold",
+},
+cancelOtpButton: {
+  position: "absolute",
+  top: -10,
+  right: -10,
+  backgroundColor: "rgba(96, 51, 0, 0.9)",
+  width: 30,
+  height: 30,
+  borderRadius: 15,
+  justifyContent: "center",
+  alignItems: "center",
+  borderWidth: 1,
+  borderColor: "#FFF2E0",
+},
+cancelOtpText: {
+  color: "#FFF2E0",
+  fontSize: 16,
+  fontWeight: "bold",
+},
+
+
   countdownText: {
     color: "#FFF2E0",
     fontSize: 14,
