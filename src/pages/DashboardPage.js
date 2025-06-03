@@ -31,7 +31,7 @@ function DashboardPage({ navigation, route }) {
     const [loading, setLoading] = useState(true);
     const [activeIndex, setActiveIndex] = useState(0);
     const carouselRef = useRef(null);
-    const isSuperAdmin = userData?.data?.role?.name === "Super Admin" || userData?.data?.role?.name === "Admin";
+    const isSuperAdmin = userData?.data?.role?.name === "Super Admin" || userData?.data?.role?.name === "Admin" || userData?.data?.role?.name === "Staff";
 
     const dashboardMenuItems = [
         { id: '6', name: 'profile', screen: 'Profile', icon: 'account' },
@@ -66,7 +66,7 @@ function DashboardPage({ navigation, route }) {
         ? dashboardMenuItems.filter(item =>
             ['multilingualSupport', 'profile', 'migrants', 'eventCalendar'].includes(item.name)
         )
-        : dashboardMenuItems.filter(item => item.name !== 'migrants');
+        : dashboardMenuItems.filter(item => item.name !== 'migrants' && item.name !== 'notifications');
 
     // carousel items
     const carouselItems = [
