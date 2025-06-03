@@ -349,6 +349,11 @@ function ProfileEdit({ navigation, route }) {
         });
     };
 
+    const goBack = () => {  
+        navigation.goBack();
+    };
+
+
     return (
         <KeyboardAvoidingView
             style={{ flex: 1 }}
@@ -358,7 +363,7 @@ function ProfileEdit({ navigation, route }) {
             <LinearGradient colors={['#5e3b15', '#b06a2c']} style={styles.background}>
                 <ScrollView contentContainerStyle={styles.scrollContainer}>
                     <View style={styles.headerContainer}>
-                        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                        <TouchableOpacity style={styles.backButton} onPress={() => goBack()}>
                             <Icon name="arrow-back-ios" size={24} color="#FFF" />
                         </TouchableOpacity>
                         <Text style={styles.headerTitle}>

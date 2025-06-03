@@ -538,3 +538,96 @@ export const extractIdentityData = async (image) => {
         throw new Error(error.response?.data?.message || 'Failed to extract identity data');
     }
 };
+
+
+// Function to get news
+export const getNews = async () => {
+  try {
+    const response = await axiosInstance.get('news?skip=0&limit=0&active=true');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Function to get news by id
+export const getNewsById = async (id) => {
+  try {
+    const response = await axiosInstance.get(`/news/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Function to create news
+export const createNews1 = async (formData) => {
+  try {
+    const response = await axiosInstance.post('news', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+// Function to create news
+export const createNews = async (formData) => {
+  try {
+    for (let pair of formData._parts) {
+      console.log(`FormData key: ${pair[0]}, value: ${pair[1]}`);
+    }
+    const response = await axiosInstance.post('news', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    console.log('Create News Response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Create News Error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+    });
+    throw error; // Throw original error for status access
+  }
+};
+
+// Function to update news
+export const updateNews = async (newsId, formData) => {
+  try {
+    const response = await axiosInstance.put(`news/${newsId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Function to delete news
+export const deleteNews = async (newsId) => {
+  try {
+    const response = await axiosInstance.delete(`news/${newsId}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Delete news attachment by ID
+export const deleteNewsAttachment = async (attachmentId) => {
+  try {
+    const response = await axiosInstance.delete(`news/attachment/${attachmentId}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

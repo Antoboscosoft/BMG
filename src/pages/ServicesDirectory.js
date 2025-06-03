@@ -90,6 +90,7 @@ function ServicesDirectory({ navigation }) {
                             styles.serviceDescription,
                             !item.available && styles.unavailableText
                         ]}>
+                            {item.description}
                         </Text>
                     </View>
                 </View>
@@ -329,7 +330,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '600',
         color: '#333',
-        marginTop: 25,
+        // marginTop: 25,
     },
     serviceDescription: {
         fontSize: 14,

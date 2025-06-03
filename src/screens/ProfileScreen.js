@@ -98,6 +98,14 @@ function ProfileScreen({ navigation, route }) {
         );
     }
 
+    const goback = () => {
+        if (navigation.canGoBack()) {
+        //     navigation.goBack();
+        // } else {
+            navigation.navigate('Dashboard');
+        }
+    };
+
     return (
         <KeyboardAvoidingView
             style={{ flex: 1 }}
@@ -107,7 +115,7 @@ function ProfileScreen({ navigation, route }) {
             <LinearGradient colors={['#5e3b15', '#b06a2c']} style={styles.background}>
                 <ScrollView contentContainerStyle={styles.scrollContainer}>
                     <View style={styles.headerContainer}>
-                        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                        <TouchableOpacity style={styles.backButton} onPress={() => goback()}>
                             <Icon name="arrow-back-ios" size={24} color="#FFF" />
                         </TouchableOpacity>
                         <Text style={styles.headerTitle}>{languageTexts?.profile?.screen?.title || 'Your Profile'}</Text>
@@ -252,7 +260,7 @@ function ProfileScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
     background: { flex: 1, width, height },
-    scrollContainer: { flexGrow: 1 },
+    scrollContainer: { flexGrow: 1, paddingBottom: 50 },
     headerContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',

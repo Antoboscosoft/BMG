@@ -23,6 +23,11 @@ import ProfileView from './src/pages/UserProfileView.js';
 import NetworkStatus from './src/context/NetworkStatus.js';
 import { Text, View } from 'react-native';
 import CreateEvent from './src/pages/CreateEvent.js';
+import NewsList from './src/pages/news/NewsList.js';
+import NewsDetail from './src/pages/news/NewsDetail.js';
+import CreateNews from './src/pages/news/CreateNews.js';
+import WorkersScreen from './src/pages/news/WorkersScreen.js';
+import ContactUs from './src/pages/contactus/ContactUs.js';
 
 
 // Custom Toast configuration
@@ -123,6 +128,12 @@ function App() {
         <Stack.Screen name="MigrantsList" component={MigrantsList} />
         <Stack.Screen name="ProfileView" component={ProfileView} />
         <Stack.Screen name="CreateEvent" component={CreateEvent} options={{ title: 'Create Event' }} />
+        <Stack.Screen name="NewsList"  component={NewsList} options={{ title: 'News' }} />
+        <Stack.Screen name="NewsDetail" component={NewsDetail} options={{ title: 'News Detail' }} />
+        <Stack.Screen name="CreateNews" component={CreateNews} options={{ title: 'Create News' }} />
+
+        <Stack.Screen name="WorkersList" component={WorkersScreen} options={{ title: 'Workers List' }} />
+        <Stack.Screen name="ContactUs" component={ContactUs} options={{ title: 'Contact Us' }} />
 
       </Stack.Navigator>
       {/* <Toast config={toastConfig} /> */}

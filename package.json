@@ -30,6 +30,7 @@
     "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-otp-inputs": "^7.4.0",
     "react-native-otp-verify": "^1.1.8",
+    "react-native-render-html": "^6.3.4",
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "^4.10.0",
     "react-native-simple-toast": "^3.3.2",

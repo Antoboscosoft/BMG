@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { getUserData } from '../api/auth';
 import { clearAuthToken } from '../api/axiosInstance';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -39,18 +40,28 @@ function DashboardPage({ navigation, route }) {
         // { id: '2', name: 'servicesDirectory', screen: 'ServicesDirectory', icon: 'hospital-box' },
         { id: '3', name: 'notifications', screen: 'Notifications', icon: 'bell-outline' },
         { id: '4', name: 'multilingualSupport', screen: 'MultilingualSupport', icon: 'translate' },
-        // { id: '5', name: 'helpRequest', screen: 'HelpRequest', icon: 'help-circle-outline' },
+        { id: '5', name: 'helpRequest', screen: 'HelpRequest', icon: 'help-circle-outline' },
         { id: '7', name: 'migrants', screen: 'MigrantsList', icon: 'account-group' },
+        { id: '8', name: 'news', screen: 'NewsList', icon: 'newspaper' },
     ];
 
     // use asyncStorage to setItem for role which user has logged in:
     useEffect(() => {
         const setRoleInAsyncStorage = async () => {
             console.log("test ------------", userData?.data?.role?.name);
-            
+
             try {
                 const role = userData?.data?.role?.name || 'User';
                 await AsyncStorage.setItem('userRole', role);
+
+                // const roleName = userData?.data?.role?.name || 'User';
+                // const roleId = userData?.data?.role?.id || null;
+                // await AsyncStorage.multiSet([
+                //     ['userRole', roleName.replace('Super Admin', 'SuperAdmin')],
+                //     ['roleId', roleId ? roleId.toString() : ''],
+                // ]);
+                // console.log('Stored userRole:', roleName, 'roleId:', roleId);
+
             } catch (error) {
                 console.error('Failed to set user role in AsyncStorage:', error);
             }
@@ -64,7 +75,7 @@ function DashboardPage({ navigation, route }) {
     // Filter menu items based on role
     const filteredMenuItems = isSuperAdmin
         ? dashboardMenuItems.filter(item =>
-            ['multilingualSupport', 'profile', 'migrants', 'eventCalendar'].includes(item.name)
+            ['multilingualSupport', 'profile', 'migrants', 'eventCalendar', 'servicesDirectory', 'news', 'helpRequest'].includes(item.name)
         )
         : dashboardMenuItems.filter(item => item.name !== 'migrants' && item.name !== 'notifications');
 
@@ -214,9 +225,24 @@ function DashboardPage({ navigation, route }) {
     const handleIconPress = (itemName) => {
         if (itemName === 'EventCalendar') {
             navigation.navigate('EventCalendar', { userData: userData });
-        }  else if (itemName === 'CreateEvent') {
-        navigation.navigate('CreateEvent', { userData: userData });
-        } else {
+        } else if (itemName === 'CreateEvent') {
+            navigation.navigate('CreateEvent', { userData: userData });
+        } else if (itemName === 'MigrantsList') {
+            navigation.navigate('MigrantsList', { userData: userData });
+        } else if (itemName === 'Profile') {
+            navigation.navigate('Profile', { userData: userData });
+        } else if (itemName === 'ServicesDirectory') {
+            navigation.navigate('ServicesDirectory', { userData: userData });
+        } else if (itemName === 'Notifications') {
+            navigation.navigate('Notifications', { userData: userData });
+        } else if (itemName === 'MultilingualSupport') {
+            navigation.navigate('MultilingualSupport', { userData: userData });
+        } else if (itemName === 'HelpRequest') {
+            navigation.navigate('HelpRequest', { userData: userData });
+        } else if (itemName === 'NewsList') {
+            navigation.navigate('NewsList', { userData: userData });
+        }
+        else {
             navigation.navigate(itemName);
         }
     };
@@ -249,7 +275,7 @@ function DashboardPage({ navigation, route }) {
                         keyExtractor={(_, index) => index.toString()}
                     />
                 </View>
-                <ScrollView contentContainerStyle={styles.gridContainer}>
+                {/* <ScrollView contentContainerStyle={styles.gridContainer}>
                     {filteredMenuItems.map((item) => (
                         <View key={item.id} style={styles.gridItem}>
                             <TouchableOpacity
@@ -257,19 +283,66 @@ function DashboardPage({ navigation, route }) {
                                 onPress={() => handleIconPress(item.screen)}
                             >
                                 <View style={[styles.iconBackground, { backgroundColor: '#c5894a' }]}>
-                                    <Icon
-                                        name={item.icon}
-                                        size={26}
-                                        color="#FFF"
-                                    />
+                                    {item.name === 'servicesDirectory' ? (
+                                        <FontAwesome5
+                                            name="hand-holding-heart"
+                                            size={26}
+                                            color="#FFF"
+                                        />
+                                    ) : (
+                                        <Icon
+                                            name={item.icon}
+                                            size={26}
+                                            color="#FFF"
+                                        />
+                                    )}
                                 </View>
                             </TouchableOpacity>
                             <Text style={styles.gridText}>
-                                {languageTexts?.menu?.[item.name] || item.name}
+                                {languageTexts?.menu?.[item?.name] || item?.name}
                             </Text>
                         </View>
                     ))}
-                </ScrollView>
+                </ScrollView> */}
+
+                <View style={styles.gridContainer}>
+                    {filteredMenuItems.map((item) => (
+                        <View key={item.id} style={[
+                            styles.gridItem,
+                            filteredMenuItems.length % 3 !== 0 && styles.gridItemFlex // Apply flex style when not divisible by 3
+                        ]}>
+                            <TouchableOpacity
+                                style={styles.iconTouchable}
+                                onPress={() => handleIconPress(item.screen)}
+                            >
+                                <View style={[styles.iconBackground, { backgroundColor: '#c5894a' }]}>
+                                    {item.name === 'servicesDirectory' ? (
+                                        <FontAwesome5
+                                            name="hand-holding-heart"
+                                            size={26}
+                                            color="#FFF"
+                                        />
+                                    ) : (
+                                        <Icon
+                                            name={item.icon}
+                                            size={26}
+                                            color="#FFF"
+                                        />
+                                    )}
+                                </View>
+                            </TouchableOpacity>
+                            <Text style={styles.gridText}>
+                                {languageTexts?.menu?.[item?.name] || item?.name}
+                            </Text>
+                        </View>
+                    ))}
+
+                    {/* Add empty items to fill the row when needed */}
+                    {filteredMenuItems.length % 3 === 2 && (
+                        <View style={[styles.gridItem, styles.emptyItem]} />
+                    )}
+                </View>
+
                 {sidebarOpen && (
                     <TouchableWithoutFeedback onPress={closeSidebar}>
                         <View style={styles.overlay} />
@@ -304,12 +377,23 @@ function DashboardPage({ navigation, route }) {
                         </TouchableOpacity>
                     ))}
 
+                    {/* Contact Us menu item */}
+                    <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Contact Us', { screen: 'ContactUs' })}>
+                        <Icon name="email" size={22} color="#fff" style={styles.menuIcon} />
+                        <Text style={styles.menuText}>{ languageTexts?.menu?.contactUs || "Contact Us"}</Text>
+                    </TouchableOpacity>
+
                     <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Logout', { screen: 'Login' })}>
                         <Icon name="logout" size={22} color="#fff" style={styles.menuIcon} />
                         <Text style={styles.menuText}>
                             {languageTexts?.menu?.logout || 'Logout'}
                         </Text>
                     </TouchableOpacity>
+
+                    {/* App Version at the bottom */}
+                    <View style={styles.sidebarVersionContainer}>
+                        <Text style={styles.sidebarVersionText}>V1.4</Text>
+                    </View>
                 </Animated.View>
             </LinearGradient>
         </View>
@@ -479,7 +563,7 @@ const styles = StyleSheet.create({
     gridContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'space-between',
+        justifyContent: 'space-start',
         paddingHorizontal: 20,
         marginTop: 20,
         marginBottom: 20,
@@ -488,6 +572,7 @@ const styles = StyleSheet.create({
         width: '30%',
         marginBottom: 25,
         alignItems: 'center',
+        marginHorizontal: '1.66%', // Adds equal spacing on both sides
     },
     iconTouchable: {
         marginBottom: 8,
@@ -527,5 +612,22 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '600',
     },
+    sidebarVersionContainer: {
+        position: 'absolute',
+        bottom: 30,
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 8,
+    },
+    sidebarVersionText: {
+        color: '#FFECD2',
+        fontSize: 15,
+        fontWeight: 'bold',
+        opacity: 0.7,
+        letterSpacing: 1,
+    },
 
 });
+

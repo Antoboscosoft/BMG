@@ -43,7 +43,7 @@ function EventCalendarPage({ navigation }) {
             try {
                 const role = await AsyncStorage.getItem('userRole');
                 console.log('Retrieved userRole from AsyncStorage:', role);
-                setIsSuperAdmin(role === 'Super Admin' || role === 'Admin');
+                setIsSuperAdmin(role === 'Super Admin' || role === 'Admin' || role === 'Staff');
             } catch (error) {
                 console.error('Failed to retrieve user role from AsyncStorage:', error);
                 setIsSuperAdmin(false); // Fallback to non-admin
@@ -52,7 +52,7 @@ function EventCalendarPage({ navigation }) {
 
         getUserRole();
     }, []);
-console.log("isSuperAdmin:", isSuperAdmin);
+    console.log("isSuperAdmin:", isSuperAdmin);
 
 
     useEffect(() => {

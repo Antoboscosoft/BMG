@@ -12,11 +12,14 @@
     "menu": {
         "eventCalendar": "ইভেন্ট ক্যালেন্ডার",
         "servicesDirectory": "সেবা ডিরেক্টরি",
+        "migrants": "প্রবাসী তালিকা",
         "notifications": "বিজ্ঞপ্তি",
         "multilingualSupport": "ভাষা",
         "helpRequest": "সাহায্য",
         "profile": "প্রোফাইল",
         "menus": "মেনু",
+        "news": "নিউজ",
+        "contactUs": "যোগাযোগ",
         "logout": "লগআউট"
     },
     "multilingual": {
@@ -370,6 +373,54 @@
     "loading": "প্রবাসী তালিকা লোড হচ্ছে...",
     "empty": "কোনো প্রবাসী পাওয়া যায়নি",
     "error": "প্রবাসী তালিকা লোড করতে ব্যর্থ"
+  },
+  "news": {
+    "title": "সাম্প্রতিক সংবাদ",
+    "empty": "কোনো সংবাদ নেই",
+    "noImage": "কোনো ছবি নেই",
+    "gallery": "গ্যালারি",
+    "form": {
+      "createTitle": "নতুন সংবাদ তৈরি করুন",
+      "editTitle": "সংবাদ সম্পাদনা করুন",
+      "title": "শিরোনাম",
+      "titlePlaceholder": "সংবাদের শিরোনাম লিখুন",
+      "description": "বিবরণ",
+      "descriptionPlaceholder": "সংবাদের বিবরণ লিখুন",
+      "images": "ছবি (ঐচ্ছিক, সর্বাধিক ৫টি)",
+      "selectImages": "ছবি নির্বাচন করুন",
+      "addMoreImages": "আরও ছবি যোগ করুন",
+      "submit": "সংবাদ প্রকাশ করুন",
+      "update": "সংবাদ আপডেট করুন"
+    },
+    "deleteTitle": "সংবাদ মুছুন",
+    "deleteMessage": "আপনি কি নিশ্চিতভাবে এই সংবাদটি মুছতে চান?",
+    "deleted": "সংবাদ সফলভাবে মুছে ফেলা হয়েছে",
+    "success": {
+      "title": "সাফল্য",
+      "message": "সংবাদ সফলভাবে তৈরি হয়েছে!",
+      "updateMessage": "সংবাদ সফলভাবে আপডেট হয়েছে!",
+      "imageDeleted": "ছবি সফলভাবে মুছে ফেলা হয়েছে!"
+    },
+    "error": {
+      "title": "ত্রুটি",
+      "submit": "সংবাদ জমা দিতে ব্যর্থ।",
+      "deleteFailed": "সংবাদ মুছতে ব্যর্থ",
+      "imagePick": "ছবি নির্বাচন করতে ব্যর্থ।",
+      "imageDelete": "ছবি মুছতে ব্যর্থ।",
+      "accessDenied": "প্রবেশাধিকার অস্বীকৃত",
+      "adminOnly": "শুধুমাত্র অ্যাডমিনরা সংবাদ তৈরি করতে পারেন।",
+      "checkRole": "অনুমতি যাচাই করতে ব্যর্থ।"
+    }
+  },
+  "errors": {
+    "titleRequired": "শিরোনাম আবশ্যক",
+    "titleMinLength": "শিরোনাম কমপক্ষে ৩ অক্ষরের হতে হবে",
+    "titleMaxLength": "শিরোনাম ১০০ অক্ষরের বেশি হতে পারবে না",
+    "descriptionRequired": "বিবরণ আবশ্যক",
+    "descriptionMinLength": "বিবরণ কমপক্ষে ১০ অক্ষরের হতে হবে"
+  },
+  "general": {
+    "cancel": "বাতিল করুন",
+    "delete": "মুছুন"
   }
-
 }

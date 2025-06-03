@@ -18,6 +18,8 @@
     "helpRequest": "Help",
     "profile": "Profile",
     "menus": "Menus",
+    "news": "News",
+    "contactUs": "Contact Us",
     "logout": "Logout"
   },
   "multilingual": {
@@ -314,5 +316,54 @@
     "loading": "Loading migrants list...",
     "empty": "No migrants found",
     "error": "Failed to load migrants list"
+  },
+  "news": {
+    "title": "Latest News",
+    "empty": "No news available",
+    "noImage": "No image available",
+    "gallery": "Gallery",
+    "form": {
+      "createTitle": "Create New News",
+      "editTitle": "Edit News",
+      "title": "Title",
+      "titlePlaceholder": "Enter news title",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter news description",
+      "images": "Images (Optional, Up to 5)",
+      "selectImages": "Select Images",
+      "addMoreImages": "Add More Images",
+      "submit": "Publish News",
+      "update": "Update News"
+    },
+    "deleteTitle": "Delete News",
+    "deleteMessage": "Are you sure you want to delete this news?",
+    "deleted": "News deleted successfully",
+    "success": {
+      "title": "Success",
+      "message": "News created successfully!",
+      "updateMessage": "News updated successfully!",
+      "imageDeleted": "Image deleted successfully!"
+    },
+    "error": {
+      "title": "Error",
+      "submit": "Failed to submit news.",
+      "deleteFailed": "Failed to delete news",
+      "imagePick": "Failed to pick image.",
+      "imageDelete": "Failed to delete image.",
+      "accessDenied": "Access Denied",
+      "adminOnly": "Only Admins can create news.",
+      "checkRole": "Failed to verify permissions."
+    }
+  },
+  "errors": {
+    "titleRequired": "Title is required",
+    "titleMinLength": "Title must be at least 3 characters",
+    "titleMaxLength": "Title cannot exceed 100 characters",
+    "descriptionRequired": "Description is required",
+    "descriptionMinLength": "Description must be at least 10 characters"
+  },
+  "general": {
+    "cancel": "Cancel",
+    "delete": "Delete"
   }
 }

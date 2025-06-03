@@ -17,6 +17,9 @@
     "helpRequest": "सहायता",
     "profile": "प्रोफ़ाइल",
     "menus": "मेनू",
+    "migrants": "प्रवासी",
+    "news": "समाचार",
+    "contactUs": "संपर्क करें",
     "logout": "लॉगआउट"
   },
   "multilingual": {
@@ -313,5 +316,54 @@
     "loading": "प्रवासी सूची लोड हो रही है...",
     "empty": "कोई प्रवासी नहीं मिला",
     "error": "प्रवासी सूची लोड करने में विफल"
+  },
+  "news": {
+    "title": "ताज़ा खबरें",
+    "empty": "कोई खबर उपलब्ध नहीं है",
+    "noImage": "कोई चित्र उपलब्ध नहीं",
+    "gallery": "गैलरी",
+    "form": {
+      "createTitle": "नई खबर बनाएँ",
+      "editTitle": "खबर संपादित करें",
+      "title": "शीर्षक",
+      "titlePlaceholder": "खबर का शीर्षक दर्ज करें",
+      "description": "विवरण",
+      "descriptionPlaceholder": "खबर का विवरण दर्ज करें",
+      "images": "चित्र (वैकल्पिक, अधिकतम 5)",
+      "selectImages": "चित्र चुनें",
+      "addMoreImages": "और चित्र जोड़ें",
+      "submit": "खबर प्रकाशित करें",
+      "update": "खबर अपडेट करें"
+    },
+    "deleteTitle": "खबर हटाएँ",
+    "deleteMessage": "क्या आप वाकई इस खबर को हटाना चाहते हैं?",
+    "deleted": "खबर सफलतापूर्वक हटाई गई",
+    "success": {
+      "title": "सफलता",
+      "message": "खबर सफलतापूर्वक बनाई गई!",
+      "updateMessage": "खबर सफलतापूर्वक अपडेट की गई!",
+      "imageDeleted": "चित्र सफलतापूर्वक हटाया गया!"
+    },
+    "error": {
+      "title": "त्रुटि",
+      "submit": "खबर सबमिट करने में विफल।",
+      "deleteFailed": "खबर हटाने में विफल",
+      "imagePick": "चित्र चुनने में विफल।",
+      "imageDelete": "चित्र हटाने में विफल।",
+      "accessDenied": "पहुंच अस्वीकृत",
+      "adminOnly": "केवल एडमिन खबर बना सकते हैं।",
+      "checkRole": "अनुमतियाँ सत्यापित करने में विफल।"
+    }
+  },
+  "errors": {
+    "titleRequired": "शीर्षक आवश्यक है",
+    "titleMinLength": "शीर्षक कम से कम 3 अक्षर का होना चाहिए",
+    "titleMaxLength": "शीर्षक 100 अक्षरों से अधिक नहीं हो सकता",
+    "descriptionRequired": "विवरण आवश्यक है",
+    "descriptionMinLength": "विवरण कम से कम 10 अक्षर का होना चाहिए"
+  },
+  "general": {
+    "cancel": "रद्द करें",
+    "delete": "हटाएँ"
   }
 }
