@@ -15,6 +15,7 @@ import {
   Keyboard,
   Alert,
   Linking,
+  Modal,
 } from "react-native";
 // import loginImg from "../asserts/images/loginImg.jpg";
 import loginImg from "../asserts/images/loginbg1.jpg";
@@ -63,7 +64,7 @@ function LoginScreen({ navigation }) {
   const otpInputRef = useRef(null);
   const emailInputRef = useRef(null);
   const passwordInputRef = useRef(null);
-
+  const [showNotRegisteredModal, setShowNotRegisteredModal] = useState(false);
   // react-hook-form setup for staff login
   const {
     control,
@@ -100,9 +101,9 @@ function LoginScreen({ navigation }) {
 
   const checkAppVersion = async () => {
     const isNeeded = await VersionCheck.needUpdate();
-    const update= await AsyncStorage.getItem('update');
-    
-    if (isNeeded?.isNeeded && update !== 'false' ) {
+    const update = await AsyncStorage.getItem('update');
+    console.log(update, 'update', isNeeded);
+    if (isNeeded?.isNeeded && update !== 'false') {
       AsyncStorage.setItem('update', 'false');
       Alert.alert(
         "Update Available",
@@ -204,33 +205,36 @@ function LoginScreen({ navigation }) {
     try {
       const response = await getLoginOtp(callingCode, mobile);
       setYourOtp(response.otp);
-
       if (!response.status) {
-        Alert.alert(
-          "You're not registered",
-          "Please register to continue",
-          [
-            {
-              text: "Cancel",
-              onPress: () => console.log("Cancel Pressed"),
-              style: "cancel",
-            },
-            {
-              text: "Register",
-              onPress: ()=>register(callingCode, mobile),
-            },
-          ],
-          { cancelable: false }
-        )
-        // Toast.show({
-        //   type: "error",
-        //   text1: "User Not Registered",
-        //   text2: "Please register first to continue",
-        // });
-        // setError("User not registered. Please register first.");
-        // setShowOtpField(false);
+        setShowNotRegisteredModal(true);
         return;
       }
+      // if (!response.status) {
+      //   Alert.alert(
+      //     "You're not registered",
+      //     "Please register to continue",
+      //     [
+      //       {
+      //         text: "Cancel",
+      //         onPress: () => console.log("Cancel Pressed"),
+      //         style: "cancel",
+      //       },
+      //       {
+      //         text: "Register",
+      //         onPress: ()=>register(callingCode, mobile),
+      //       },
+      //     ],
+      //     { cancelable: false }
+      //   )
+      //   // Toast.show({
+      //   //   type: "error",
+      //   //   text1: "User Not Registered",
+      //   //   text2: "Please register first to continue",
+      //   // });
+      //   // setError("User not registered. Please register first.");
+      //   // setShowOtpField(false);
+      //   return;
+      // }
 
       const receivedOtp = response.otp;
       Toast.show({
@@ -458,7 +462,7 @@ function LoginScreen({ navigation }) {
           <Text style={styles.registerText}>
             New user?{" "}
             <Animated.Text
-              onPress={()=> register()}
+              onPress={() => register()}
               style={[
                 styles.registerBold,
                 error.includes("not registered") && styles.highlightedRegister
@@ -786,6 +790,40 @@ function LoginScreen({ navigation }) {
         </ScrollView>
       </ImageBackground>
       <Toast />
+      <Modal
+        visible={showNotRegisteredModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowNotRegisteredModal(false)}
+      >
+        <View style={[ {flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+          <View style={[styles.modelView,{ backgroundColor: '#fff', padding: 24, borderRadius: 8, alignItems: 'center', minWidth: 280 }]}>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12, color: '#333' }}>
+              You're not registered
+            </Text>
+            <Text style={{ marginBottom: 24, color: '#333', textAlign: 'center' }}>
+              Please register to continue
+            </Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+              <TouchableOpacity
+                style={{ flex: 1, marginRight: 8, padding: 12, borderRadius: 6, backgroundColor: '#eee', alignItems: 'center' }}
+                onPress={() => setShowNotRegisteredModal(false)}
+              >
+                <Text style={{ color: '#333', fontWeight: 'bold' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ flex: 1, marginLeft: 8, padding: 12, borderRadius: 6, backgroundColor: '#007AFF', alignItems: 'center' }}
+                onPress={() => {
+                  setShowNotRegisteredModal(false);
+                  register(callingCode, mobile);
+                }}
+              >
+                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Register</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -795,6 +833,13 @@ const styles = StyleSheet.create({
     flex: 1,
     width: width,
     height: height,
+  },
+  modelView: {
+    // flex: 1,
+    width: '80%',
+    // height: height,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
