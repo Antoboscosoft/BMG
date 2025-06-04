@@ -69,6 +69,28 @@ export const getDistricts = async (stateId) => {
     }
 };
 
+// Function to get job types
+export const getJobTypes = async () => {
+    try {
+        const response = await axiosInstance.get('user/job_type?skip=0&limit=0');
+        return response.data;
+    } catch (error) {
+        console.error("Get Job Types Error:", error);
+        throw error.response?.data || { message: "Failed to fetch job types" };
+    }
+}
+
+// Function to get skills
+export const getSkillsByJobType = async (jobTypeId) => {
+    try {
+        const response = await axiosInstance.get(`user/skill?job_type_ids=${jobTypeId}&skip=0&limit=0`);
+        return response.data;
+    } catch (error) {
+        console.error("Get SkillsBy Job Type Error:", error);
+        throw error.response?.data || { message: "Failed to fetch skills for the selected job type" };
+    }
+};
+
 // Function for staff login
 // export const staffLoginprev = async (username, password) => {
 //     console.log("staffLogin called with params:", { username, password });

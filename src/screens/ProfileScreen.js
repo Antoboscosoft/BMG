@@ -100,8 +100,8 @@ function ProfileScreen({ navigation, route }) {
 
     const goback = () => {
         if (navigation.canGoBack()) {
-        //     navigation.goBack();
-        // } else {
+            //     navigation.goBack();
+            // } else {
             navigation.navigate('Dashboard');
         }
     };
@@ -220,6 +220,26 @@ function ProfileScreen({ navigation, route }) {
                             <Text style={styles.value}>{userData?.native_district?.name || '-'}</Text>
                         </View>
 
+                        {/* Job Type */}
+                        <View style={styles.row}>
+                            <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.jobType || 'Job Type'}</Text>
+                            <Text style={styles.value}>{
+                                Array.isArray(userData?.job_type)
+                                    ? userData.job_type.map(j => j.name).join(', ')
+                                    : userData?.job_type || '-'
+                            }</Text>
+                        </View>
+
+                        {/* Skills */}
+                        <View style={styles.row}>
+                            <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.skills || 'Skills'}</Text>
+                            <Text style={styles.value}>{
+                                Array.isArray(userData?.skills)
+                                    ? userData.skills.map(s => s.name).join(', ')
+                                    : userData?.skills || '-'
+                            }</Text>
+                        </View>
+
                         {/* Language Preference */}
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.language || 'Language'}</Text>
@@ -230,18 +250,6 @@ function ProfileScreen({ navigation, route }) {
                                         userData?.language_pref === 'ta' ? 'Tamil' :
                                             userData?.language_pref === 'kn' ? 'Kannada' : '-'}
                             </Text>
-                        </View>
-
-                        {/* Skills */}
-                        <View style={styles.row}>
-                            <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.skills || 'Skills'}</Text>
-                            <Text style={styles.value}>{userData?.skills || '-'}</Text>
-                        </View>
-
-                        {/* Job Type */}
-                        <View style={styles.row}>
-                            <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.jobType || 'Job Type'}</Text>
-                            <Text style={styles.value}>{userData?.job_type || '-'}</Text>
                         </View>
 
                     </View>

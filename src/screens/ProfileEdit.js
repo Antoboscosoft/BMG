@@ -3,8 +3,10 @@ import {
     ActivityIndicator,
     Alert,
     Dimensions,
+    FlatList,
     Image,
     KeyboardAvoidingView,
+    Modal,
     Platform,
     ScrollView,
     StyleSheet,
@@ -14,10 +16,9 @@ import {
     View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { getCountries, getDistricts, getStates, getUserData, updateUserData } from '../api/auth';
+import { getCountries, getDistricts, getStates, getUserData, updateUserData, getJobTypes, getSkillsByJobType } from '../api/auth';
 import Toast from 'react-native-toast-message';
 import CountryPicker from 'react-native-country-picker-modal';
 import { useForm, Controller } from 'react-hook-form';
@@ -27,10 +28,10 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 const { width, height } = Dimensions.get('window');
 
 const languageOptions = [
-    { id: 'en', nameKey: 'en' },
-    { id: 'hi', nameKey: 'hi' },
-    { id: 'ta', nameKey: 'ta' },
-    { id: 'kn', nameKey: 'kn' },
+    { id: 'en', name: 'English' },
+    { id: 'hi', name: 'Hindi' },
+    { id: 'ta', name: 'Tamil' },
+    { id: 'bn', name: 'Bengali' },
 ];
 
 function formatDate(date) {
@@ -58,6 +59,10 @@ function ProfileEdit({ navigation, route }) {
     const [loadingCurrentDistricts, setLoadingCurrentDistricts] = useState(false);
     const [loadingNativeStates, setLoadingNativeStates] = useState(false);
     const [loadingNativeDistricts, setLoadingNativeDistricts] = useState(false);
+    const [jobTypes, setJobTypes] = useState([]);
+    const [skills, setSkills] = useState([]);
+    const [loadingJobTypes, setLoadingJobTypes] = useState(false);
+    const [loadingSkills, setLoadingSkills] = useState(false);
 
     const { control, handleSubmit, reset, formState: { errors }, setValue, watch } = useForm({
         defaultValues: {
@@ -75,8 +80,8 @@ function ProfileEdit({ navigation, route }) {
             native_district_id: userData?.native_district_id ? String(userData.native_district_id) : '',
             native_state_id: userData?.native_state_id ? String(userData.native_state_id) : '',
             native_country_id: userData?.native_country_id ? String(userData.native_country_id) : '',
-            skills: userData?.skills || '',
-            job_type: userData?.job_type || '',
+            skills: Array.isArray(userData?.skills) ? userData.skills : [],
+            job_type: Array.isArray(userData?.job_type) ? userData.job_type : [],
             language_pref: userData?.language_pref || '',
             photo: userData?.photo || null,
             id: userData?.id || null,
@@ -241,16 +246,52 @@ function ProfileEdit({ navigation, route }) {
         fetchNativeDistricts();
     }, [nativeStateId, setValue]);
 
+    useEffect(() => {
+        const fetchJobTypes = async () => {
+            setLoadingJobTypes(true);
+            try {
+                const response = await getJobTypes();
+                setJobTypes(response.data || []);
+            } catch (error) {
+                Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to load job types' });
+            } finally {
+                setLoadingJobTypes(false);
+            }
+        };
+        fetchJobTypes();
+    }, []);
+
+    useEffect(() => {
+        const selectedJobTypeIds = Array.isArray(watch('job_type')) ? watch('job_type').map(j => j.id) : [];
+        if (selectedJobTypeIds.length > 0) {
+            setLoadingSkills(true);
+            setSkills([]);
+            const fetchSkills = async () => {
+                try {
+                    const response = await getSkillsByJobType(selectedJobTypeIds.join(','));
+                    setSkills(response.data || []);
+                } catch (error) {
+                    Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to load skills' });
+                } finally {
+                    setLoadingSkills(false);
+                }
+            };
+            fetchSkills();
+        } else {
+            setSkills([]);
+        }
+    }, [watch('job_type')]);
+
     const onSubmit = async (data) => {
         try {
             setUpdating(true);
-
             if (!data.id) {
                 throw new Error(languageTexts?.profile?.edit?.error?.missingId || 'User ID is missing. Cannot update profile.');
             }
-
             const submissionData = {
                 ...data,
+                skills: Array.isArray(data.skills) ? data.skills.filter(s => s.id).map(s => ({ id: s.id })) : [],
+                job_type: Array.isArray(data.job_type) ? data.job_type.filter(j => j.id).map(j => ({ id: j.id })) : [],
                 photo: data.photo || null,
                 native_country_id: data.native_country_id || null,
                 native_state_id: data.native_country_id ? data.native_state_id || null : null,
@@ -281,7 +322,6 @@ function ProfileEdit({ navigation, route }) {
             }
 
             if (response.status) {
-                // Fetch the updated user data to ensure all fields (like country/state names) are included
                 const updatedUserResponse = await getUserData();
                 const updatedUser = updatedUserResponse.status && updatedUserResponse.data ? updatedUserResponse.data : submissionData;
 
@@ -295,12 +335,12 @@ function ProfileEdit({ navigation, route }) {
                                 if (updatedUser.isSuperAdmin) {
                                     navigation.navigate('MigrantsList', {
                                         updatedUserData: updatedUser,
-                                        updateTimestamp: Date.now() // Add timestamp to force refresh
+                                        updateTimestamp: Date.now()
                                     });
                                 } else {
                                     navigation.navigate('Profile', {
                                         updatedUserData: updatedUser,
-                                        updateTimestamp: Date.now() // Add timestamp to force refresh
+                                        updateTimestamp: Date.now()
                                     });
                                 }
                             },
@@ -353,6 +393,239 @@ function ProfileEdit({ navigation, route }) {
         navigation.goBack();
     };
 
+    // Multi-Select Searchable Dropdown for Skills and Job Type
+    const MultiSelectSearchableDropdown = ({
+        placeholder,
+        data,
+        selectedValues,
+        onSelect,
+        error,
+        disabled,
+        loading,
+        isMandatory,
+        validateField,
+    }) => {
+        const [modalVisible, setModalVisible] = useState(false);
+        const [searchQuery, setSearchQuery] = useState('');
+        const [filteredData, setFilteredData] = useState(data);
+
+        useEffect(() => {
+            if (searchQuery) {
+                const filtered = data.filter((item) =>
+                    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+                setFilteredData(filtered);
+            } else {
+                setFilteredData(data);
+            }
+        }, [searchQuery, data]);
+
+        const handleSelect = (id) => {
+            let updatedValues;
+            if (selectedValues.includes(id)) {
+                updatedValues = selectedValues.filter((value) => value !== id);
+            } else {
+                updatedValues = [...selectedValues, id];
+            }
+            onSelect(updatedValues);
+            validateField(updatedValues);
+            // DO NOT close modal here!
+        };
+
+        const selectedItems = data.filter((item) => selectedValues.includes(item.id));
+
+        return (
+            <View style={styles.pickerContainer}>
+                {loading ? (
+                    <ActivityIndicator size="small" color="#FFF2E0" />
+                ) : (
+                    <>
+                        <TouchableOpacity
+                            style={[
+                                styles.picker,
+                                error && styles.errorInput,
+                                disabled && styles.disabledInput,
+                            ]}
+                            onPress={() => !disabled && setModalVisible(true)}
+                            disabled={disabled}
+                        >
+                            <Text style={selectedValues.length > 0 ? styles.dropdownText : styles.placeholderText}>
+                                {selectedItems.length > 0
+                                    ? selectedItems.map((item) => item.name).join(', ')
+                                    : placeholder}
+                            </Text>
+                            <Icon name="arrow-drop-down" size={20} color="#FFF2E0" />
+                        </TouchableOpacity>
+                    </>
+                )}
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => setModalVisible(false)}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.whiteModalContainer}>
+                            <View style={styles.searchContainer}>
+                                <Icon name="search" size={18} color="#666" style={styles.searchIcon} />
+                                <TextInput
+                                    style={styles.whiteSearchInput}
+                                    placeholder={`Search...`}
+                                    placeholderTextColor="#999"
+                                    value={searchQuery}
+                                    onChangeText={setSearchQuery}
+                                    autoFocus
+                                />
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setModalVisible(false);
+                                        setSearchQuery('');
+                                    }}
+                                >
+                                    <Text style={styles.closeButton}>Close</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <FlatList
+                                data={filteredData}
+                                keyExtractor={(item) => item.id.toString()}
+                                renderItem={({ item }) => (
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.whiteModalItem,
+                                            selectedValues.includes(item.id) && styles.selectedItem,
+                                        ]}
+                                        onPress={() => handleSelect(item.id)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Text style={styles.whiteModalItemText}>{item.name || item.id}</Text>
+                                        {selectedValues.includes(item.id) && (
+                                            <Icon name="check" size={18} color="#007AFF" style={styles.tickIcon} />
+                                        )}
+                                    </TouchableOpacity>
+                                )}
+                                ListEmptyComponent={
+                                    <Text style={styles.whiteEmptyText}>No results found</Text>
+                                }
+                                showsVerticalScrollIndicator={false}
+                            />
+                        </View>
+                    </View>
+                </Modal>
+            </View>
+        );
+    };
+
+    // Single-Select Searchable Dropdown for Country, State, District
+    const SearchableDropdown = ({
+        placeholder,
+        data,
+        selectedValue,
+        onSelect,
+        error,
+        disabled,
+        loading,
+    }) => {
+        const [modalVisible, setModalVisible] = useState(false);
+        const [searchQuery, setSearchQuery] = useState('');
+        const [filteredData, setFilteredData] = useState(data);
+
+        useEffect(() => {
+            if (searchQuery) {
+                const filtered = data.filter((item) =>
+                    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+                setFilteredData(filtered);
+            } else {
+                setFilteredData(data);
+            }
+        }, [searchQuery, data]);
+
+        const handleSelect = (id) => {
+            onSelect(id);
+            setModalVisible(false);
+            setSearchQuery('');
+        };
+
+        const selectedItem = data.find((item) => String(item.id) === String(selectedValue));
+
+        return (
+            <View style={styles.pickerContainer}>
+                {loading ? (
+                    <ActivityIndicator size="small" color="#FFF2E0" />
+                ) : (
+                    <>
+                        <TouchableOpacity
+                            style={[
+                                styles.picker,
+                                error && styles.errorInput,
+                                disabled && styles.disabledInput,
+                            ]}
+                            onPress={() => !disabled && setModalVisible(true)}
+                            disabled={disabled}
+                        >
+                            <Text style={selectedValue ? styles.dropdownText : styles.placeholderText}>
+                                {selectedItem ? (selectedItem.name || selectedItem.id) : placeholder}
+                            </Text>
+                            <Icon name="arrow-drop-down" size={20} color="#FFF2E0" />
+                        </TouchableOpacity>
+                    </>
+                )}
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => setModalVisible(false)}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.whiteModalContainer}>
+                            <View style={styles.searchContainer}>
+                                <Icon name="search" size={18} color="#666" style={styles.searchIcon} />
+                                <TextInput
+                                    style={styles.whiteSearchInput}
+                                    placeholder={`Search...`}
+                                    placeholderTextColor="#999"
+                                    value={searchQuery}
+                                    onChangeText={setSearchQuery}
+                                    autoFocus
+                                />
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setModalVisible(false);
+                                        setSearchQuery('');
+                                    }}
+                                >
+                                    <Text style={styles.closeButton}>Close</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <FlatList
+                                data={filteredData}
+                                keyExtractor={(item) => item.id.toString()}
+                                renderItem={({ item }) => (
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.whiteModalItem,
+                                            String(selectedValue) === String(item.id) && styles.selectedItem,
+                                        ]}
+                                        onPress={() => handleSelect(String(item.id))}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Text style={styles.whiteModalItemText}>{item.name || item.id}</Text>
+                                        {String(selectedValue) === String(item.id) && (
+                                            <Icon name="check" size={18} color="#007AFF" style={styles.tickIcon} />
+                                        )}
+                                    </TouchableOpacity>
+                                )}
+                                ListEmptyComponent={
+                                    <Text style={styles.whiteEmptyText}>No results found</Text>
+                                }
+                                showsVerticalScrollIndicator={false}
+                            />
+                        </View>
+                    </View>
+                </Modal>
+            </View>
+        );
+    };
 
     return (
         <KeyboardAvoidingView
@@ -573,34 +846,22 @@ function ProfileEdit({ navigation, route }) {
                             <Text style={styles.label}>
                                 {languageTexts?.profile?.edit?.labels?.currentCountry || 'Current Country'}
                             </Text>
-                            {loadingCountries ? (
-                                <ActivityIndicator size="small" color="#FFF2E0" />
-                            ) : (
-                                <Controller
-                                    control={control}
-                                    render={({ field: { onChange, value } }) => (
-                                        <Picker
-                                            selectedValue={value}
-                                            style={[styles.picker, errors.current_country_id && styles.errorInput]}
-                                            onValueChange={onChange}
-                                        >
-                                            <Picker.Item
-                                                label={languageTexts?.profile?.edit?.placeholders?.selectCountry || 'Select Country'}
-                                                value=""
-                                            />
-                                            {countries.map((country) => (
-                                                <Picker.Item
-                                                    key={country.id}
-                                                    label={country.name}
-                                                    value={String(country.id)}
-                                                />
-                                            ))}
-                                        </Picker>
-                                    )}
-                                    name="current_country_id"
-                                    rules={{ required: languageTexts?.profile?.edit?.error?.currentCountry || 'Current Country is required' }}
-                                />
-                            )}
+                            <Controller
+                                control={control}
+                                render={({ field: { onChange, value } }) => (
+                                    <SearchableDropdown
+                                        placeholder={languageTexts?.profile?.edit?.placeholders?.selectCountry || 'Select Country'}
+                                        data={countries}
+                                        selectedValue={value}
+                                        onSelect={onChange}
+                                        error={errors.current_country_id}
+                                        disabled={loadingCountries}
+                                        loading={loadingCountries}
+                                    />
+                                )}
+                                name="current_country_id"
+                                rules={{ required: languageTexts?.profile?.edit?.error?.currentCountry || 'Current Country is required' }}
+                            />
                         </View>
                         {errors.current_country_id && (
                             <Text style={styles.errorText}>{errors.current_country_id.message}</Text>
@@ -610,39 +871,26 @@ function ProfileEdit({ navigation, route }) {
                             <Text style={styles.label}>
                                 {languageTexts?.profile?.edit?.labels?.currentState || 'Current State'}
                             </Text>
-                            {loadingCurrentStates ? (
-                                <ActivityIndicator size="small" color="#FFF2E0" />
-                            ) : (
-                                <Controller
-                                    control={control}
-                                    render={({ field: { onChange, value } }) => (
-                                        <Picker
-                                            selectedValue={value}
-                                            style={[styles.picker, errors.current_state_id && styles.errorInput]}
-                                            onValueChange={onChange}
-                                            enabled={!!currentCountryId}
-                                        >
-                                            <Picker.Item
-                                                label={
-                                                    currentCountryId
-                                                        ? (languageTexts?.profile?.edit?.placeholders?.selectState || 'Select State')
-                                                        : (languageTexts?.profile?.edit?.placeholders?.selectCountryFirst || 'Select Country first')
-                                                }
-                                                value=""
-                                            />
-                                            {currentStates.map((state) => (
-                                                <Picker.Item
-                                                    key={state.id}
-                                                    label={state.name}
-                                                    value={String(state.id)}
-                                                />
-                                            ))}
-                                        </Picker>
-                                    )}
-                                    name="current_state_id"
-                                    rules={{ required: languageTexts?.profile?.edit?.error?.currentState || 'Current State is required' }}
-                                />
-                            )}
+                            <Controller
+                                control={control}
+                                render={({ field: { onChange, value } }) => (
+                                    <SearchableDropdown
+                                        placeholder={
+                                            currentCountryId
+                                                ? (languageTexts?.profile?.edit?.placeholders?.selectState || 'Select State')
+                                                : (languageTexts?.profile?.edit?.placeholders?.selectCountryFirst || 'Select Country first')
+                                        }
+                                        data={currentStates}
+                                        selectedValue={value}
+                                        onSelect={onChange}
+                                        error={errors.current_state_id}
+                                        disabled={!currentCountryId || loadingCurrentStates}
+                                        loading={loadingCurrentStates}
+                                    />
+                                )}
+                                name="current_state_id"
+                                rules={{ required: languageTexts?.profile?.edit?.error?.currentState || 'Current State is required' }}
+                            />
                         </View>
                         {errors.current_state_id && (
                             <Text style={styles.errorText}>{errors.current_state_id.message}</Text>
@@ -652,39 +900,26 @@ function ProfileEdit({ navigation, route }) {
                             <Text style={styles.label}>
                                 {languageTexts?.profile?.edit?.labels?.currentDistrict || 'Current District'}
                             </Text>
-                            {loadingCurrentDistricts ? (
-                                <ActivityIndicator size="small" color="#FFF2E0" />
-                            ) : (
-                                <Controller
-                                    control={control}
-                                    render={({ field: { onChange, value } }) => (
-                                        <Picker
-                                            selectedValue={value}
-                                            style={[styles.picker, errors.current_district_id && styles.errorInput]}
-                                            onValueChange={onChange}
-                                            enabled={!!currentStateId}
-                                        >
-                                            <Picker.Item
-                                                label={
-                                                    currentStateId
-                                                        ? (languageTexts?.profile?.edit?.placeholders?.selectDistrict || 'Select District')
-                                                        : (languageTexts?.profile?.edit?.placeholders?.selectStateFirst || 'Select State first')
-                                                }
-                                                value=""
-                                            />
-                                            {currentDistricts.map((district) => (
-                                                <Picker.Item
-                                                    key={district.id}
-                                                    label={district.name}
-                                                    value={String(district.id)}
-                                                />
-                                            ))}
-                                        </Picker>
-                                    )}
-                                    name="current_district_id"
-                                    rules={{ required: languageTexts?.profile?.edit?.error?.currentDistrict || 'Current District is required' }}
-                                />
-                            )}
+                            <Controller
+                                control={control}
+                                render={({ field: { onChange, value } }) => (
+                                    <SearchableDropdown
+                                        placeholder={
+                                            currentStateId
+                                                ? (languageTexts?.profile?.edit?.placeholders?.selectDistrict || 'Select District')
+                                                : (languageTexts?.profile?.edit?.placeholders?.selectStateFirst || 'Select State first')
+                                        }
+                                        data={currentDistricts}
+                                        selectedValue={value}
+                                        onSelect={onChange}
+                                        error={errors.current_district_id}
+                                        disabled={!currentStateId || loadingCurrentDistricts}
+                                        loading={loadingCurrentDistricts}
+                                    />
+                                )}
+                                name="current_district_id"
+                                rules={{ required: languageTexts?.profile?.edit?.error?.currentDistrict || 'Current District is required' }}
+                            />
                         </View>
                         {errors.current_district_id && (
                             <Text style={styles.errorText}>{errors.current_district_id.message}</Text>
@@ -715,79 +950,54 @@ function ProfileEdit({ navigation, route }) {
                             <Text style={styles.label}>
                                 {languageTexts?.profile?.edit?.labels?.nativeCountry || 'Native Country'}
                             </Text>
-                            {loadingCountries ? (
-                                <ActivityIndicator size="small" color="#FFF2E0" />
-                            ) : (
-                                <Controller
-                                    control={control}
-                                    render={({ field: { onChange, value } }) => (
-                                        <Picker
-                                            selectedValue={value}
-                                            style={[styles.picker, errors.native_country_id && styles.errorInput]}
-                                            onValueChange={onChange}
-                                        >
-                                            <Picker.Item
-                                                label={languageTexts?.profile?.edit?.placeholders?.selectCountry || 'Select Country'}
-                                                value=""
-                                            />
-                                            {countries.map((country) => (
-                                                <Picker.Item
-                                                    key={country.id}
-                                                    label={country.name}
-                                                    value={String(country.id)}
-                                                />
-                                            ))}
-                                        </Picker>
-                                    )}
-                                    name="native_country_id"
-                                />
-                            )}
+                            <Controller
+                                control={control}
+                                render={({ field: { onChange, value } }) => (
+                                    <SearchableDropdown
+                                        placeholder={languageTexts?.profile?.edit?.placeholders?.selectCountry || 'Select Country'}
+                                        data={countries}
+                                        selectedValue={value}
+                                        onSelect={onChange}
+                                        error={errors.native_country_id}
+                                        disabled={loadingCountries}
+                                        loading={loadingCountries}
+                                    />
+                                )}
+                                name="native_country_id"
+                            />
                         </View>
 
                         <View style={styles.row}>
                             <Text style={styles.label}>
                                 {languageTexts?.profile?.edit?.labels?.nativeState || 'Native State'}
                             </Text>
-                            {loadingNativeStates ? (
-                                <ActivityIndicator size="small" color="#FFF2E0" />
-                            ) : (
-                                <Controller
-                                    control={control}
-                                    render={({ field: { onChange, value } }) => (
-                                        <Picker
-                                            selectedValue={value}
-                                            style={[styles.picker, errors.native_state_id && styles.errorInput]}
-                                            onValueChange={onChange}
-                                            enabled={!!nativeCountryId}
-                                        >
-                                            <Picker.Item
-                                                label={
-                                                    nativeCountryId
-                                                        ? (languageTexts?.profile?.edit?.placeholders?.selectState || 'Select State')
-                                                        : (languageTexts?.profile?.edit?.placeholders?.selectCountryFirst || 'Select Country first')
-                                                }
-                                                value=""
-                                            />
-                                            {nativeStates.map((state) => (
-                                                <Picker.Item
-                                                    key={state.id}
-                                                    label={state.name}
-                                                    value={String(state.id)}
-                                                />
-                                            ))}
-                                        </Picker>
-                                    )}
-                                    name="native_state_id"
-                                    rules={{
-                                        validate: (value) => {
-                                            if (watch('native_country_id') && !value) {
-                                                return languageTexts?.profile?.edit?.error?.nativeState || 'Native State is required when country is selected';
-                                            }
-                                            return true;
+                            <Controller
+                                control={control}
+                                render={({ field: { onChange, value } }) => (
+                                    <SearchableDropdown
+                                        placeholder={
+                                            nativeCountryId
+                                                ? (languageTexts?.profile?.edit?.placeholders?.selectState || 'Select State')
+                                                : (languageTexts?.profile?.edit?.placeholders?.selectCountryFirst || 'Select Country first')
                                         }
-                                    }}
-                                />
-                            )}
+                                        data={nativeStates}
+                                        selectedValue={value}
+                                        onSelect={onChange}
+                                        error={errors.native_state_id}
+                                        disabled={!nativeCountryId || loadingNativeStates}
+                                        loading={loadingNativeStates}
+                                    />
+                                )}
+                                name="native_state_id"
+                                rules={{
+                                    validate: (value) => {
+                                        if (watch('native_country_id') && !value) {
+                                            return languageTexts?.profile?.edit?.error?.nativeState || 'Native State is required when country is selected';
+                                        }
+                                        return true;
+                                    }
+                                }}
+                            />
                         </View>
                         {watch('native_country_id') && errors.native_state_id && (
                             <Text style={styles.errorText}>{errors.native_state_id.message}</Text>
@@ -797,49 +1007,96 @@ function ProfileEdit({ navigation, route }) {
                             <Text style={styles.label}>
                                 {languageTexts?.profile?.edit?.labels?.nativeDistrict || 'Native District'}
                             </Text>
-                            {loadingNativeDistricts ? (
-                                <ActivityIndicator size="small" color="#FFF2E0" />
-                            ) : (
-                                <Controller
-                                    control={control}
-                                    render={({ field: { onChange, value } }) => (
-                                        <Picker
-                                            selectedValue={value}
-                                            style={[styles.picker, errors.native_district_id && styles.errorInput]}
-                                            onValueChange={onChange}
-                                            enabled={!!nativeStateId}
-                                        >
-                                            <Picker.Item
-                                                label={
-                                                    nativeStateId
-                                                        ? (languageTexts?.profile?.edit?.placeholders?.selectDistrict || 'Select District')
-                                                        : (languageTexts?.profile?.edit?.placeholders?.selectStateFirst || 'Select State first')
-                                                }
-                                                value=""
-                                            />
-                                            {nativeDistricts.map((district) => (
-                                                <Picker.Item
-                                                    key={district.id}
-                                                    label={district.name}
-                                                    value={String(district.id)}
-                                                />
-                                            ))}
-                                        </Picker>
-                                    )}
-                                    name="native_district_id"
-                                    rules={{
-                                        validate: (value) => {
-                                            if (watch('native_state_id') && !value) {
-                                                return languageTexts?.profile?.edit?.error?.nativeDistrict || 'Native District is required when state is selected';
-                                            }
-                                            return true;
+                            <Controller
+                                control={control}
+                                render={({ field: { onChange, value } }) => (
+                                    <SearchableDropdown
+                                        placeholder={
+                                            nativeStateId
+                                                ? (languageTexts?.profile?.edit?.placeholders?.selectDistrict || 'Select District')
+                                                : (languageTexts?.profile?.edit?.placeholders?.selectStateFirst || 'Select State first')
                                         }
-                                    }}
-                                />
-                            )}
+                                        data={nativeDistricts}
+                                        selectedValue={value}
+                                        onSelect={onChange}
+                                        error={errors.native_district_id}
+                                        disabled={!nativeStateId || loadingNativeDistricts}
+                                        loading={loadingNativeDistricts}
+                                    />
+                                )}
+                                name="native_district_id"
+                                rules={{
+                                    validate: (value) => {
+                                        if (watch('native_state_id') && !value) {
+                                            return languageTexts?.profile?.edit?.error?.nativeDistrict || 'Native District is required when state is selected';
+                                        }
+                                        return true;
+                                    }
+                                }}
+                            />
                         </View>
                         {watch('native_state_id') && errors.native_district_id && (
                             <Text style={styles.errorText}>{errors.native_district_id.message}</Text>
+                        )}
+
+                        <View style={styles.row}>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.jobType || 'Job Type'}
+                            </Text>
+                            <Controller
+                                control={control}
+                                render={({ field: { onChange, value } }) => (
+                                    <MultiSelectSearchableDropdown
+                                        placeholder={languageTexts?.profile?.edit?.placeholders?.jobType || 'Select Job Types'}
+                                        data={jobTypes}
+                                        selectedValues={Array.isArray(value) ? value.map(j => j.id) : []}
+                                        onSelect={ids => {
+                                            const selected = jobTypes.filter(j => ids.includes(j.id));
+                                            onChange(selected);
+                                        }}
+                                        error={errors.job_type?.message}
+                                        disabled={loadingJobTypes}
+                                        loading={loadingJobTypes}
+                                        isMandatory={true}
+                                        validateField={() => {}}
+                                    />
+                                )}
+                                name="job_type"
+                                rules={{ required: languageTexts?.profile?.edit?.error?.jobType || 'At least one job type is required' }}
+                            />
+                        </View>
+                        {errors.job_type && (
+                            <Text style={styles.errorText}>{errors.job_type.message}</Text>
+                        )}
+
+                        <View style={styles.row}>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.skills || 'Skills'}
+                            </Text>
+                            <Controller
+                                control={control}
+                                render={({ field: { onChange, value } }) => (
+                                    <MultiSelectSearchableDropdown
+                                        placeholder={watch('job_type') && watch('job_type').length > 0 ? (languageTexts?.profile?.edit?.placeholders?.skills || 'Select Skills') : (languageTexts?.profile?.edit?.placeholders?.jobTypeFirst || 'Select Job Type first')}
+                                        data={skills}
+                                        selectedValues={Array.isArray(value) ? value.map(s => s.id) : []}
+                                        onSelect={ids => {
+                                            const selected = skills.filter(s => ids.includes(s.id));
+                                            onChange(selected);
+                                        }}
+                                        error={errors.skills?.message}
+                                        disabled={!watch('job_type') || watch('job_type').length === 0 || loadingSkills}
+                                        loading={loadingSkills}
+                                        isMandatory={true}
+                                        validateField={() => {}}
+                                    />
+                                )}
+                                name="skills"
+                                rules={{ required: languageTexts?.profile?.edit?.error?.skills || 'At least one skill is required' }}
+                            />
+                        </View>
+                        {errors.skills && (
+                            <Text style={styles.errorText}>{errors.skills.message}</Text>
                         )}
 
                         <View style={styles.row}>
@@ -849,23 +1106,15 @@ function ProfileEdit({ navigation, route }) {
                             <Controller
                                 control={control}
                                 render={({ field: { onChange, value } }) => (
-                                    <Picker
+                                    <SearchableDropdown
+                                        placeholder={languageTexts?.profile?.edit?.placeholders?.selectLanguage || 'Select Language'}
+                                        data={languageOptions}
                                         selectedValue={value}
-                                        style={[styles.picker, errors.language_pref && styles.errorInput]}
-                                        onValueChange={onChange}
-                                    >
-                                        <Picker.Item
-                                            label={languageTexts?.profile?.edit?.placeholders?.selectLanguage || 'Select Language'}
-                                            value=""
-                                        />
-                                        {languageOptions.map((lang) => (
-                                            <Picker.Item
-                                                key={lang.id}
-                                                label={languageTexts?.profile?.screen?.languages?.[lang.nameKey] || lang.id}
-                                                value={lang.id}
-                                            />
-                                        ))}
-                                    </Picker>
+                                        onSelect={onChange}
+                                        error={errors.language_pref}
+                                        disabled={false}
+                                        loading={false}
+                                    />
                                 )}
                                 name="language_pref"
                                 rules={{ required: languageTexts?.profile?.edit?.error?.language || 'Language preference is required' }}
@@ -875,46 +1124,6 @@ function ProfileEdit({ navigation, route }) {
                         {errors.language_pref && (
                             <Text style={styles.errorText}>{errors.language_pref.message}</Text>
                         )}
-
-                        <View style={styles.row}>
-                            <Text style={styles.label}>
-                                {languageTexts?.profile?.edit?.labels?.skills || 'Skills'}
-                            </Text>
-                            <Controller
-                                control={control}
-                                render={({ field: { onChange, onBlur, value } }) => (
-                                    <TextInput
-                                        style={styles.input}
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        placeholder={languageTexts?.profile?.edit?.placeholders?.skills || 'Enter your skills'}
-                                        placeholderTextColor="#FFECD2"
-                                    />
-                                )}
-                                name="skills"
-                            />
-                        </View>
-
-                        <View style={styles.row}>
-                            <Text style={styles.label}>
-                                {languageTexts?.profile?.edit?.labels?.jobType || 'Job Type'}
-                            </Text>
-                            <Controller
-                                control={control}
-                                render={({ field: { onChange, onBlur, value } }) => (
-                                    <TextInput
-                                        style={styles.input}
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        placeholder={languageTexts?.profile?.edit?.placeholders?.jobType || 'Enter your job type'}
-                                        placeholderTextColor="#FFECD2"
-                                    />
-                                )}
-                                name="job_type"
-                            />
-                        </View>
 
                         <TouchableOpacity
                             style={[styles.button, updating && styles.buttonDisabled]}
@@ -952,11 +1161,6 @@ const styles = StyleSheet.create({
         padding: 10,
         backgroundColor: 'rgba(255, 242, 224, 0.2)',
         borderRadius: 8,
-    },
-    backButtonText: {
-        fontSize: 16,
-        color: '#FFF2E0',
-        fontWeight: 'bold',
     },
     headerTitle: {
         fontSize: 20,
@@ -1033,6 +1237,16 @@ const styles = StyleSheet.create({
         marginLeft: 20,
         color: '#FFF2E0',
         backgroundColor: '#6e3b17',
+        padding: 12,
+        borderRadius: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    pickerContainer: {
+        flex: 1,
+        // marginLeft: 20,
+        marginBottom: 10,
     },
     button: {
         backgroundColor: '#FFECD2',
@@ -1059,9 +1273,7 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 20,
     },
-    countryPicker: {
-        // marginRight: 8,
-    },
+    countryPicker: {},
     callingCode: {
         color: '#FFF2E0',
         fontSize: 16,
@@ -1082,9 +1294,78 @@ const styles = StyleSheet.create({
         textAlign: 'left',
         paddingLeft: 20,
     },
-    pickerContainer: {
+    dropdownText: {
+        color: '#FFF2E0',
+        fontSize: 16,
         flex: 1,
-        marginLeft: 20,
+    },
+    placeholderText: {
+        color: '#999',
+        fontSize: 16,
+        flex: 1,
+    },
+    disabledInput: {
+        opacity: 0.6,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    whiteModalContainer: {
+        width: '90%',
+        maxHeight: '80%',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 8,
+        padding: 20,
+        elevation: 4,
+    },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    searchIcon: {
+        marginRight: 10,
+    },
+    whiteSearchInput: {
+        flex: 1,
+        backgroundColor: '#F0F0F0',
+        color: '#333',
+        padding: 10,
+        borderRadius: 8,
+        fontSize: 16,
+    },
+    closeButton: {
+        color: '#007AFF',
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginLeft: 10,
+    },
+    whiteModalItem: {
+        backgroundColor: '#F5F5F5',
+        padding: 12,
+        borderRadius: 8,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    selectedItem: {
+        backgroundColor: '#007AFF',
+    },
+    whiteModalItemText: {
+        color: '#333',
+        fontSize: 16,
+    },
+    tickIcon: {
+        marginLeft: 10,
+    },
+    whiteEmptyText: {
+        color: '#666',
+        textAlign: 'center',
+        padding: 20,
     },
 });
 

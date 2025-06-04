@@ -19,6 +19,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useLanguage } from '../language/commondir';
 import { useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import RenderHtml from 'react-native-render-html';
 
 function EventCalendarPage({ navigation }) {
     const { languageTexts } = useLanguage();
@@ -317,10 +318,22 @@ function EventCalendarPage({ navigation }) {
                                         </View>
                                         <View style={styles.eventDetailRow}>
                                             <Icon name="notes" size={20} color="#2753b2" style={styles.icon} />
-                                            <Text style={styles.eventDescription}>
-                                                {languageTexts?.eventCalendar?.descriptions?.[event.descriptionKey] ||
-                                                    stripHtmlTags(event.description)}
-                                            </Text>
+                                            <View style={{ flex: 1 }}>
+                                                <RenderHtml
+                                                    contentWidth={300}
+                                                    source={{ html: languageTexts?.eventCalendar?.descriptions?.[event.descriptionKey] || event.description || '' }}
+                                                    baseStyle={{ color: '#666', fontSize: 14 }}
+                                                    tagsStyles={{
+                                                        b: { fontWeight: 'bold', color: '#666', fontSize: 14 },
+                                                        strong: { fontWeight: 'bold', color: '#666', fontSize: 14 },
+                                                        u: { textDecorationLine: 'underline' },
+                                                        i: { fontStyle: 'italic' },
+                                                        em: { fontStyle: 'italic' },
+                                                        p: { marginBottom: 4 },
+                                                    }}
+                                                    enableExperimentalBRCollapsing={true}
+                                                />
+                                            </View>
                                         </View>
                                         <View style={styles.buttonContainer}>
                                             {event.registered === null ? (

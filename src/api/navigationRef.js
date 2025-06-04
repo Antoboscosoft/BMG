@@ -7,3 +7,10 @@ export function navigate(name, params) {
     navigationRef.navigate(name, params);
   }
 }
+
+export function getCurrentRouteName() {
+  if (navigationRef.isReady() && navigationRef.getCurrentRoute()) {
+    return navigationRef.getCurrentRoute().name;
+  }
+  return null;
+}

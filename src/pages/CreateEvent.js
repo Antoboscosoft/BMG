@@ -145,6 +145,32 @@ function CreateEvent({ navigation, route }) {
         }
     };
 
+    const handleStartDateChange = (date) => {
+        setValue('start_datetime', date);
+        const endDate = watch('end_datetime');
+        // If end date is the same as previous start date, update it to new start date
+        if (
+            endDate.getFullYear() === start_datetime.getFullYear() &&
+            endDate.getMonth() === start_datetime.getMonth() &&
+            endDate.getDate() === start_datetime.getDate()
+        ) {
+            // Set end date to new start date (keep time)
+            const newEnd = new Date(date);
+            newEnd.setHours(endDate.getHours(), endDate.getMinutes(), endDate.getSeconds(), endDate.getMilliseconds());
+            setValue('end_datetime', newEnd);
+        }
+        // If new start date is after end date, set end date to new start date
+        else if (date > endDate) {
+            const newEnd = new Date(date);
+            newEnd.setHours(endDate.getHours(), endDate.getMinutes(), endDate.getSeconds(), endDate.getMilliseconds());
+            setValue('end_datetime', newEnd);
+        }
+    };
+
+    const handleEndDateChange = (date) => {
+        setValue('end_datetime', date);
+    };
+
     return (
         <LinearGradient colors={['#2753b2', '#e6e9f0']} style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -256,12 +282,14 @@ function CreateEvent({ navigation, route }) {
                         mode="date"
                         date={start_datetime}
                         onConfirm={(date) => {
-                            setValue('start_datetime', date);
+                            handleStartDateChange(date);
                             setStartDatePickerVisible(false);
                         }}
                         onCancel={() => setStartDatePickerVisible(false)}
                         is24Hour={false}
                         display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                        key={isStartDatePickerVisible ? Math.random() : 'start'} // Force remount to fix not opening
+                        minimumDate={new Date()}
                     />
                     <DateTimePickerModal
                         isVisible={isStartTimePickerVisible}
@@ -298,12 +326,14 @@ function CreateEvent({ navigation, route }) {
                         mode="date"
                         date={end_datetime}
                         onConfirm={(date) => {
-                            setValue('end_datetime', date);
+                            handleEndDateChange(date);
                             setEndDatePickerVisible(false);
                         }}
                         onCancel={() => setEndDatePickerVisible(false)}
                         is24Hour={false}
                         display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                        key={isEndDatePickerVisible ? Math.random() : 'end'} // Force remount to fix not opening
+                        minimumDate={new Date()}
                     />
                     <DateTimePickerModal
                         isVisible={isEndTimePickerVisible}

@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import RenderHtml from 'react-native-render-html';
 import { createEventRegistration, deleteEventRegistration, getEventById, updateEventRegistration } from '../api/auth';
 import { useLanguage } from '../language/commondir';
 
@@ -263,13 +264,15 @@ function CreateRegister({ navigation, route }) {
                         <View style={styles.eventDetailRow}>
                             <Icon name="calendar-today" size={20} color="#555" style={styles.icon} />
                             <Text style={styles.eventDetail}>
-                                {languageTexts?.createRegister?.date || 'Date'}: {formatDate(eventData?.eventData?.start_datetime, eventData?.eventData?.end_datetime)}
+                                {/* {languageTexts?.createRegister?.date || 'Date'}:  */}
+                                {formatDate(eventData?.eventData?.start_datetime, eventData?.eventData?.end_datetime)}
                             </Text>
                         </View>
                         <View style={styles.eventDetailRow}>
                             <Icon name="access-time" size={20} color="#555" style={styles.icon} />
                             <Text style={styles.eventDetail}>
-                                {languageTexts?.createRegister?.time || 'Time'}: {formatTime(eventData?.eventData?.start_datetime, eventData?.eventData?.end_datetime)}
+                                {/* {languageTexts?.createRegister?.time || 'Time'}:  */}
+                                {formatTime(eventData?.eventData?.start_datetime, eventData?.eventData?.end_datetime)}
                             </Text>
                         </View>
                         <View style={styles.eventDetailRow}>
@@ -281,14 +284,29 @@ function CreateRegister({ navigation, route }) {
                         <View style={styles.eventDetailRow}>
                             <Icon name="location-on" size={20} color="#555" style={styles.icon} />
                             <Text style={styles.eventDetail}>
-                                {languageTexts?.createRegister?.location || 'Location'}: {eventData.location}
+                                {/* {languageTexts?.createRegister?.location || 'Location'}:  */}
+                                {eventData.location}
                             </Text>
                         </View>
+                        {console.log("eventData.description", eventData.description)}
                         <View style={styles.eventDetailRow}>
                             <Icon name="description" size={20} color="#555" style={styles.icon} />
-                            <Text style={styles.eventDetail}>
-                                {languageTexts?.createRegister?.description || 'Description'}: {stripHtmlTags(eventData.description)}
-                            </Text>
+                            <View style={[ styles.eventDetail, { flex: 1, marginLeft: 8 }]}>
+                                <RenderHtml
+                                    contentWidth={Dimensions.get('window').width - 100}
+                                    source={{ html: eventData.description || '' }}
+                                    baseStyle={{ color: '#555', fontSize: 14 }}
+                                    tagsStyles={{
+                                        b: { fontWeight: 'bold', color: '#555', fontSize: 14 },
+                                        strong: { fontWeight: 'bold', color: '#555', fontSize: 14 },
+                                        u: { textDecorationLine: 'underline' },
+                                        i: { fontStyle: 'italic' },
+                                        em: { fontStyle: 'italic' },
+                                        p: { marginBottom: 4 },
+                                    }}
+                                    enableExperimentalBRCollapsing={true}
+                                />
+                            </View>
                         </View>
                         {/* {eventAttachments.length > 0 && (
                             <View style={styles.eventDetailRow}>
@@ -597,6 +615,8 @@ const styles = StyleSheet.create({
         color: '#555',
         marginBottom: 3,
         marginLeft: 8,
+        flex: 1, // Allow text to take available space
+        flexWrap: 'wrap', // Allow text to wrap if it exceeds the width
     },
     attachmentContainer: {
         flex: 1,

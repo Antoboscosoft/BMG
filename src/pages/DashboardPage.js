@@ -40,7 +40,7 @@ function DashboardPage({ navigation, route }) {
         // { id: '2', name: 'servicesDirectory', screen: 'ServicesDirectory', icon: 'hospital-box' },
         { id: '3', name: 'notifications', screen: 'Notifications', icon: 'bell-outline' },
         { id: '4', name: 'multilingualSupport', screen: 'MultilingualSupport', icon: 'translate' },
-        { id: '5', name: 'helpRequest', screen: 'HelpRequest', icon: 'help-circle-outline' },
+        // { id: '5', name: 'helpRequest', screen: 'HelpRequest', icon: 'help-circle-outline' },
         { id: '7', name: 'migrants', screen: 'MigrantsList', icon: 'account-group' },
         { id: '8', name: 'news', screen: 'NewsList', icon: 'newspaper' },
     ];
@@ -168,6 +168,8 @@ function DashboardPage({ navigation, route }) {
                 }
                 setLoading(true);
                 const data = await getUserData();
+                console.log("Fetched User Data:1", data);
+                
                 setUserData(data);
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
@@ -202,6 +204,27 @@ function DashboardPage({ navigation, route }) {
         }
     }, [carouselItems, isSuperAdmin]);
 
+    // Session Expired Toast logic
+    useEffect(() => {
+        if (route?.params?.sessionExpired) {
+            Toast.show({
+                type: 'error',
+                text1: 'Session Expired',
+                text2: 'Your session has expired. Please login again.',
+                position: 'center',
+                autoHide: false,
+                onHide: async () => {
+                    await clearAuthToken();
+                    navigation.replace('Login');
+                },
+                onPress: async () => {
+                    await clearAuthToken();
+                    navigation.replace('Login');
+                }
+            });
+        }
+    }, [route?.params?.sessionExpired, navigation]);
+
     if (loading) {
         return (
             <View style={[styles.loadingContainer]}>
@@ -224,23 +247,23 @@ function DashboardPage({ navigation, route }) {
 
     const handleIconPress = (itemName) => {
         if (itemName === 'EventCalendar') {
-            navigation.navigate('EventCalendar', { userData: userData });
+            navigation.navigate('EventCalendar', { userData: userData.data });
         } else if (itemName === 'CreateEvent') {
-            navigation.navigate('CreateEvent', { userData: userData });
+            navigation.navigate('CreateEvent', { userData: userData.data });
         } else if (itemName === 'MigrantsList') {
-            navigation.navigate('MigrantsList', { userData: userData });
+            navigation.navigate('MigrantsList', { userData: userData.data });
         } else if (itemName === 'Profile') {
-            navigation.navigate('Profile', { userData: userData });
+            navigation.navigate('Profile', { userData: userData.data });
         } else if (itemName === 'ServicesDirectory') {
-            navigation.navigate('ServicesDirectory', { userData: userData });
+            navigation.navigate('ServicesDirectory', { userData: userData.data });
         } else if (itemName === 'Notifications') {
-            navigation.navigate('Notifications', { userData: userData });
+            navigation.navigate('Notifications', { userData: userData.data });
         } else if (itemName === 'MultilingualSupport') {
-            navigation.navigate('MultilingualSupport', { userData: userData });
+            navigation.navigate('MultilingualSupport', { userData: userData.data });
         } else if (itemName === 'HelpRequest') {
-            navigation.navigate('HelpRequest', { userData: userData });
+            navigation.navigate('HelpRequest', { userData: userData.data });
         } else if (itemName === 'NewsList') {
-            navigation.navigate('NewsList', { userData: userData });
+            navigation.navigate('NewsList', { userData: userData.data });
         }
         else {
             navigation.navigate(itemName);

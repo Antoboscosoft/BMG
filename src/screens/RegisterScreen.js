@@ -23,7 +23,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import CountryPicker from 'react-native-country-picker-modal';
 import ImagePicker from 'react-native-image-crop-picker';
 import Toast from 'react-native-simple-toast';
-import { getCountries, getStates, getDistricts, registerUser, extractIdentityData } from '../api/auth';
+import { getCountries, getStates, getDistricts, registerUser, extractIdentityData, getJobTypes, getSkillsByJobType } from '../api/auth';
 // import RegisterImg from '../asserts/images/splash1.jpg';
 import RegisterImg from '../asserts/images/loginbg1.jpg';
 
@@ -149,6 +149,139 @@ const SearchableDropdown = ({
     );
 };
 
+
+// Reusable Multi-Select Dropdown Component for Skills
+const MultiSelectDropdown = ({
+    label,
+    placeholder,
+    data,
+    selectedValues,
+    onSelect,
+    error,
+    disabled,
+    loading,
+    isMandatory,
+    validateField,
+}) => {
+    const [modalVisible, setModalVisible] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filteredData, setFilteredData] = useState(data);
+    useEffect(() => {
+        if (searchQuery) {
+            const filtered = data.filter((item) =>
+                item.name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            setFilteredData(filtered);
+        } else {
+            setFilteredData(data);
+        }
+    }, [searchQuery, data]);
+    const handleSelect = (id) => {
+        let updatedValues;
+        if (selectedValues.includes(id)) {
+            updatedValues = selectedValues.filter((value) => value !== id);
+        } else {
+            updatedValues = [...selectedValues, id];
+        }
+        onSelect(updatedValues);
+        validateField(updatedValues);
+    };
+    const selectedItems = data.filter((item) => selectedValues.includes(item.id));
+    return (
+        <View style={styles.inputContainer}>
+            <View style={styles.labelContainer}>
+                <Text style={styles.label}>{label}</Text>
+                {isMandatory && <Text style={styles.mandatoryIndicator}>*</Text>}
+            </View>
+            {loading ? (
+                <ActivityIndicator size="small" color="#007AFF" />
+            ) : (
+                <>
+                    <TouchableOpacity
+                        style={[
+                            styles.dropdownInput,
+                            error && styles.errorInput,
+                            disabled && styles.disabledInput,
+                        ]}
+                        onPress={() => !disabled && setModalVisible(true)}
+                        disabled={disabled}
+                    >
+                        <Text style={selectedValues.length > 0 ? styles.dropdownText : styles.placeholderText}>
+                            {selectedItems.length > 0
+                                ? selectedItems.map((item) => item.name).join(', ')
+                                : placeholder}
+                        </Text>
+                        <Icon name="chevron-down" size={16} color="#666" />
+                    </TouchableOpacity>
+                    {error && <Text style={styles.errorText}>{error}</Text>}
+                </>
+            )}
+            {/* Multi-Select Modal */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContainer}>
+                        <View style={styles.searchContainer}>
+                            <Icon name="search" size={18} color="#666" style={styles.searchIcon} />
+                            <TextInput
+                                style={styles.searchInput}
+                                placeholder={`Search ${label.toLowerCase()}...`}
+                                placeholderTextColor="#999"
+                                value={searchQuery}
+                                onChangeText={setSearchQuery}
+                                autoFocus
+                            />
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setModalVisible(false);
+                                    setSearchQuery('');
+                                }}
+                            >
+                                <Text style={styles.closeButton}>Close</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <FlatList
+                            data={filteredData}
+                            keyExtractor={(item) => item.id.toString()}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={[
+                                        styles.modalItem,
+                                        selectedValues.includes(item.id) && styles.selectedItem,
+                                    ]}
+                                    onPress={() => handleSelect(item.id)}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={styles.modalItemText}>{item.name}</Text>
+                                    {selectedValues.includes(item.id) && (
+                                        <Icon name="check" size={18} color="#007AFF" style={styles.tickIcon} />
+                                    )}
+                                </TouchableOpacity>
+                            )}
+                            ListEmptyComponent={
+                                <Text style={styles.emptyText}>No results found</Text>
+                            }
+                            showsVerticalScrollIndicator={false}
+                        />
+                    </View>
+                </View>
+            </Modal>
+        </View>
+    );
+};
+
+
+
+
+
+
+
+
+
 const RegisterScreen = ({ navigation, route }) => {
     const [form, setForm] = useState({
         name: '',
@@ -160,14 +293,14 @@ const RegisterScreen = ({ navigation, route }) => {
         currentCountryId: '',
         nativeAddressLine: '',
         aadhaarNumber: '',
-        skills: '',
-        jobType: '',
+        skills: [],
+        jobType: [],
         languagePref: 'en',
         photo: null,
         identity: null,
     });
     console.log("RegisterScreen form state:", route.params.from);
-    
+
     // State for image preview
     const [isImagePreviewVisible, setIsImagePreviewVisible] = useState(false);
     const [identityProofImage, setIdentityProofImage] = useState(null);
@@ -183,6 +316,12 @@ const RegisterScreen = ({ navigation, route }) => {
     const [countries, setCountries] = useState([]);
     const [states, setStates] = useState([]);
     const [districts, setDistricts] = useState([]);
+    const [jobTypes, setJobTypes] = useState([]);
+    const [skills, setSkills] = useState([]); // State for skills
+
+    const [loadingJobTypes, setLoadingJobTypes] = useState(false);
+    const [loadingSkills, setLoadingSkills] = useState(false);
+
     const [loadingCountries, setLoadingCountries] = useState(false);
     const [loadingStates, setLoadingStates] = useState(false);
     const [loadingDistricts, setLoadingDistricts] = useState(false);
@@ -194,6 +333,8 @@ const RegisterScreen = ({ navigation, route }) => {
         currentCountryId: '',
         currentStateId: '',
         currentDistrictId: '',
+        jobTypes: '',
+        skills: '',
         photo: '',
     });
     const [touched, setTouched] = useState({
@@ -203,6 +344,8 @@ const RegisterScreen = ({ navigation, route }) => {
         currentCountryId: false,
         currentStateId: false,
         currentDistrictId: false,
+        jobTypes: false,
+        skills: false,
         photo: false,
     });
 
@@ -373,15 +516,16 @@ const RegisterScreen = ({ navigation, route }) => {
                 native_address_line: form.nativeAddressLine || '',
                 date_of_birth: form.dateOfBirth ? formatDate(form.dateOfBirth) : null,
                 aadhaar_number: form.aadhaarNumber || '',
-                skills: form.skills || '',
-                job_type: form.jobType || '',
+                skills: form.skills.map(id => ({ id })),
+                job_type: form.jobType.map(id => ({ id })),
                 language_pref: form.languagePref || 'en',
                 photo: '', // You'll need to implement image upload separately
                 age: form.dateOfBirth ? calculateAge(form.dateOfBirth) : 0,
             };
             const fm = new FormData();
             fm.append("user", JSON.stringify(registrationData));
-
+            console.log("Registration Data:", registrationData);
+            
             // Append profile photo (mandatory)
             fm.append("profile", {
                 uri: form.photo,
@@ -501,6 +645,11 @@ const RegisterScreen = ({ navigation, route }) => {
             }
         };
         fetchCountries();
+        // set mobile number
+        if (route.params?.mobileCode) {
+            setCallingCode(route.params?.mobileCode);
+            setMobileNumber(route.params?.mobile);
+        }
     }, []);
 
     // Fetch states when country changes
@@ -557,6 +706,65 @@ const RegisterScreen = ({ navigation, route }) => {
         fetchDistricts();
     }, [form.currentStateId]);
 
+    // Fetch job types: 
+    useEffect(() => {
+        const fetchJobTypes = async () => {
+            setLoadingJobTypes(true);
+            try {
+                const response = await getJobTypes();
+                console.log("Job Types Response:", response);
+
+                // Mock images for job types (replace with actual image URLs from API if available)
+                // const jobTypesWithImages = (response.data || []).map((jobType) => ({
+                //     ...jobType,
+                //     image: `https://example.com/images/job_type_${jobType.id}.png`, // Replace with actual image URL
+
+                // }));
+
+                setJobTypes(response.data || []);
+            } catch (error) {
+                console.error("Error fetching job types:", error);
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: 'Failed to load job types',
+                });
+            } finally {
+                setLoadingJobTypes(false);
+            }
+        };
+        fetchJobTypes();
+    }, []);
+
+    // Fetch Skills based on selected Job Type
+    useEffect(() => {
+        const fetchSkills = async () => {
+            if (form.jobType.length > 0) {
+                setLoadingSkills(true);
+                setForm(prev => ({ ...prev, skills: [] })); // Reset skills when job type changes
+                try {
+                    // Only pass selected job type IDs (as comma-separated string, no spaces)
+                    const jobTypeIds = form.jobType.join(',');
+                    const response = await getSkillsByJobType(jobTypeIds); // API expects comma-separated ids
+                    setSkills(response.data || []);
+                } catch (error) {
+                    console.error("Error fetching skills:", error);
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Error',
+                        text2: 'Failed to load skills',
+                    });
+                } finally {
+                    setLoadingSkills(false);
+                }
+            } else {
+                setSkills([]);
+                setForm(prev => ({ ...prev, skills: [] }));
+            }
+        };
+        fetchSkills();
+    }, [form.jobType]);
+
 
     const validateField = (field, value) => {
         let error = '';
@@ -579,6 +787,12 @@ const RegisterScreen = ({ navigation, route }) => {
                 break;
             case 'currentDistrictId':
                 if (!value) error = 'District is required';
+                break;
+            case 'jobType':
+                if (!value || value.length === 0) error = 'At least one job type is required';
+                break;
+            case 'skills':
+                if (!value || value.length === 0) error = 'At least one skill is required';
                 break;
             case 'photo':
                 if (!value) error = 'Profile photo is required';
@@ -611,6 +825,8 @@ const RegisterScreen = ({ navigation, route }) => {
             currentCountryId: '',
             currentStateId: '',
             currentDistrictId: '',
+            jobType: '',
+            skills: '',
         };
 
         let isValid = true;
@@ -645,6 +861,15 @@ const RegisterScreen = ({ navigation, route }) => {
 
         if (!form.currentDistrictId) {
             newErrors.currentDistrictId = 'District is required';
+            isValid = false;
+        }
+
+        if (form.jobType.length === 0) {
+            newErrors.jobType = 'At least one job type is required';
+            isValid = false;
+        }
+        if (form.skills.length === 0) {
+            newErrors.skills = 'At least one skill is required';
             isValid = false;
         }
 
@@ -1135,6 +1360,36 @@ const RegisterScreen = ({ navigation, route }) => {
                             validateField={(value) => validateField('currentDistrictId', value)}
                         />
 
+                        {/* Job Type */}
+                        <MultiSelectDropdown
+                            label="Job Type"
+                            placeholder="Select Job Types"
+                            data={jobTypes}
+                            selectedValues={form.jobType}
+                            onSelect={(values) => {
+                                handleChange('jobType', values);
+                                setTouched((prev) => ({ ...prev, jobTypes: true }));
+                            }}
+                            error={touched.jobType && errors.jobType} //
+                            disabled={false}
+                            loading={loadingJobTypes}
+                            isMandatory={true}
+                            validateField={(values) => validateField('jobType', values)}
+                            showImage={true} // Enable image display
+                        />
+                        {/* Skills */}
+                        <MultiSelectDropdown
+                            label="Skills"
+                            placeholder={form.jobType.length > 0 ? 'Select Skills' : 'Select Job Type first'}
+                            data={skills}
+                            selectedValues={form.skills}
+                            onSelect={(values) => handleChange('skills', values)}
+                            error={touched.skills && errors.skills}
+                            disabled={form.jobType.length === 0}
+                            loading={loadingSkills}
+                            isMandatory={true}
+                            validateField={(values) => validateField('skills', values)}
+                        />
 
                         {/* Language Preference */}
                         <View style={styles.inputContainer}>
@@ -1477,6 +1732,17 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#f0f0f0',
         backgroundColor: '#fff',
+    },
+    modalItemContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    dropdownItemImage: {
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        marginRight: 12,
     },
     selectedItem: {
         backgroundColor: '#E6F0FF',

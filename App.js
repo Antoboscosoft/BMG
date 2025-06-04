@@ -26,7 +26,7 @@ import CreateEvent from './src/pages/CreateEvent.js';
 import NewsList from './src/pages/news/NewsList.js';
 import NewsDetail from './src/pages/news/NewsDetail.js';
 import CreateNews from './src/pages/news/CreateNews.js';
-import WorkersScreen from './src/pages/news/WorkersScreen.js';
+// import WorkersScreen from './src/pages/news/WorkersScreen.js';
 import ContactUs from './src/pages/contactus/ContactUs.js';
 
 
@@ -132,7 +132,7 @@ function App() {
         <Stack.Screen name="NewsDetail" component={NewsDetail} options={{ title: 'News Detail' }} />
         <Stack.Screen name="CreateNews" component={CreateNews} options={{ title: 'Create News' }} />
 
-        <Stack.Screen name="WorkersList" component={WorkersScreen} options={{ title: 'Workers List' }} />
+        {/* <Stack.Screen name="WorkersList" component={WorkersScreen} options={{ title: 'Workers List' }} /> */}
         <Stack.Screen name="ContactUs" component={ContactUs} options={{ title: 'Contact Us' }} />
 
       </Stack.Navigator>
