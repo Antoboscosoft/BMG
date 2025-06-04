@@ -13,6 +13,8 @@ import {
   Animated,
   ActivityIndicator,
   Keyboard,
+  Alert,
+  Linking,
 } from "react-native";
 // import loginImg from "../asserts/images/loginImg.jpg";
 import loginImg from "../asserts/images/loginbg1.jpg";
@@ -23,6 +25,8 @@ import { setAuthToken } from "../api/axiosInstance";
 import { Controller, useForm } from "react-hook-form";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import BackIcon from 'react-native-vector-icons/MaterialIcons';
+import VersionCheck from 'react-native-version-check';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 // import OtpInputs from 'react-native-otp-inputs';
 // import RNOtpVerify from 'react-native-otp-verify';
 
@@ -93,6 +97,29 @@ function LoginScreen({ navigation }) {
   //     return () => RNOtpVerify.removeListener();
   //   }
   // }, []);
+
+  const checkAppVersion = async () => {
+    const isNeeded = await VersionCheck.needUpdate();
+    const update= await AsyncStorage.getItem('update');
+    
+    if (isNeeded?.isNeeded && update !== 'false' ) {
+      AsyncStorage.setItem('update', 'false');
+      Alert.alert(
+        "Update Available",
+        "A new version of the app is available. Please update to continue.",
+        [
+          {
+            text: "Update Now",
+            onPress: () => Linking.openURL(isNeeded.storeUrl),
+          },
+          {
+            text: "Later",
+            style: "cancel"
+          }
+        ]
+      );
+    }
+  };
 
   // Add this effect when error occurs
   useEffect(() => {
@@ -179,13 +206,29 @@ function LoginScreen({ navigation }) {
       setYourOtp(response.otp);
 
       if (!response.status) {
-        Toast.show({
-          type: "error",
-          text1: "User Not Registered",
-          text2: "Please register first to continue",
-        });
-        setError("User not registered. Please register first.");
-        setShowOtpField(false);
+        Alert.alert(
+          "You're not registered",
+          "Please register to continue",
+          [
+            {
+              text: "Cancel",
+              onPress: () => console.log("Cancel Pressed"),
+              style: "cancel",
+            },
+            {
+              text: "Register",
+              onPress: ()=>register(callingCode, mobile),
+            },
+          ],
+          { cancelable: false }
+        )
+        // Toast.show({
+        //   type: "error",
+        //   text1: "User Not Registered",
+        //   text2: "Please register first to continue",
+        // });
+        // setError("User not registered. Please register first.");
+        // setShowOtpField(false);
         return;
       }
 
@@ -288,6 +331,12 @@ function LoginScreen({ navigation }) {
     setError("");
     return true;
   };
+
+  const register = (mobileCode, mobile) => {
+    navigation.navigate("Register", { from: "Login", mobileCode, mobile });
+    setError("");
+    setMobile("");
+  }
 
   const handleStaffLogin = async (data) => {
     // if (!validateStaffCredentials()) return;
@@ -409,11 +458,7 @@ function LoginScreen({ navigation }) {
           <Text style={styles.registerText}>
             New user?{" "}
             <Animated.Text
-              onPress={() => {
-                navigation.navigate("Register", { from: "Login" });
-                setError("");
-                setMobile("");
-              }}
+              onPress={()=> register()}
               style={[
                 styles.registerBold,
                 error.includes("not registered") && styles.highlightedRegister
@@ -649,6 +694,10 @@ function LoginScreen({ navigation }) {
     </>
   );
 
+
+  useEffect(() => {
+    checkAppVersion();
+  }, [])
 
   return (
     <KeyboardAvoidingView
@@ -1004,34 +1053,34 @@ const styles = StyleSheet.create({
   },
 
   clearButton: {
-  position: "absolute",
-  right: 15,
-  top: 12,
-  padding: 5,
-},
-clearText: {
-  color: "#FFF2E0",
-  fontSize: 18,
-  fontWeight: "bold",
-},
-cancelOtpButton: {
-  position: "absolute",
-  top: -10,
-  right: -10,
-  backgroundColor: "rgba(96, 51, 0, 0.9)",
-  width: 30,
-  height: 30,
-  borderRadius: 15,
-  justifyContent: "center",
-  alignItems: "center",
-  borderWidth: 1,
-  borderColor: "#FFF2E0",
-},
-cancelOtpText: {
-  color: "#FFF2E0",
-  fontSize: 16,
-  fontWeight: "bold",
-},
+    position: "absolute",
+    right: 15,
+    top: 12,
+    padding: 5,
+  },
+  clearText: {
+    color: "#FFF2E0",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  cancelOtpButton: {
+    position: "absolute",
+    top: -10,
+    right: -10,
+    backgroundColor: "rgba(96, 51, 0, 0.9)",
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#FFF2E0",
+  },
+  cancelOtpText: {
+    color: "#FFF2E0",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 
 
   countdownText: {
