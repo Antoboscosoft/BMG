@@ -73,7 +73,7 @@ function CreateNews({ navigation, route }) {
     useEffect(() => {
         if (newsItem) {
             setValue('title', newsItem.title || '');
-            setValue('description', newsItem.description || '');
+            setValue('description', newsItem.description ? newsItem.description.replace(/<[^>]+>/g, '') : '');
             setImages(newsItem.attachments || []);
         }
     }, [newsItem, setValue]);

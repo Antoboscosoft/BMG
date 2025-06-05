@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { getUserData } from '../api/auth';
 import { clearAuthToken } from '../api/axiosInstance';
@@ -48,6 +49,7 @@ function DashboardPage({ navigation, route }) {
     const dashboardMenuItems = [
         { id: '6', name: 'profile', screen: 'Profile', icon: 'account' },
         { id: '1', name: 'eventCalendar', screen: 'EventCalendar', icon: 'calendar-month' },
+        // { id: '2', name: 'servicesDirectory', screen: 'ServicesDirectory', icon: 'handshake' },
         { id: '3', name: 'notifications', screen: 'Notifications', icon: 'bell-outline' },
         { id: '4', name: 'multilingualSupport', screen: 'MultilingualSupport', icon: 'translate' },
         { id: '7', name: 'migrants', screen: 'MigrantsList', icon: 'account-group' },
@@ -358,19 +360,11 @@ function DashboardPage({ navigation, route }) {
                                 onPress={() => handleIconPress(item.screen)}
                             >
                                 <View style={[styles.iconBackground, { backgroundColor: '#c5894a' }]}>
-                                    {item.name === 'servicesDirectory' ? (
-                                        <FontAwesome5
-                                            name="hand-holding-heart"
-                                            size={26}
-                                            color="#FFF"
-                                        />
-                                    ) : (
                                         <Icon
                                             name={item.icon}
-                                            size={26}
+                                            size={28}
                                             color="#FFF"
                                         />
-                                    )}
                                 </View>
                             </TouchableOpacity>
                             <Text style={styles.gridText}>
@@ -419,7 +413,7 @@ function DashboardPage({ navigation, route }) {
                     ))}
 
                     <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Contact Us', { screen: 'ContactUs' })}>
-                        <Icon name="email" size={22} color="#fff" style={styles.menuIcon} />
+                        <Feather name="phone-call" size={22} color="#fff" style={styles.menuIcon} />
                         <Text style={styles.menuText}>{languageTexts?.menu?.contactUs || "Contact Us"}</Text>
                     </TouchableOpacity>
 

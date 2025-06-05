@@ -64,14 +64,46 @@ function NewsDetail({ navigation, route }) {
           /> */}
 
                     {/* Use description as content */}
-                    <HTML
+                    {/* <HTML
                         source={{ html: newsItem.description || '<p>No content available</p>' }}
                         contentWidth={Dimensions.get('window').width - 40}
                         tagsStyles={{
                             p: { color: '#333', fontSize: 16, lineHeight: 24 },
                             h2: { color: '#944D00', fontSize: 20, fontWeight: 'bold' },
                         }}
-                    />
+                    /> */}
+                    <View style={[styles.descriptionContainer, { overflow: 'hidden' }]}>
+                        <HTML
+                            source={{ html: newsItem.description || '<p>No description available</p>' }}
+                            contentWidth={Dimensions.get('window').width - 40} // Adjust for padding (15 + 15 on each side)
+                            tagsStyles={{
+                                h3: {
+                                    fontSize: 18,
+                                    fontWeight: '700',
+                                    color: '#0033A0', // Match API color rgb(0, 51, 160)
+                                    marginTop: 15,
+                                    marginBottom: 5,
+                                },
+                                h4: {
+                                    fontSize: 16,
+                                    fontWeight: '700',
+                                    color: '#0033A0',
+                                    marginTop: 15,
+                                    marginBottom: 5,
+                                },
+                                p: {
+                                    fontSize: 14,
+                                    color: '#555',
+                                    lineHeight: 20,
+                                    marginTop: 5,
+                                    marginBottom: 5,
+                                },
+                            }}
+                            // numberOfLines={3} // Limit to 2 lines as per original design
+                            textSelectable={false} // Optional: Prevent text selection if not needed
+                        />
+                        
+                    </View>
 
                     {/* Show all attachments as gallery */}
                     {newsItem.attachments?.length > 1 && (

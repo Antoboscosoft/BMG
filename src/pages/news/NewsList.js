@@ -8,7 +8,8 @@ import {
     Image,
     ActivityIndicator,
     RefreshControl,
-    Alert
+    Alert,
+    Dimensions
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -17,6 +18,9 @@ import { getNews, deleteNews } from '../../api/auth';
 import { useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-simple-toast';
+import HTML from 'react-native-render-html'; // Import the library
+
+const { width } = Dimensions.get('window'); // Get screen width for responsive HTML rendering
 
 function NewsList({ navigation }) {
     const { languageTexts } = useLanguage();
@@ -66,7 +70,7 @@ function NewsList({ navigation }) {
 
     const handleEditNews = (newsItem) => {
         console.log('Editing news item:', newsItem);
-        
+
         navigation.navigate('CreateNews', { newsItem, refreshNews: fetchNews });
     };
 
@@ -108,7 +112,7 @@ function NewsList({ navigation }) {
                         style={styles.newsImage}
                     />
                 ) : (
-                    <View style={[styles.newsImage, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0', flexDirection: 'row' }]}> 
+                    <View style={[styles.newsImage, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0', flexDirection: 'row' }]}>
                         <Text style={{ color: '#888', fontSize: 16, textAlign: 'center', width: '100%' }}>
                             {languageTexts?.news?.noImage || 'No image available'}
                         </Text>
@@ -122,21 +126,60 @@ function NewsList({ navigation }) {
                     {/* <Text style={styles.newsExcerpt} numberOfLines={2}>
                         {item?.excerpt || item?.content?.substring(0, 100)}...
                     </Text> */}
-                    <Text style={styles.newsExcerpt} numberOfLines={2}>
+                    {/* <Text style={styles.newsExcerpt} numberOfLines={2}>
+                        {console.log(item.description)
+                        }
                         {item.description || 'No description available'}
-                    </Text>
+                    </Text> */}
+                    <View style={[styles.descriptionContainer, { maxHeight: 70, minHeight: 70, overflow: 'hidden' }]}>
+                        {/* <HTML
+                            source={{ html: item.description || '<p>No description available</p>' }}
+                            contentWidth={width - 60} // Adjust for padding (15 + 15 on each side)
+                            tagsStyles={{
+                                h3: {
+                                    fontSize: 18,
+                                    fontWeight: '700',
+                                    color: '#0033A0', // Match API color rgb(0, 51, 160)
+                                    marginTop: 15,
+                                    marginBottom: 5,
+                                },
+                                h4: {
+                                    fontSize: 16,
+                                    fontWeight: '700',
+                                    color: '#0033A0',
+                                    marginTop: 15,
+                                    marginBottom: 5,
+                                },
+                                p: {
+                                    fontSize: 14,
+                                    color: '#555',
+                                    lineHeight: 20,
+                                    marginTop: 5,
+                                    marginBottom: 5,
+                                },
+                            }}
+                            // numberOfLines={3} // Limit to 2 lines as per original design
+                            textSelectable={false} // Optional: Prevent text selection if not needed
+                        /> */}
+                        <HTML
+                            source={{ html: item.description || '<p>No description available</p>' }}
+                            contentWidth={width - 60}
+                            maxLines={3}
+                            textSelectable={false}
+                        />
+                    </View>
                 </View>
             </TouchableOpacity>
-            
+
             {isAdmin && (
                 <View style={styles.newsActions}>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={styles.actionButton}
                         onPress={() => handleEditNews(item)}
                     >
                         <Icon name="pencil" size={20} color="#944D00" />
                     </TouchableOpacity>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={styles.actionButton}
                         onPress={() => handleDeleteNews(item.id)}
                     >
@@ -159,7 +202,7 @@ function NewsList({ navigation }) {
         // if (navigation.canGoBack()) {
         //     navigation.goBack();
         // } else {
-            navigation.navigate('Dashboard', { userData });
+        navigation.navigate('Dashboard', { userData });
         // }
     }
 
@@ -182,7 +225,7 @@ function NewsList({ navigation }) {
                     >
                         <Icon name="plus" size={24} color="#FFF" />
                     </TouchableOpacity>
-                ) : 
+                ) :
                     <View style={{ width: 40 }} />
                 }
             </View>
