@@ -12,6 +12,9 @@ import {
     FlatList,
     ScrollView,
     ActivityIndicator,
+    Modal,
+    BackHandler,
+    Pressable,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -20,14 +23,14 @@ import { getUserData } from '../api/auth';
 import { clearAuthToken } from '../api/axiosInstance';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
-import { useLanguage } from '../language/commondir';
+import { LanguageContext, useLanguage } from '../language/commondir';
 import { checkAppVersion } from '../context/utils';
 import { ContextProps } from '../../App';
 
 const { width, height } = Dimensions.get('window');
 
 function DashboardPage({ navigation, route }) {
-    const {appUpdate, setAppUpdate}= useContext(ContextProps);
+    const { appUpdate, setAppUpdate } = useContext(ContextProps);
     const { languageTexts, language } = useLanguage();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const slideAnim = useState(new Animated.Value(-250))[0];
@@ -36,35 +39,27 @@ function DashboardPage({ navigation, route }) {
     const [activeIndex, setActiveIndex] = useState(0);
     const carouselRef = useRef(null);
     const isSuperAdmin = userData?.data?.role?.name === "Super Admin" || userData?.data?.role?.name === "Admin" || userData?.data?.role?.name === "Staff";
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [showExitModal, setShowExitModal] = useState(false);
+    
+    const [isLoggingOut, setIsLoggingOut] = useState(false); // Track logout state
+  const { setUser } = useContext(LanguageContext);
 
     const dashboardMenuItems = [
         { id: '6', name: 'profile', screen: 'Profile', icon: 'account' },
         { id: '1', name: 'eventCalendar', screen: 'EventCalendar', icon: 'calendar-month' },
-        // { id: '2', name: 'servicesDirectory', screen: 'ServicesDirectory', icon: 'hospital-box' },
         { id: '3', name: 'notifications', screen: 'Notifications', icon: 'bell-outline' },
         { id: '4', name: 'multilingualSupport', screen: 'MultilingualSupport', icon: 'translate' },
-        // { id: '5', name: 'helpRequest', screen: 'HelpRequest', icon: 'help-circle-outline' },
         { id: '7', name: 'migrants', screen: 'MigrantsList', icon: 'account-group' },
         { id: '8', name: 'news', screen: 'NewsList', icon: 'newspaper' },
     ];
 
-    // use asyncStorage to setItem for role which user has logged in:
+    // Use asyncStorage to setItem for role which user has logged in:
     useEffect(() => {
         const setRoleInAsyncStorage = async () => {
-            console.log("test ------------", userData?.data?.role?.name);
-
             try {
                 const role = userData?.data?.role?.name || 'User';
                 await AsyncStorage.setItem('userRole', role);
-
-                // const roleName = userData?.data?.role?.name || 'User';
-                // const roleId = userData?.data?.role?.id || null;
-                // await AsyncStorage.multiSet([
-                //     ['userRole', roleName.replace('Super Admin', 'SuperAdmin')],
-                //     ['roleId', roleId ? roleId.toString() : ''],
-                // ]);
-                // console.log('Stored userRole:', roleName, 'roleId:', roleId);
-
             } catch (error) {
                 console.error('Failed to set user role in AsyncStorage:', error);
             }
@@ -82,7 +77,7 @@ function DashboardPage({ navigation, route }) {
         )
         : dashboardMenuItems.filter(item => item.name !== 'migrants' && item.name !== 'notifications');
 
-    // carousel items
+    // Carousel items
     const carouselItems = [
         {
             title: languageTexts?.dashboard?.welcome?.replace('{name}', userData?.data?.name || 'User'),
@@ -126,10 +121,11 @@ function DashboardPage({ navigation, route }) {
     const handleMenuItemPress = async (label, screen) => {
         let name = screen.screen;
         if (name === 'Login') {
-            await clearAuthToken();
+            setShowLogoutModal(true); // Show modal on logout press
+        } else {
+            navigation.navigate(name);
+            closeSidebar();
         }
-        navigation.navigate(name);
-        closeSidebar();
     };
 
     const handleMenuHeaderPress = () => {
@@ -161,7 +157,37 @@ function DashboardPage({ navigation, route }) {
     ).current;
 
     useEffect(() => {
-        // check update
+        const onBackPress = () => {
+            if (isLoggingOut) {
+                return true; // Prevent back press during logout
+            }
+            if (navigation.isFocused()) {
+                // setShowLogoutModal(true); 
+                setShowExitModal(true);
+                return true; // Prevent default behavior
+            }
+            return false; // Allow default behavior
+        };
+        BackHandler.addEventListener('hardwareBackPress', onBackPress);
+        // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    }, [navigation, isLoggingOut]);
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+            if (isLoggingOut) {
+                return; // Prevent navigation events during logout
+            }
+            if (navigation.isFocused()) {
+                e.preventDefault();
+                // setShowLogoutModal(true);
+                setShowExitModal(true);
+            }
+        });
+        return unsubscribe;
+    }, [navigation, isLoggingOut]);
+
+    useEffect(() => {
+        // Check update
         checkAppVersion(appUpdate, setAppUpdate);
 
         const fetchUserData = async () => {
@@ -247,7 +273,6 @@ function DashboardPage({ navigation, route }) {
     const renderCarouselItem = ({ item }) => (
         <View style={styles.carouselItem}>
             <Image source={item.image} style={styles.carouselImage} />
-            {/* <Text style={styles.carouselTitle}>{item.title}</Text> */}
         </View>
     );
 
@@ -270,12 +295,29 @@ function DashboardPage({ navigation, route }) {
             navigation.navigate('HelpRequest', { userData: userData.data });
         } else if (itemName === 'NewsList') {
             navigation.navigate('NewsList', { userData: userData.data });
-        }
-        else {
+        } else {
             navigation.navigate(itemName);
         }
     };
 
+    const handleLogout = async () => {
+        setIsLoggingOut(true); // Set logout state to true
+        setShowLogoutModal(false); // Hide modal
+        await clearAuthToken(); // Clear token
+        setUser({});
+        navigation.reset({
+            index: 0,
+            routes: [{ name: 'Login' }],
+        });
+        setIsLoggingOut(false); // Reset logout state after navigation
+    };
+
+    const handleExitApp = () => {
+      setShowExitModal(false);
+      setTimeout(() => {
+        BackHandler.exitApp();
+      }, 200);
+    };
     return (
         <View style={styles.wrapper} {...screenPanResponder.panHandlers}>
             <LinearGradient colors={['#C97B3C', '#7A401D']} style={styles.container}>
@@ -304,41 +346,12 @@ function DashboardPage({ navigation, route }) {
                         keyExtractor={(_, index) => index.toString()}
                     />
                 </View>
-                {/* <ScrollView contentContainerStyle={styles.gridContainer}>
-                    {filteredMenuItems.map((item) => (
-                        <View key={item.id} style={styles.gridItem}>
-                            <TouchableOpacity
-                                style={styles.iconTouchable}
-                                onPress={() => handleIconPress(item.screen)}
-                            >
-                                <View style={[styles.iconBackground, { backgroundColor: '#c5894a' }]}>
-                                    {item.name === 'servicesDirectory' ? (
-                                        <FontAwesome5
-                                            name="hand-holding-heart"
-                                            size={26}
-                                            color="#FFF"
-                                        />
-                                    ) : (
-                                        <Icon
-                                            name={item.icon}
-                                            size={26}
-                                            color="#FFF"
-                                        />
-                                    )}
-                                </View>
-                            </TouchableOpacity>
-                            <Text style={styles.gridText}>
-                                {languageTexts?.menu?.[item?.name] || item?.name}
-                            </Text>
-                        </View>
-                    ))}
-                </ScrollView> */}
 
                 <View style={styles.gridContainer}>
                     {filteredMenuItems.map((item) => (
                         <View key={item.id} style={[
                             styles.gridItem,
-                            filteredMenuItems.length % 3 !== 0 && styles.gridItemFlex // Apply flex style when not divisible by 3
+                            filteredMenuItems.length % 3 !== 0 && styles.gridItemFlex
                         ]}>
                             <TouchableOpacity
                                 style={styles.iconTouchable}
@@ -366,7 +379,6 @@ function DashboardPage({ navigation, route }) {
                         </View>
                     ))}
 
-                    {/* Add empty items to fill the row when needed */}
                     {filteredMenuItems.length % 3 === 2 && (
                         <View style={[styles.gridItem, styles.emptyItem]} />
                     )}
@@ -406,10 +418,9 @@ function DashboardPage({ navigation, route }) {
                         </TouchableOpacity>
                     ))}
 
-                    {/* Contact Us menu item */}
                     <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Contact Us', { screen: 'ContactUs' })}>
                         <Icon name="email" size={22} color="#fff" style={styles.menuIcon} />
-                        <Text style={styles.menuText}>{ languageTexts?.menu?.contactUs || "Contact Us"}</Text>
+                        <Text style={styles.menuText}>{languageTexts?.menu?.contactUs || "Contact Us"}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Logout', { screen: 'Login' })}>
@@ -419,12 +430,76 @@ function DashboardPage({ navigation, route }) {
                         </Text>
                     </TouchableOpacity>
 
-                    {/* App Version at the bottom */}
                     <View style={styles.sidebarVersionContainer}>
                         <Text style={styles.sidebarVersionText}>V1.4</Text>
                     </View>
                 </Animated.View>
             </LinearGradient>
+
+            {/* logout model */}
+            <Modal
+                visible={showLogoutModal}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowLogoutModal(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <Pressable onPress={() => setShowLogoutModal(false)}>
+                        <View style={styles.modalContainer}>
+                            <Text style={styles.modalTitle}>Are you sure you want to logout?</Text>
+                            <View style={styles.modalButtonRow}>
+                                
+                                <TouchableOpacity style={styles.modalButton} onPress={() => setShowLogoutModal(false)}>
+                                    <Text style={styles.modalButtonText}>Cancel</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.modalButton1} onPress={handleLogout}>
+                                    <Text style={styles.modalButtonText}>Logout</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </Pressable>
+                </View>
+            </Modal>
+
+            {/* exit app model */}
+            <Modal
+              visible={showExitModal}
+              transparent
+              animationType="fade"
+              onRequestClose={() => setShowExitModal(false)}
+            > 
+              <TouchableOpacity
+                style={[{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }]}
+                activeOpacity={1}
+                onPressOut={() => setShowExitModal(false)}
+              >
+                <View style={[styles.modalOverlayExit,{ padding: 24, borderRadius: 8, alignItems: 'center', minWidth: 280 }]}>
+                  <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12, color: '#333' }}>
+                    Are you sure you want to close the app?
+                  </Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+                    <TouchableOpacity
+                      style={{ flex: 1, marginRight: 8, padding: 12, borderRadius: 6, 
+                        // backgroundColor: '#eee',
+                        backgroundColor: '#6a6865',
+                         alignItems: 'center' }}
+                      onPress={() => setShowExitModal(false)}
+                    >
+                      <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{ flex: 1, marginLeft: 8, padding: 12, borderRadius: 6, 
+                        // backgroundColor: '#d9534f', 
+                        backgroundColor: '#944D00',
+                        alignItems: 'center' }}
+                      onPress={handleExitApp}
+                    >
+                      <Text style={{ color: '#fff', fontWeight: 'bold' }}>Close App</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </Modal>
         </View>
     );
 }
@@ -539,7 +614,6 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: '600',
     },
-    // carousel styles:
     carouselContainer: {
         marginTop: 20,
         alignItems: 'center',
@@ -552,7 +626,6 @@ const styles = StyleSheet.create({
     },
     carouselImage: {
         width: width - 80,
-        // height: 180,
         height: 240,
         borderRadius: 10,
         resizeMode: 'cover',
@@ -601,7 +674,7 @@ const styles = StyleSheet.create({
         width: '30%',
         marginBottom: 25,
         alignItems: 'center',
-        marginHorizontal: '1.66%', // Adds equal spacing on both sides
+        marginHorizontal: '1.66%',
     },
     iconTouchable: {
         marginBottom: 8,
@@ -621,7 +694,6 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         paddingHorizontal: 5,
     },
-    // loading screen
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -657,6 +729,65 @@ const styles = StyleSheet.create({
         opacity: 0.7,
         letterSpacing: 1,
     },
-
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalOverlayExit: {
+        // flex: 1,
+        width: '10%',
+        height: '20%',
+        // backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        backgroundColor: '#ffffff',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 24,
+        alignItems: 'center',
+        width: '80%',
+        maxWidth: 300,
+        elevation: 10,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        color: '#333',
+        textAlign: 'center',
+    },
+    modalButtonRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    modalButton: {
+        flex: 1,
+        marginHorizontal: 8,
+        // backgroundColor: '#944D00',
+        backgroundColor: '#6a6865',
+        // backgroundColor: '#333',
+        borderRadius: 8,
+        paddingVertical: 10,
+        alignItems: 'center',
+    },
+    modalButton1: {
+        flex: 1,
+        marginHorizontal: 8,
+        backgroundColor: '#944D00',
+        // backgroundColor: '#f90c0c',
+        // backgroundColor: '#333',
+        borderRadius: 8,
+        paddingVertical: 10,
+        alignItems: 'center',
+    },
+    modalButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
 });
-

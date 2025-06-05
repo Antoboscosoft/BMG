@@ -16,6 +16,7 @@ import {
   Alert,
   Linking,
   Modal,
+  BackHandler,
 } from "react-native";
 // import loginImg from "../asserts/images/loginImg.jpg";
 import loginImg from "../asserts/images/loginbg1.jpg";
@@ -65,6 +66,9 @@ function LoginScreen({ navigation }) {
   const emailInputRef = useRef(null);
   const passwordInputRef = useRef(null);
   const [showNotRegisteredModal, setShowNotRegisteredModal] = useState(false);
+
+  const [showExitModal, setShowExitModal] = useState(false);
+
   // react-hook-form setup for staff login
   const {
     control,
@@ -151,6 +155,25 @@ function LoginScreen({ navigation }) {
 
     return () => clearTimeout(countdownRef.current);
   }, [countdown, otpSent]);
+
+  useEffect(() => {
+  const onBackPress = () => {
+    if (navigation.isFocused()) {
+      setShowExitModal(true);
+      return true;
+    }
+    return false;
+  };
+  BackHandler.addEventListener('hardwareBackPress', onBackPress);
+  // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+}, [navigation]);
+
+const handleExitApp = () => {
+  setShowExitModal(false);
+  setTimeout(() => {
+    BackHandler.exitApp();
+  }, 200);
+};
 
   const handleInputFocus = () => {
     if (textInputRef.current) {
@@ -801,6 +824,38 @@ function LoginScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+      <Modal
+  visible={showExitModal}
+  transparent
+  animationType="fade"
+  onRequestClose={() => setShowExitModal(false)}
+> 
+  <TouchableOpacity
+    style={[{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }]}
+    activeOpacity={1}
+    onPressOut={() => setShowExitModal(false)}
+  >
+    <View style={[styles.modalOverlay,{ backgroundColor: '#fff', padding: 24, borderRadius: 8, alignItems: 'center', minWidth: 280 }]}>
+      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12, color: '#333' }}>
+        Are you sure you want to close the app?
+      </Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+        <TouchableOpacity
+          style={{ flex: 1, marginRight: 8, padding: 12, borderRadius: 6, backgroundColor: '#eee', alignItems: 'center' }}
+          onPress={() => setShowExitModal(false)}
+        >
+          <Text style={{ color: '#333', fontWeight: 'bold' }}>Cancel</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{ flex: 1, marginLeft: 8, padding: 12, borderRadius: 6, backgroundColor: '#d9534f', alignItems: 'center' }}
+          onPress={handleExitApp}
+        >
+          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Close App</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </TouchableOpacity>
+</Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -1125,6 +1180,15 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     // textAlign: "left",
   },
+
+  // model for cancel app
+  modalOverlay: {
+    // flex: 1,
+    width: '80%', 
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)'
+  } 
 });
 
 export default LoginScreen;

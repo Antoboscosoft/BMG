@@ -21,12 +21,14 @@ export const LanguageProvider = ({ children }) => {
   const loadLanguage = async () => {
     try {
       // Check if there's a saved language in AsyncStorage
+      const userData = await getUserData();
+      setUser(userData);
+      console.log("userData.data.language_pref", userData);
+      
+      const prefLang = userData?.data?.language_pref?.toLowerCase();
       let langToLoad = await AsyncStorage.getItem('languageSelect');
       if (!langToLoad) {
         // If no saved language, try to get from user data
-        const userData = await getUserData();
-        setUser(userData);
-        const prefLang = userData?.data?.language_pref?.toLowerCase();
         langToLoad = languageCodeMap[prefLang] || 'EN'; // Map to uppercase or default to EN
         // langToLoad = userData?.data?.preferred_language || 'EN';
       }
@@ -82,7 +84,7 @@ export const LanguageProvider = ({ children }) => {
   }, []);
 
   return (
-    <LanguageContext.Provider value={{ language, languageTexts, changeLanguage, setLanguage, user }}>
+    <LanguageContext.Provider value={{ language, languageTexts, changeLanguage, setLanguage, user, setUser }}>
       {children}
     </LanguageContext.Provider>
   );

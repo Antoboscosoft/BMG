@@ -8,6 +8,8 @@ import {
   View,
   Dimensions,
   ActivityIndicator,
+  Modal,
+  BackHandler,
 } from 'react-native';
 
 import splashImg1 from '../asserts/images/ss1c.jpg';
@@ -56,8 +58,11 @@ function SplashScreen({ navigation }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const flatListRef = useRef();
   const { user } = useContext(LanguageContext);
+  console.log("user", user);
+  
   // smooth slide moovement:
   const scrollX = useRef(new Animated.Value(0)).current;
+  const [showExitModal, setShowExitModal] = useState(false);
 
   const onViewRef = useRef(({ viewableItems }) => {
     if (viewableItems.length > 0) {
@@ -68,6 +73,26 @@ function SplashScreen({ navigation }) {
   const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 50 });
 
   useEffect(() => {
+    const onBackPress = () => {
+      if (navigation.isFocused()) {
+        setShowExitModal(true);
+        return true;
+      }
+      return false;
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, [navigation]); 
+  
+  const handleExitApp = () => {
+    setShowExitModal(false);
+    setTimeout(() => {
+      BackHandler.exitApp();
+    }, 200);
+  };
+
+
+  useEffect(() => {
     const checkTokenAndNavigate = async () => {
       try {
         // Check if token exists in AsyncStorage
@@ -76,7 +101,7 @@ function SplashScreen({ navigation }) {
 
         // Simulate a delay for the splash screen (e.g., 2 seconds)
         setTimeout(() => {
-          if (token && user && Object.keys(user).length > 0) {
+          if (token && user && user?.status) {
             console.log("Token found, navigating to Dashboard");
             navigation.replace('Dashboard');
           } else {
@@ -160,7 +185,7 @@ function SplashScreen({ navigation }) {
         keyExtractor={(item) => item.key}
         scrollEventThrottle={16}
       />
-      {user && Object.keys(user).length === 0 ?
+      {user && (Object.keys(user).length === 0 || user?.status == false) ?
         <>
 
           <View style={styles.dotsContainer}>
@@ -183,6 +208,38 @@ function SplashScreen({ navigation }) {
         </>
         : <ActivityIndicator color="#ffffff" size={'large'} style={[styles.button, {backgroundColor:'transparent'}]} />
       }
+      <Modal
+        visible={showExitModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowExitModal(false)}
+      > 
+        <TouchableOpacity
+          style={[{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }]}
+          activeOpacity={1}
+          onPressOut={() => setShowExitModal(false)}
+        >
+          <View style={[styles.modalOverlay,{ backgroundColor: '#fff', padding: 24, borderRadius: 8, alignItems: 'center', minWidth: 280 }]}>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12, color: '#333' }}>
+              Are you sure you want to close the app?
+            </Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+              <TouchableOpacity
+                style={{ flex: 1, marginRight: 8, padding: 12, borderRadius: 6, backgroundColor: '#eee', alignItems: 'center' }}
+                onPress={() => setShowExitModal(false)}
+              >
+                <Text style={{ color: '#333', fontWeight: 'bold' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ flex: 1, marginLeft: 8, padding: 12, borderRadius: 6, backgroundColor: '#d9534f', alignItems: 'center' }}
+                onPress={handleExitApp}
+              >
+                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Close App</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -270,4 +327,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     marginHorizontal: 6,
   },
-});
+  dotActive: {
+    backgroundColor: '#2753b2',
+  },
+  modalOverlay: {
+    width: '80%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  }, 
+}); 

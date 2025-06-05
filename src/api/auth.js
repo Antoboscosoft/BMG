@@ -327,7 +327,7 @@ function calculateAge(dob) {
 // Add this to your auth.js file
 export const getServiceCategories = async () => {
     try {
-        const response = await axiosInstance.get('category?skip=0&limit=0&type_=SERVICE');
+        const response = await axiosInstance.get('category?skip=0&limit=0&type=SERVICE');
         return response.data;
     } catch (error) {
         console.error("Get Service Categories Error:", error);

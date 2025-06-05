@@ -268,9 +268,9 @@ function EventCalendarPage({ navigation }) {
                 </View>
 
                 <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
-                    <Text style={styles.subtitleText}>
+                    {/* <Text style={styles.subtitleText}>
                         {languageTexts?.eventCalendar?.subtitle || 'View upcoming events and activities.'}
-                    </Text>
+                    </Text> */}
 
                     <View style={styles.calendarContainer}>
                         <Calendar
@@ -434,6 +434,7 @@ const styles = StyleSheet.create({
         textShadowRadius: 3,
     },
     calendarContainer: {
+        marginTop: 20,
         marginHorizontal: 20,
         borderRadius: 10,
         overflow: 'hidden',
