@@ -633,6 +633,8 @@ const RegisterScreen = ({ navigation, route }) => {
             try {
                 const response = await getCountries();
                 setCountries(response.data || []);
+                const countryId = response.data.find(name => name.name === 'India')?.id || '';  
+                setForm(prev => ({ ...prev, currentCountryId: countryId }));
             } catch (error) {
                 console.error("Error fetching countries:", error);
                 Toast.show({
@@ -649,6 +651,9 @@ const RegisterScreen = ({ navigation, route }) => {
         if (route.params?.mobileCode) {
             setCallingCode(route.params?.mobileCode);
             setMobileNumber(route.params?.mobile);
+
+            handleChange('mobileNumber', route.params?.mobile);
+            setErrors(prev => ({ ...prev, mobileNumber: false }));
         }
     }, []);
 

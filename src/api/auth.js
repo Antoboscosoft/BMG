@@ -161,9 +161,9 @@ export const getUserData = async (token) => {
     } catch (error) {
         // console.error("Get User Data Error:", error);
         if (error.response) {
-            console.error("Error response data:", error.response.data);
-            console.error("Error status:", error.response.status);
-            console.error("Error headers:", error.response.headers);
+            // console.error("Error response data:", error.response.data);
+            // console.error("Error status:", error.response.status);
+            // console.error("Error headers:", error.response.headers);
         }
         throw error.response?.data || { message: "Failed to fetch user data" };
     }

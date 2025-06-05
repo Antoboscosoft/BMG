@@ -2,7 +2,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SplashScreen from './src/screens/SplashScreen.js';
 import LoginScreen from './src/screens/LoginScreen.js';
-import React from 'react'
+import React, { createContext, useState } from 'react'
 import ProfileScreen from './src/screens/ProfileScreen.js';
 import DashboardPage from './src/pages/DashboardPage.js';
 import ServicesDirectory from './src/pages/ServicesDirectory.js';
@@ -76,23 +76,23 @@ const toastConfig = {
     building the layout from scratch
   */
   info: (props) => (
-    <View style={{ 
-      width: '90%', 
-      padding: 15, 
+    <View style={{
+      width: '90%',
+      padding: 15,
       backgroundColor: '#d1ecf1',
       borderLeftColor: '#0dcaf0',
       borderLeftWidth: 6,
-      borderRadius: 8 
+      borderRadius: 8
     }}>
-      <Text style={{ 
-        fontSize: 16, 
+      <Text style={{
+        fontSize: 16,
         fontWeight: 'bold',
         color: '#0c5460',
-        marginBottom: 4 
+        marginBottom: 4
       }}>
         {props.text1}
       </Text>
-      <Text style={{ 
+      <Text style={{
         fontSize: 14,
         color: '#0c5460'
       }}>
@@ -103,42 +103,46 @@ const toastConfig = {
 };
 
 const Stack = createNativeStackNavigator();
+export const ContextProps = createContext(null);
 
 function App() {
+  const [appUpdate, setAppUpdate] = useState(true);
   return (
     <LanguageProvider>
-    <NavigationContainer ref={navigationRef}>
-      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Dashboard" component={DashboardPage} />
-        <Stack.Screen name="Splash" component={SplashScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen name="Profile" component={ProfileScreen} />
-        <Stack.Screen name="ProfileEdit" component={ProfileEdit} />
-        <Stack.Screen name="ServicesDirectory" component={ServicesDirectory} />
-        <Stack.Screen name="CreateService" component={CreateService} />
-        <Stack.Screen name="MultilingualSupport" component={MultilingualSupportPage} />
-        <Stack.Screen name="Notifications" component={NotificationsPage} />
-        <Stack.Screen name="HelpRequest" component={HelpRequestPage} />
-        <Stack.Screen name="EventCalendar" component={EventCalendarPage} />
-        <Stack.Screen name="CreateRegister" component={CreateRegister} options={{ title: 'Create Register' }} />
+      <ContextProps.Provider value={{appUpdate, setAppUpdate}}>
+        <NavigationContainer ref={navigationRef}>
+          <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Dashboard" component={DashboardPage} />
+            <Stack.Screen name="Splash" component={SplashScreen} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="Profile" component={ProfileScreen} />
+            <Stack.Screen name="ProfileEdit" component={ProfileEdit} />
+            <Stack.Screen name="ServicesDirectory" component={ServicesDirectory} />
+            <Stack.Screen name="CreateService" component={CreateService} />
+            <Stack.Screen name="MultilingualSupport" component={MultilingualSupportPage} />
+            <Stack.Screen name="Notifications" component={NotificationsPage} />
+            <Stack.Screen name="HelpRequest" component={HelpRequestPage} />
+            <Stack.Screen name="EventCalendar" component={EventCalendarPage} />
+            <Stack.Screen name="CreateRegister" component={CreateRegister} options={{ title: 'Create Register' }} />
 
-        <Stack.Screen name="CreateEventPage" component={CreateEventPage} options={{ title: 'Create Event Page' }} />
+            <Stack.Screen name="CreateEventPage" component={CreateEventPage} options={{ title: 'Create Event Page' }} />
 
-        <Stack.Screen name="MigrantsList" component={MigrantsList} />
-        <Stack.Screen name="ProfileView" component={ProfileView} />
-        <Stack.Screen name="CreateEvent" component={CreateEvent} options={{ title: 'Create Event' }} />
-        <Stack.Screen name="NewsList"  component={NewsList} options={{ title: 'News' }} />
-        <Stack.Screen name="NewsDetail" component={NewsDetail} options={{ title: 'News Detail' }} />
-        <Stack.Screen name="CreateNews" component={CreateNews} options={{ title: 'Create News' }} />
+            <Stack.Screen name="MigrantsList" component={MigrantsList} />
+            <Stack.Screen name="ProfileView" component={ProfileView} />
+            <Stack.Screen name="CreateEvent" component={CreateEvent} options={{ title: 'Create Event' }} />
+            <Stack.Screen name="NewsList" component={NewsList} options={{ title: 'News' }} />
+            <Stack.Screen name="NewsDetail" component={NewsDetail} options={{ title: 'News Detail' }} />
+            <Stack.Screen name="CreateNews" component={CreateNews} options={{ title: 'Create News' }} />
 
-        {/* <Stack.Screen name="WorkersList" component={WorkersScreen} options={{ title: 'Workers List' }} /> */}
-        <Stack.Screen name="ContactUs" component={ContactUs} options={{ title: 'Contact Us' }} />
+            {/* <Stack.Screen name="WorkersList" component={WorkersScreen} options={{ title: 'Workers List' }} /> */}
+            <Stack.Screen name="ContactUs" component={ContactUs} options={{ title: 'Contact Us' }} />
 
-      </Stack.Navigator>
-      {/* <Toast config={toastConfig} /> */}
-    </NavigationContainer>
-    <NetworkStatus /> {/* Add NetworkStatus here */}
+          </Stack.Navigator>
+          {/* <Toast config={toastConfig} /> */}
+        </NavigationContainer>
+        <NetworkStatus />
+      </ContextProps.Provider>
     </LanguageProvider>
   )
 }

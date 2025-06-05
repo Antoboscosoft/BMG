@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import {
   Dimensions,
   ImageBackground,
@@ -26,8 +26,8 @@ import { setAuthToken } from "../api/axiosInstance";
 import { Controller, useForm } from "react-hook-form";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import BackIcon from 'react-native-vector-icons/MaterialIcons';
-import VersionCheck from 'react-native-version-check';
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ContextProps } from "../../App";
+import { checkAppVersion } from "../context/utils";
 // import OtpInputs from 'react-native-otp-inputs';
 // import RNOtpVerify from 'react-native-otp-verify';
 
@@ -37,7 +37,7 @@ const OTP_TIMEOUT = 30;
 function LoginScreen({ navigation }) {
   // Tab state
   const [activeTab, setActiveTab] = useState("migrants");
-
+  const {appUpdate, setAppUpdate}= useContext(ContextProps);
   // Migrants login state
   const [mobile, setMobile] = useState("");
   const [otp, setOtp] = useState("");
@@ -98,29 +98,6 @@ function LoginScreen({ navigation }) {
   //     return () => RNOtpVerify.removeListener();
   //   }
   // }, []);
-
-  const checkAppVersion = async () => {
-    const isNeeded = await VersionCheck.needUpdate();
-    const update = await AsyncStorage.getItem('update');
-    console.log(update, 'update', isNeeded);
-    if (isNeeded?.isNeeded && update !== 'false') {
-      AsyncStorage.setItem('update', 'false');
-      Alert.alert(
-        "Update Available",
-        "A new version of the app is available. Please update to continue.",
-        [
-          {
-            text: "Update Now",
-            onPress: () => Linking.openURL(isNeeded.storeUrl),
-          },
-          {
-            text: "Later",
-            style: "cancel"
-          }
-        ]
-      );
-    }
-  };
 
   // Add this effect when error occurs
   useEffect(() => {
@@ -700,7 +677,7 @@ function LoginScreen({ navigation }) {
 
 
   useEffect(() => {
-    checkAppVersion();
+    checkAppVersion(appUpdate, setAppUpdate);
   }, [])
 
   return (

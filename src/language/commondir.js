@@ -2,12 +2,12 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserData } from '../api/auth';
 
-const LanguageContext = createContext();
+export const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
   const [language, setLanguage] = useState('EN'); // Default language is English
   const [languageTexts, setLanguageTexts] = useState({});
-
+  const [user, setUser]= useState();
   
   // Map lowercase language_pref to uppercase language codes
   const languageCodeMap = {
@@ -25,6 +25,7 @@ export const LanguageProvider = ({ children }) => {
       if (!langToLoad) {
         // If no saved language, try to get from user data
         const userData = await getUserData();
+        setUser(userData);
         const prefLang = userData?.data?.language_pref?.toLowerCase();
         langToLoad = languageCodeMap[prefLang] || 'EN'; // Map to uppercase or default to EN
         // langToLoad = userData?.data?.preferred_language || 'EN';
@@ -32,6 +33,7 @@ export const LanguageProvider = ({ children }) => {
       setLanguage(langToLoad);
       await updateLanguageTexts(langToLoad);
     } catch (error) {
+      setUser({});
       // console.error('Failed to load language:', error);
       // Fallback to English
       setLanguage('EN');
@@ -80,7 +82,7 @@ export const LanguageProvider = ({ children }) => {
   }, []);
 
   return (
-    <LanguageContext.Provider value={{ language, languageTexts, changeLanguage, setLanguage }}>
+    <LanguageContext.Provider value={{ language, languageTexts, changeLanguage, setLanguage, user }}>
       {children}
     </LanguageContext.Provider>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import {
   Animated,
   Image,
@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
   Dimensions,
-  FlatList,
+  ActivityIndicator,
 } from 'react-native';
 
 import splashImg1 from '../asserts/images/ss1c.jpg';
@@ -16,6 +16,7 @@ import splashImg3 from '../asserts/images/spss4c.jpg';
 import splashImg4 from '../asserts/images/ss2c.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FastImage from 'react-native-fast-image';
+import { LanguageContext } from '../language/commondir';
 
 const { width, height } = Dimensions.get('window');
 
@@ -54,6 +55,7 @@ function SplashScreen({ navigation }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const flatListRef = useRef();
+  const { user } = useContext(LanguageContext);
   // smooth slide moovement:
   const scrollX = useRef(new Animated.Value(0)).current;
 
@@ -74,7 +76,7 @@ function SplashScreen({ navigation }) {
 
         // Simulate a delay for the splash screen (e.g., 2 seconds)
         setTimeout(() => {
-          if (token) {
+          if (token && user && Object.keys(user).length > 0) {
             console.log("Token found, navigating to Dashboard");
             navigation.replace('Dashboard');
           } else {
@@ -91,7 +93,7 @@ function SplashScreen({ navigation }) {
     };
 
     checkTokenAndNavigate();
-  }, [navigation]);
+  }, [navigation, user]);
 
   useEffect(() => {
     // Fade-in animation on slide change
@@ -121,10 +123,10 @@ function SplashScreen({ navigation }) {
     <View style={styles.slide}>
       {/* <Image source={item.image} style={styles.logo} resizeMode="cover" /> */}
       <FastImage
-      source={item.image}
-      style={styles.logo}
-      resizeMode={FastImage.resizeMode.cover}
-    />
+        source={item.image}
+        style={styles.logo}
+        resizeMode={FastImage.resizeMode.cover}
+      />
       <View style={styles.overlay} />
       <View style={styles.bottomContainer}>
         <Text style={styles.titleTexttop}>{item.titleTop}</Text>
@@ -133,6 +135,8 @@ function SplashScreen({ navigation }) {
     </View>
   );
 
+  console.log("user", user);
+  
   const currentSlide = slides[currentIndex];
 
   return (
@@ -156,24 +160,29 @@ function SplashScreen({ navigation }) {
         keyExtractor={(item) => item.key}
         scrollEventThrottle={16}
       />
+      {user && Object.keys(user).length === 0 ?
+        <>
 
-      <View style={styles.dotsContainer}>
-        {slides.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.dot,
-              { opacity: currentIndex === index ? 1 : 0.4 },
-            ]}
-          />
-        ))}
-      </View>
+          <View style={styles.dotsContainer}>
+            {slides.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.dot,
+                  { opacity: currentIndex === index ? 1 : 0.4 },
+                ]}
+              />
+            ))}
+          </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleNext}>
-        <Text style={styles.buttonText}>
-          {currentIndex === slides.length - 1 ? 'Get Started' : 'Next'}
-        </Text>
-      </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleNext}>
+            <Text style={styles.buttonText}>
+              {currentIndex === slides.length - 1 ? 'Get Started' : 'Next'}
+            </Text>
+          </TouchableOpacity>
+        </>
+        : <ActivityIndicator color="#ffffff" size={'large'} style={[styles.button, {backgroundColor:'transparent'}]} />
+      }
     </View>
   );
 }

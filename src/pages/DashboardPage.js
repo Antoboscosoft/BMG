@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
     Animated,
     Dimensions,
@@ -21,10 +21,13 @@ import { clearAuthToken } from '../api/axiosInstance';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { useLanguage } from '../language/commondir';
+import { checkAppVersion } from '../context/utils';
+import { ContextProps } from '../../App';
 
 const { width, height } = Dimensions.get('window');
 
 function DashboardPage({ navigation, route }) {
+    const {appUpdate, setAppUpdate}= useContext(ContextProps);
     const { languageTexts, language } = useLanguage();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const slideAnim = useState(new Animated.Value(-250))[0];
@@ -158,6 +161,9 @@ function DashboardPage({ navigation, route }) {
     ).current;
 
     useEffect(() => {
+        // check update
+        checkAppVersion(appUpdate, setAppUpdate);
+
         const fetchUserData = async () => {
             try {
                 const token = await AsyncStorage.getItem('accessToken');
