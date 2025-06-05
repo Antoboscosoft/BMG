@@ -251,6 +251,8 @@ function ProfileEdit({ navigation, route }) {
             setLoadingJobTypes(true);
             try {
                 const response = await getJobTypes();
+                console.log("response.data", response.data);
+
                 setJobTypes(response.data || []);
             } catch (error) {
                 Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to load job types' });
@@ -389,7 +391,7 @@ function ProfileEdit({ navigation, route }) {
         });
     };
 
-    const goBack = () => {  
+    const goBack = () => {
         navigation.goBack();
     };
 
@@ -497,10 +499,21 @@ function ProfileEdit({ navigation, route }) {
                                         onPress={() => handleSelect(item.id)}
                                         activeOpacity={0.7}
                                     >
-                                        <Text style={styles.whiteModalItemText}>{item.name || item.id}</Text>
-                                        {selectedValues.includes(item.id) && (
-                                            <Icon name="check" size={18} color="#007AFF" style={styles.tickIcon} />
-                                        )}
+                                        <View style={styles.itemContentContainer}>
+                                            {item.icon && (
+                                                <Image
+                                                    source={{ uri: item.icon }}
+                                                    style={{ width: 22, height: 22, marginRight: 10, borderRadius: 4 }}
+                                                    resizeMode="contain"
+                                                />
+                                            )}
+                                            <View style={styles.textContainer}>
+                                                <Text style={styles.whiteModalItemText}>{item.name || item.id}</Text>
+                                            </View>
+                                            {selectedValues.includes(item.id) && (
+                                                <Icon name="check" size={18} color="#ffffff" style={styles.tickIcon} />
+                                            )}
+                                        </View>
                                     </TouchableOpacity>
                                 )}
                                 ListEmptyComponent={
@@ -1054,15 +1067,15 @@ function ProfileEdit({ navigation, route }) {
                                             const selected = jobTypes.filter(j => ids.includes(j.id));
                                             onChange(selected);
                                         }}
-                                        error={errors.job_type?.message}
+                                        // error={errors.job_type?.message}
                                         disabled={loadingJobTypes}
                                         loading={loadingJobTypes}
-                                        isMandatory={true}
-                                        validateField={() => {}}
+                                        isMandatory={false}
+                                        validateField={() => { }}
                                     />
                                 )}
                                 name="job_type"
-                                rules={{ required: languageTexts?.profile?.edit?.error?.jobType || 'At least one job type is required' }}
+                                // rules={{ required: languageTexts?.profile?.edit?.error?.jobType || 'At least one job type is required' }}
                             />
                         </View>
                         {errors.job_type && (
@@ -1084,15 +1097,15 @@ function ProfileEdit({ navigation, route }) {
                                             const selected = skills.filter(s => ids.includes(s.id));
                                             onChange(selected);
                                         }}
-                                        error={errors.skills?.message}
+                                        // error={errors.skills?.message}
                                         disabled={!watch('job_type') || watch('job_type').length === 0 || loadingSkills}
                                         loading={loadingSkills}
-                                        isMandatory={true}
-                                        validateField={() => {}}
+                                        isMandatory={false}
+                                        validateField={() => { }}
                                     />
                                 )}
                                 name="skills"
-                                rules={{ required: languageTexts?.profile?.edit?.error?.skills || 'At least one skill is required' }}
+                                // rules={{ required: languageTexts?.profile?.edit?.error?.skills || 'At least one skill is required' }}
                             />
                         </View>
                         {errors.skills && (
@@ -1344,13 +1357,39 @@ const styles = StyleSheet.create({
         marginLeft: 10,
     },
     whiteModalItem: {
-        backgroundColor: '#F5F5F5',
-        padding: 12,
-        borderRadius: 8,
+        // backgroundColor: '#F5F5F5',
+        // padding: 12,
+        // borderRadius: 8,
+        // flexDirection: 'row',
+        // justifyContent: 'space-between',
+        // alignItems: 'center',
+        // marginBottom: 10,
+
+        // flexDirection: 'row',
+        // justifyContent: 'center', // Center the entire row content
+        // alignItems: 'center',
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+        backgroundColor: '#fff',
+    },
+    itemContentContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 10,
+        justifyContent: 'space-between', // Ensure children are centered within this container
+    },
+    itemIcon: {
+        width: 22,
+        height: 22,
+        borderRadius: 4,
+        marginRight: 10,
+    },
+    textContainer: {
+        flex: 1, // Take remaining space between icon and tick
+        marginLeft: 10,
+        alignItems: 'flex-start', // Center text horizontally within this container
+        justifyContent: 'center',
     },
     selectedItem: {
         backgroundColor: '#007AFF',
@@ -1358,14 +1397,24 @@ const styles = StyleSheet.create({
     whiteModalItemText: {
         color: '#333',
         fontSize: 16,
+        fontWeight: '500',
+        // marginRight: 10,
+        textAlign: 'left', // Center text within its container
+        flexWrap: 'wrap',
     },
     tickIcon: {
         marginLeft: 10,
     },
     whiteEmptyText: {
-        color: '#666',
+        // color: '#666',
+        // textAlign: 'center',
+        // padding: 20,
+
         textAlign: 'center',
+        color: '#888',
+        fontSize: 16,
         padding: 20,
+        fontStyle: 'italic',
     },
 });
 

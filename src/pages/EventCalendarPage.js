@@ -28,9 +28,9 @@ function EventCalendarPage({ navigation }) {
     const [events, setEvents] = useState({});
     const route = useRoute();
 
-//     const userData = route.params?.userData || null; // Assuming userData is passed from the previous screen
-//     const isSuperAdmin = userData?.data?.role?.name === "Super Admin" || userData?.data?.role?.name === "Admin";
-// console.log('User Data:', isSuperAdmin);
+    //     const userData = route.params?.userData || null; // Assuming userData is passed from the previous screen
+    //     const isSuperAdmin = userData?.data?.role?.name === "Super Admin" || userData?.data?.role?.name === "Admin";
+    // console.log('User Data:', isSuperAdmin);
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
     const stripHtmlTags = (html) => {
@@ -66,12 +66,19 @@ function EventCalendarPage({ navigation }) {
 
     const markedDates = Object.keys(events).reduce((acc, date) => {
         acc[date] = { marked: true, dotColor: '#2753b2' };
-        if (date === selectedDate) {
-            acc[date].selected = true;
-            acc[date].selectedColor = '#2753b2';
-        }
+        // if (date === selectedDate) {
+        //     acc[date].selected = true;
+        //     acc[date].selectedColor = '#2753b2';
+        // }
         return acc;
     }, {});
+    if (selectedDate) {
+        if (!markedDates[selectedDate]) {
+            markedDates[selectedDate] = {};
+        }
+        markedDates[selectedDate].selected = true;
+        markedDates[selectedDate].selectedColor = '#2753b2';
+    }
 
     // Configure calendar locale based on language
     useEffect(() => {
@@ -242,22 +249,22 @@ function EventCalendarPage({ navigation }) {
                         {languageTexts?.menu?.eventCalendar || 'Event Calendar'}
                     </Text>
                     {/* <View style={{ width: 60 }} /> */}
-                    { isSuperAdmin ?
-                    (
-                    <TouchableOpacity
-                        style={styles.createButton}
-                        onPress={() => navigation.navigate('CreateEvent')}
-                    >
-                        {/* <Icon name="add-circle" size={24} color="#ffffff" /> */}
-                        <Image
-                            source={require('../asserts/images/calendar1.png')}
-                            style={{ width: 24, height: 24, tintColor: '#ffffff' }}
-                        />
-                        {/* <Icon name="add-circle" size={24} color="#ffffff" /> */}
-                    </TouchableOpacity>
-                    ) : (
-                        <View style={{ width: 60 }} />
-                    )}
+                    {isSuperAdmin ?
+                        (
+                            <TouchableOpacity
+                                style={styles.createButton}
+                                onPress={() => navigation.navigate('CreateEvent')}
+                            >
+                                {/* <Icon name="add-circle" size={24} color="#ffffff" /> */}
+                                <Image
+                                    source={require('../asserts/images/calendar1.png')}
+                                    style={{ width: 24, height: 24, tintColor: '#ffffff' }}
+                                />
+                                {/* <Icon name="add-circle" size={24} color="#ffffff" /> */}
+                            </TouchableOpacity>
+                        ) : (
+                            <View style={{ width: 60 }} />
+                        )}
                 </View>
 
                 <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
@@ -397,7 +404,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         zIndex: 1,
     },
-     createButton: {
+    createButton: {
         paddingVertical: 6,
         paddingHorizontal: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',

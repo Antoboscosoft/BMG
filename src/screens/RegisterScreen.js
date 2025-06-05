@@ -191,7 +191,7 @@ const MultiSelectDropdown = ({
         <View style={styles.inputContainer}>
             <View style={styles.labelContainer}>
                 <Text style={styles.label}>{label}</Text>
-                {isMandatory && <Text style={styles.mandatoryIndicator}>*</Text>}
+                {/* {isMandatory && <Text style={styles.mandatoryIndicator}>*</Text>} */}
             </View>
             {loading ? (
                 <ActivityIndicator size="small" color="#007AFF" />
@@ -200,7 +200,7 @@ const MultiSelectDropdown = ({
                     <TouchableOpacity
                         style={[
                             styles.dropdownInput,
-                            error && styles.errorInput,
+                            // error && styles.errorInput,
                             disabled && styles.disabledInput,
                         ]}
                         onPress={() => !disabled && setModalVisible(true)}
@@ -213,7 +213,7 @@ const MultiSelectDropdown = ({
                         </Text>
                         <Icon name="chevron-down" size={16} color="#666" />
                     </TouchableOpacity>
-                    {error && <Text style={styles.errorText}>{error}</Text>}
+                    {/* {error && <Text style={styles.errorText}>{error}</Text>} */}
                 </>
             )}
             {/* Multi-Select Modal */}
@@ -256,7 +256,17 @@ const MultiSelectDropdown = ({
                                     onPress={() => handleSelect(item.id)}
                                     activeOpacity={0.7}
                                 >
-                                    <Text style={styles.modalItemText}>{item.name}</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        {item.icon && (
+                                            <Image
+                                                source={{ uri: item.icon }}
+                                                style={{ width: 22, height: 22, marginRight: 10, borderRadius: 4 }}
+                                                resizeMode="contain"
+                                            />
+                                        )}
+                                        <Text style={styles.modalItemText}>{item.name}</Text>
+                                    </View>
+                                    {/* <Text style={styles.modalItemText}>{item.name}</Text> */}
                                     {selectedValues.includes(item.id) && (
                                         <Icon name="check" size={18} color="#007AFF" style={styles.tickIcon} />
                                     )}
@@ -525,7 +535,7 @@ const RegisterScreen = ({ navigation, route }) => {
             const fm = new FormData();
             fm.append("user", JSON.stringify(registrationData));
             console.log("Registration Data:", registrationData);
-            
+
             // Append profile photo (mandatory)
             fm.append("profile", {
                 uri: form.photo,
@@ -633,8 +643,6 @@ const RegisterScreen = ({ navigation, route }) => {
             try {
                 const response = await getCountries();
                 setCountries(response.data || []);
-                const countryId = response.data.find(name => name.name === 'India')?.id || '';  
-                setForm(prev => ({ ...prev, currentCountryId: countryId }));
             } catch (error) {
                 console.error("Error fetching countries:", error);
                 Toast.show({
@@ -651,9 +659,6 @@ const RegisterScreen = ({ navigation, route }) => {
         if (route.params?.mobileCode) {
             setCallingCode(route.params?.mobileCode);
             setMobileNumber(route.params?.mobile);
-
-            handleChange('mobileNumber', route.params?.mobile);
-            setErrors(prev => ({ ...prev, mobileNumber: false }));
         }
     }, []);
 
@@ -793,12 +798,12 @@ const RegisterScreen = ({ navigation, route }) => {
             case 'currentDistrictId':
                 if (!value) error = 'District is required';
                 break;
-            case 'jobType':
-                if (!value || value.length === 0) error = 'At least one job type is required';
-                break;
-            case 'skills':
-                if (!value || value.length === 0) error = 'At least one skill is required';
-                break;
+            // case 'jobType':
+            //     if (!value || value.length === 0) error = 'At least one job type is required';
+            //     break;
+            // case 'skills':
+            //     if (!value || value.length === 0) error = 'At least one skill is required';
+            //     break;
             case 'photo':
                 if (!value) error = 'Profile photo is required';
                 break;
@@ -830,8 +835,8 @@ const RegisterScreen = ({ navigation, route }) => {
             currentCountryId: '',
             currentStateId: '',
             currentDistrictId: '',
-            jobType: '',
-            skills: '',
+            // jobType: '',
+            // skills: '',
         };
 
         let isValid = true;
@@ -869,14 +874,14 @@ const RegisterScreen = ({ navigation, route }) => {
             isValid = false;
         }
 
-        if (form.jobType.length === 0) {
-            newErrors.jobType = 'At least one job type is required';
-            isValid = false;
-        }
-        if (form.skills.length === 0) {
-            newErrors.skills = 'At least one skill is required';
-            isValid = false;
-        }
+        // if (form.jobType.length === 0) {
+        //     newErrors.jobType = 'At least one job type is required';
+        //     isValid = false;
+        // }
+        // if (form.skills.length === 0) {
+        //     newErrors.skills = 'At least one skill is required';
+        //     isValid = false;
+        // }
 
         if (!form.photo) {
             newErrors.photo = 'Profile photo is required';
@@ -1375,7 +1380,7 @@ const RegisterScreen = ({ navigation, route }) => {
                                 handleChange('jobType', values);
                                 setTouched((prev) => ({ ...prev, jobTypes: true }));
                             }}
-                            error={touched.jobType && errors.jobType} //
+                            // error={touched.jobType && errors.jobType} //
                             disabled={false}
                             loading={loadingJobTypes}
                             isMandatory={true}
@@ -1389,7 +1394,7 @@ const RegisterScreen = ({ navigation, route }) => {
                             data={skills}
                             selectedValues={form.skills}
                             onSelect={(values) => handleChange('skills', values)}
-                            error={touched.skills && errors.skills}
+                            // error={touched.skills && errors.skills}
                             disabled={form.jobType.length === 0}
                             loading={loadingSkills}
                             isMandatory={true}
