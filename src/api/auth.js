@@ -327,7 +327,7 @@ function calculateAge(dob) {
 // Add this to your auth.js file
 export const getServiceCategories = async () => {
     try {
-        const response = await axiosInstance.get('category?skip=0&limit=0&type=SERVICE');
+        const response = await axiosInstance.get('category?skip=0&limit=0&type_=SERVICE');
         return response.data;
     } catch (error) {
         console.error("Get Service Categories Error:", error);
@@ -335,6 +335,49 @@ export const getServiceCategories = async () => {
     }
 };
 
+export const getServiceMyRequest = async (categoryId) => {
+    try {
+        const response = await axiosInstance.get(`service_my_requests?category_id=${categoryId}&skip=0&limit=0`);
+        return response.data;
+    } catch (error) {
+        console.error("Get Service My Request Error:", error);
+        throw error.response?.data || { message: "Failed to fetch service my request" };
+    }
+}
+
+export const getServiceRequest = async (categoryId) => {
+    try {
+        const response = await axiosInstance.get(`service_requests?skip=${skip}&limit=${limit}`);
+        return response.data;
+    } catch (error) {
+        console.error("Get Service My Request Error:", error);
+        throw error.response?.data || { message: "Failed to fetch service my request" };
+    }
+}
+
+
+// Function to get service requests based on user role
+export const getServiceRequests = async (role, categoryId = null, skip = 0, limit = 0) => {
+    console.log("Fetching service requests for role:", role);
+    try {
+        let endpoint;
+        if (role === 'MIGRANT') {
+            endpoint = `service_my_requests?${categoryId ? `&category_id=${categoryId}&skip=${skip}&limit=${limit}` : ''}`;
+
+        } else if (role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'STAFF') {
+            endpoint = `service_requests?skip=${skip}&limit=${limit}&category_id=${categoryId}`;
+
+        } else {
+            throw new Error('Invalid user role');
+        }
+        console.log(`Fetching service requests with endpoint: ${endpoint}`);
+        const response = await axiosInstance.get(endpoint);
+        return response.data;
+    } catch (error) {
+        console.error("Get Service Requests Error:", error);
+        throw error.response?.data || { message: "Failed to fetch service requests" };
+    }
+};
 
 // Function to create a service request
 export const createServiceRequest = async (serviceData) => {
@@ -345,6 +388,22 @@ export const createServiceRequest = async (serviceData) => {
     } catch (error) {
         console.error("Create Service Request Error:", error);
         throw error.response?.data || { message: "Failed to create service request" };
+    }
+};
+
+// Function to update service status
+export const updateServiceStatus = async (serviceId, status) => {
+    try {
+        console.log(`Updating service status for service ID ${serviceId} to ${status}`);
+        const response = await axiosInstance.put(`service/${serviceId}/status?status=${status}`, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Update Service Status Error:", error);
+        throw error.response?.data || { message: "Failed to update service status" };
     }
 };
 

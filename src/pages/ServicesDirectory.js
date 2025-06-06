@@ -30,7 +30,8 @@ function ServicesDirectory({ navigation }) {
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
+    console.log("services >>>> ", services);
+    
     useEffect(() => {
         const fetchServices = async () => {
             try {
@@ -100,7 +101,10 @@ function ServicesDirectory({ navigation }) {
                         onPress={() => handleApply(item, isApplied)}
                         activeOpacity={0.8}
                     >
-                        <Text style={[isApplied ? styles.appliedButtonText : styles.applyButtonText]}>{isApplied ? languageTexts?.servicesDirectory?.applied || 'Applied' : languageTexts?.servicesDirectory?.apply || 'Apply'}</Text>
+                        <Text style={[isApplied ? styles.appliedButtonText : styles.applyButtonText]}>
+                            {/* {isApplied ? languageTexts?.servicesDirectory?.applied || 'Applied' : languageTexts?.servicesDirectory?.apply || 'Apply'} */}
+                            View
+                            </Text>
                     </TouchableOpacity>
                 ) : (
                     <View style={styles.disabledButton}>
@@ -179,7 +183,8 @@ function ServicesDirectory({ navigation }) {
             isApplied: isApplied,
             requested_user_id: isApplied ? service?.services?.requested_user_id : null
         };
-        navigation.navigate('CreateService', { serviceData });
+        // navigation.navigate('CreateService', { serviceData });
+        navigation.navigate('CategoryServices', { serviceData });
     };
 
 

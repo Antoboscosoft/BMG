@@ -28,6 +28,7 @@ import NewsDetail from './src/pages/news/NewsDetail.js';
 import CreateNews from './src/pages/news/CreateNews.js';
 // import WorkersScreen from './src/pages/news/WorkersScreen.js';
 import ContactUs from './src/pages/contactus/ContactUs.js';
+import CategotryServices from './src/pages/CategotryServices.js';
 
 
 // Custom Toast configuration
@@ -120,6 +121,8 @@ function App() {
             <Stack.Screen name="ProfileEdit" component={ProfileEdit} />
             <Stack.Screen name="ServicesDirectory" component={ServicesDirectory} />
             <Stack.Screen name="CreateService" component={CreateService} />
+            <Stack.Screen name="CategoryServices" component={CategotryServices} />
+
             <Stack.Screen name="MultilingualSupport" component={MultilingualSupportPage} />
             <Stack.Screen name="Notifications" component={NotificationsPage} />
             <Stack.Screen name="HelpRequest" component={HelpRequestPage} />

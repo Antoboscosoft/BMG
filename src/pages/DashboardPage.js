@@ -49,11 +49,12 @@ function DashboardPage({ navigation, route }) {
     const dashboardMenuItems = [
         { id: '6', name: 'profile', screen: 'Profile', icon: 'account' },
         { id: '1', name: 'eventCalendar', screen: 'EventCalendar', icon: 'calendar-month' },
-        // { id: '2', name: 'servicesDirectory', screen: 'ServicesDirectory', icon: 'handshake' },
+        { id: '2', name: 'servicesDirectory', screen: 'ServicesDirectory', icon: 'handshake' },
         { id: '3', name: 'notifications', screen: 'Notifications', icon: 'bell-outline' },
         { id: '4', name: 'multilingualSupport', screen: 'MultilingualSupport', icon: 'translate' },
         { id: '7', name: 'migrants', screen: 'MigrantsList', icon: 'account-group' },
         { id: '8', name: 'news', screen: 'NewsList', icon: 'newspaper' },
+        { id: '9', name: 'helpRequest', screen: 'HelpRequest', icon: 'help' },
     ];
 
     // Use asyncStorage to setItem for role which user has logged in:
@@ -202,9 +203,10 @@ function DashboardPage({ navigation, route }) {
                 }
                 setLoading(true);
                 const data = await getUserData();
-                console.log("Fetched User Data:1", data);
+                // console.log("Fetched User Data:1", data);
                 
                 setUserData(data);
+                setUser(data)
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
                 Toast.show({
