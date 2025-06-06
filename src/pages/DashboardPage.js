@@ -25,7 +25,7 @@ import { clearAuthToken } from '../api/axiosInstance';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { LanguageContext, useLanguage } from '../language/commondir';
-import { checkAppVersion } from '../context/utils';
+import { appVersion, checkAppVersion } from '../context/utils';
 import { ContextProps } from '../../App';
 
 const { width, height } = Dimensions.get('window');
@@ -427,7 +427,7 @@ function DashboardPage({ navigation, route }) {
                     </TouchableOpacity>
 
                     <View style={styles.sidebarVersionContainer}>
-                        <Text style={styles.sidebarVersionText}>V1.4</Text>
+                        <Text style={styles.sidebarVersionText}>{appVersion}</Text>
                     </View>
                 </Animated.View>
             </LinearGradient>

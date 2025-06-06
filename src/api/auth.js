@@ -154,7 +154,7 @@ export const registerUser = async (userData) => {
 // Updated Function to get user data using axiosInstance
 export const getUserData = async (token) => {
     try {
-        console.log("Making request to /user/me with token:", token);
+        // console.log("Making request to /user/me with token:", token);
         const response = await axiosInstance.get('user/me');
         console.log("Get User Data Response:", response.data);
         return response.data;
@@ -376,6 +376,84 @@ export const getServiceRequests = async (role, categoryId = null, skip = 0, limi
     } catch (error) {
         console.error("Get Service Requests Error:", error);
         throw error.response?.data || { message: "Failed to fetch service requests" };
+    }
+};
+
+// 
+export const getHelpCategories = async () => {
+    try {
+        const response = await axiosInstance.get('category?skip=0&limit=0&type_=HELP');
+        return response.data;
+    } catch (error) {
+        console.error("Get Service Categories Error:", error);
+        throw error.response?.data || { message: "Failed to fetch service categories" };
+    }
+};
+
+// getHelpRequestsByCategory
+export const getHelpRequestsByCategory = async (categoryId, userId) => {
+    try {
+        const response = await axiosInstance.get(`helprequests?category_id=${categoryId}&user_id=${userId}&skip=0&limit=0`);
+        return response.data;
+    } catch (error) {
+        console.error("Get Help Service Categories Error:", error);
+        throw error.response?.data || { message: "Failed to fetch service categories" };
+    }
+};
+
+// createHelpRequest
+export const createHelpRequest1 = async (helpData) => {
+    try {
+        console.log("Creating help request with data:", helpData);
+        const response = await axiosInstance.post('helprequests', helpData);
+        return response.data;
+    } catch (error) {
+        console.error("Create Help Request Error:", error);
+        throw error.response?.data || { message: "Failed to create help request" };
+    }
+};
+
+export const createHelpRequest = async (helpData) => {
+    try {
+        console.log("Creating help request with data:", helpData);
+        console.log("Request URL:", 'helprequests');
+        console.log("Request Method:", 'POST');
+        const response = await axiosInstance.post('helprequests/', helpData, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        console.log("Response:", response.data);
+        return response.data;
+    } catch (error) {
+        console.log("Error Response:", error);
+        
+        // console.error("Create Help Request Error:", error);
+        // console.error("Error Response:", error.response?.data);
+        // console.error("Error Status:", error.response?.status);
+        // console.error("Error Headers:", error.response?.headers);
+        throw error.response?.data || { message: "Failed to create help request" };
+    }
+};
+
+
+// Fetch help request status options
+export const getHelpRequestStatusOptions = async () => {
+    try {
+        const response = await axiosInstance.get('options?option_type=HELPREQUESTSTATUS');
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || { message: 'Failed to fetch help request status options' };
+    }
+};
+
+// Update help request status
+export const updateHelpRequestStatus = async (requestId, status) => {
+    try {
+        const response = await axiosInstance.put(`helprequests/request/${requestId}?status=${status}`);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || { message: 'Failed to update help request status' };
     }
 };
 

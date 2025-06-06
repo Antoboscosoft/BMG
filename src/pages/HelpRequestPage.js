@@ -5,20 +5,18 @@ import {
     StyleSheet,
     TouchableOpacity,
     Animated,
-    ScrollView,
+    FlatList,
+    ActivityIndicator,
+    Modal,
     TextInput,
     Alert,
-    Modal,
-    FlatList,
     SafeAreaView
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import moment from 'moment';
 import { useLanguage } from '../language/commondir';
-
-
+import { getHelpCategories } from '../api/auth';
 
 const statusOptions = [
     { label: 'Pending', value: 'Pending' },
@@ -26,20 +24,15 @@ const statusOptions = [
     { label: 'Resolved', value: 'Resolved' },
 ];
 
-// Sample data for the list
-const sampleRequests = [
-    { id: '1', category: 'Legal Assistance', description: 'Need help with visa documentation', status: 'Pending', createdAt: moment().subtract(2, 'hours').toDate() },
-    { id: '2', category: 'Job Support', description: 'Looking for IT job opportunities', status: 'In Progress', createdAt: moment().subtract(1, 'day').toDate() },
-    { id: '3', category: 'Health Services', description: 'Need information about local hospitals', status: 'Resolved', createdAt: moment().subtract(3, 'days').toDate() },
-];
-
 function HelpRequestPage({ navigation }) {
-    const { languageTexts } = useLanguage();
-    const [requests, setRequests] = useState(sampleRequests);
+    const { languageTexts, user } = useLanguage(); // Assuming user.data.id is available for userId
     const [modalVisible, setModalVisible] = useState(false);
-    const [category, setCategory] = useState('Legal Assistance');
+    const [category, setCategory] = useState('legalAssistance');
     const [description, setDescription] = useState('');
     const [status, setStatus] = useState('Pending');
+    const [services, setServices] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const fadeAnim = useState(new Animated.Value(0))[0];
 
     const categories = [
@@ -49,6 +42,7 @@ function HelpRequestPage({ navigation }) {
         { label: languageTexts?.helpRequest?.categories?.languageSupport || 'Language Support', value: 'languageSupport' },
         { label: languageTexts?.helpRequest?.categories?.other || 'Other', value: 'other' },
     ];
+
     useEffect(() => {
         Animated.timing(fadeAnim, {
             toValue: 1,
@@ -57,59 +51,97 @@ function HelpRequestPage({ navigation }) {
         }).start();
     }, [fadeAnim]);
 
+    useEffect(() => {
+        const fetchServices = async () => {
+            try {
+                setLoading(true);
+                const response = await getHelpCategories();
+                console.log("response data from api >>>> ", response);
+
+                if (response && response.status && response.data) {
+                    const formattedServices = response.data.map(service => ({
+                        id: service?.id.toString(),
+                        name: languageTexts?.servicesDirectory?.services?.[service.name.replace(/\s+/g, '')] || service?.name,
+                        description: languageTexts?.servicesDirectory?.descriptions?.[service.name.replace(/\s+/g, '')] || languageTexts?.servicesDirectory?.descriptions?.default || 'Service description not available',
+                        category_id: service?.id,
+                        available: service?.available,
+                        service_request_count: service?.service_request_count,
+                        type: service?.type,
+                    }));
+                    setServices(formattedServices);
+                } else {
+                    throw new Error(response?.details || languageTexts?.servicesDirectory?.error?.fetch || 'Failed to fetch services');
+                }
+            } catch (err) {
+                setError(languageTexts?.servicesDirectory?.error?.fetch || 'Failed to load services. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchServices();
+    }, [languageTexts]);
+
     const handleSubmit = () => {
         if (!description.trim()) {
             Alert.alert(languageTexts?.helpRequest?.error?.title || 'Error', languageTexts?.helpRequest?.error?.description || 'Please provide a description of your issue.');
             return;
         }
 
-        // Add new request to the list
-        const newRequest = {
-            id: Math.random().toString(36).substring(7),
-            category,
-            description,
-            status
-        };
-
-        setRequests([...requests, newRequest]);
         setModalVisible(false);
         setDescription('');
         Alert.alert(languageTexts?.helpRequest?.success?.title || 'Success', languageTexts?.helpRequest?.success?.message || 'Your help request has been submitted successfully!');
     };
 
-    const formatTime = (date) => {
-        return moment(date).fromNow(); // Shows "2 hours ago", "1 day ago", etc.
+    const handleViewCategory = (category) => {
+        console.log("category >>>> ", category);
+        navigation.navigate('CategoryHelp', {
+            category: { id: category.category_id, name: category.name, userId: user.data?.role?.id },
+            userId: user?.data?.id, // Pass the logged-in user ID
+        });
     };
 
-    // Render each request item
-    const renderItem = ({ item }) => (
-        <View style={styles.requestItem}>
-            <View style={styles.requestHeader}>
-                <Text style={styles.requestCategory}>{languageTexts?.helpRequest?.categories?.[item.category] || item.category}</Text>
-                <Text style={styles.requestTime}>{formatTime(item.createdAt)}</Text>
+    const renderCategoryItem = ({ item }) => (
+         <View style={styles.serviceCard}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flex: 1 }}>
+                <Text style={styles.serviceTitle}>{item.name}</Text>
+                <Text style={styles.serviceDescription}>{item.description}</Text>
             </View>
-            <Text style={styles.requestDescription}>{languageTexts?.helpRequest?.descriptions?.[item.description] || item.description}</Text>
-            <View style={[styles.statusBadge, {
-                backgroundColor: item.status === 'Resolved' ? '#4CAF50' :
-                    item.status === 'In Progress' ? '#FFC107' : '#F44336'
-            }]}>
-                <Text style={styles.statusText}>{languageTexts?.helpRequest?.statuses?.[item.status] || item.status}</Text>
-            </View>
+            <TouchableOpacity
+                style={styles.viewButton}
+                onPress={() => handleViewCategory(item)}
+            >
+                <Text style={styles.viewButtonText}>View</Text>
+            </TouchableOpacity>
         </View>
+    </View>
     );
 
+    if (loading) {
+        return (
+            <View style={styles.centered}>
+                <ActivityIndicator size="large" color="#944D00" />
+            </View>
+        );
+    }
+
+    if (error) {
+        return (
+            <View style={styles.centered}>
+                <Text style={styles.errorText}>{error}</Text>
+            </View>
+        );
+    }
+
     return (
-        <LinearGradient
-            colors={['#2753b2', '#e6e9f0']}
-            style={styles.container}
-        >
+        <LinearGradient colors={['#2753b2', '#e6e9f0']} style={styles.container}>
             <Animated.View style={[styles.innerContainer, { opacity: fadeAnim }]}>
                 <View style={styles.headerRow}>
                     <TouchableOpacity
                         style={styles.backButton}
-                        onPress={() => navigation.goBack()}
+                        onPress={() => navigation.navigate('Dashboard')}
                     >
-                        {/* <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text> */}
                         <Icon name="arrow-back-ios" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <Text style={styles.titleText}>{languageTexts?.helpRequest?.title || 'Help Requests'}</Text>
@@ -118,17 +150,16 @@ function HelpRequestPage({ navigation }) {
 
                 <SafeAreaView style={styles.listContainer}>
                     <FlatList
-                        data={requests}
-                        renderItem={renderItem}
+                        data={services}
+                        renderItem={renderCategoryItem}
                         keyExtractor={item => item.id}
                         contentContainerStyle={styles.listContent}
                         ListEmptyComponent={
-                            <Text style={styles.emptyText}>{languageTexts?.helpRequest?.empty || 'No requests found'}</Text>
+                            <Text style={styles.emptyText}>{languageTexts?.helpRequest?.empty || 'No categories found'}</Text>
                         }
                     />
                 </SafeAreaView>
 
-                {/* Floating Action Button */}
                 <TouchableOpacity
                     style={styles.fab}
                     onPress={() => setModalVisible(true)}
@@ -136,7 +167,6 @@ function HelpRequestPage({ navigation }) {
                     <Icon name="add" size={24} color="#fff" />
                 </TouchableOpacity>
 
-                {/* Modal for adding new request */}
                 <Modal
                     animationType="slide"
                     transparent={true}
@@ -152,7 +182,7 @@ function HelpRequestPage({ navigation }) {
                                 </TouchableOpacity>
                             </View>
 
-                            <ScrollView style={styles.modalScroll}>
+                            <View style={styles.modalScroll}>
                                 <Text style={styles.label}>{languageTexts?.helpRequest?.category || 'Category'}</Text>
                                 <View style={styles.pickerContainer}>
                                     <Picker
@@ -177,7 +207,7 @@ function HelpRequestPage({ navigation }) {
                                     value={description}
                                     onChangeText={setDescription}
                                 />
-                            </ScrollView>
+                            </View>
 
                             <TouchableOpacity
                                 style={styles.modalButton}
@@ -200,6 +230,12 @@ const styles = StyleSheet.create({
     innerContainer: {
         flex: 1,
     },
+    centered: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f9f9f9',
+    },
     backButton: {
         paddingVertical: 6,
         paddingHorizontal: 10,
@@ -214,11 +250,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 30,
     },
-    backButtonText: {
-        fontSize: 16,
-        color: '#FFF',
-        fontWeight: 'bold',
-    },
+    cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+},
     titleText: {
         fontSize: 22,
         fontWeight: 'bold',
@@ -233,42 +269,33 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingBottom: 80,
     },
-    requestItem: {
+    serviceCard: {
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
         borderRadius: 8,
         padding: 15,
         marginBottom: 15,
         elevation: 2,
     },
-    requestHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 5,
-    },
-    requestCategory: {
+    serviceTitle: {
         fontSize: 18,
         fontWeight: 'bold',
         color: '#2753b2',
         marginBottom: 5,
     },
-    requestTime: {
-        fontSize: 12,
+    serviceDescription: {
+        fontSize: 14,
         color: '#666',
-    },
-    requestDescription: {
-        fontSize: 16,
-        color: '#333',
         marginBottom: 10,
     },
-    statusBadge: {
+    viewButton: {
+        backgroundColor: '#2753b2',
+        paddingVertical: 8,
+        paddingHorizontal: 20,
+        borderRadius: 8,
         alignSelf: 'flex-start',
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 12,
     },
-    statusText: {
-        color: '#fff',
+    viewButtonText: {
+        color: '#FFF',
         fontSize: 14,
         fontWeight: '600',
     },
@@ -333,7 +360,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
         borderRadius: 8,
         marginBottom: 15,
-        overflow: 'hidden',
+        overflowCC: '#2753b2',
         borderWidth: 1,
         borderColor: '#ddd',
     },
@@ -366,6 +393,11 @@ const styles = StyleSheet.create({
         color: '#FFF',
         fontSize: 18,
         fontWeight: '600',
+    },
+    errorText: {
+        color: '#d32f2f',
+        fontSize: 16,
+        textAlign: 'center',
     },
 });
 

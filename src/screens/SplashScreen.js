@@ -58,7 +58,7 @@ function SplashScreen({ navigation }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const flatListRef = useRef();
   const { user } = useContext(LanguageContext);
-  console.log("user", user);
+  // console.log("user", user);
   
   // smooth slide moovement:
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -105,7 +105,7 @@ function SplashScreen({ navigation }) {
             console.log("Token found, navigating to Dashboard");
             navigation.replace('Dashboard');
           } else {
-            console.log("No token found, navigating to Login");
+            // console.log("No token found, navigating to Login");
             // navigation.replace('Login');
           }
           // navigation.replace(token ? 'Dashboard' : 'Login');
@@ -160,7 +160,7 @@ function SplashScreen({ navigation }) {
     </View>
   );
 
-  console.log("user", user);
+  // console.log("user", user);
   
   const currentSlide = slides[currentIndex];
 

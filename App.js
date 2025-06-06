@@ -29,6 +29,8 @@ import CreateNews from './src/pages/news/CreateNews.js';
 // import WorkersScreen from './src/pages/news/WorkersScreen.js';
 import ContactUs from './src/pages/contactus/ContactUs.js';
 import CategotryServices from './src/pages/CategotryServices.js';
+import CategoryHelp from './src/pages/help/CategoryHelp.js';
+import CreateHelp from './src/pages/help/CreateHelp.js';
 
 
 // Custom Toast configuration
@@ -126,6 +128,9 @@ function App() {
             <Stack.Screen name="MultilingualSupport" component={MultilingualSupportPage} />
             <Stack.Screen name="Notifications" component={NotificationsPage} />
             <Stack.Screen name="HelpRequest" component={HelpRequestPage} />
+            <Stack.Screen name="CategoryHelp" component={CategoryHelp} />
+            <Stack.Screen name="CreateHelp" component={CreateHelp} />
+
             <Stack.Screen name="EventCalendar" component={EventCalendarPage} />
             <Stack.Screen name="CreateRegister" component={CreateRegister} options={{ title: 'Create Register' }} />
 

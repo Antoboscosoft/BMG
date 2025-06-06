@@ -16,3 +16,5 @@ export const checkAppVersion = async (appUpdate, setAppUpdate) => {
     );
   }
 };
+
+export const appVersion= 'V1.7'
