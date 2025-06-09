@@ -3,20 +3,17 @@ import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView } from '
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BackIcon from 'react-native-vector-icons/MaterialIcons';
-import { useLanguage } from '../language/commondir';
+import { useLanguage } from '../../language/commondir';
+import { getNotificationsAPI } from '../../api/auth';
+import { dateFormat, page_limit } from '../../context/utils';
 
 function NotificationsPage({ navigation }) {
     const { languageTexts } = useLanguage();
+    const [notificationList, setNotificationList] = useState(notifications);
+    const [skip, setSkip] = useState(0);
+    const [limit, setLimit] = useState(page_limit);
+    const [loading, setLoading] = useState(true);
     const fadeAnim = useState(new Animated.Value(0))[0]; // Animation for fade-in effect
-
-    useEffect(() => {
-        // Start fade-in animation
-        Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 1500,
-            useNativeDriver: true,
-        }).start();
-    }, [fadeAnim]);
 
     // Sample notification data (inferred based on app context)
     const notifications = [
@@ -54,6 +51,34 @@ function NotificationsPage({ navigation }) {
         },
     ];
 
+
+    const getNotifications = () => {
+        setLoading(true);
+        getNotificationsAPI(skip, limit).then((res) => {
+            setNotificationList(res?.data);
+            
+        }).catch((err) => {
+            console.log(err);
+        }).finally(() => {
+            setLoading(false);
+        });
+    };
+
+    useEffect(() => {
+        // Start fade-in animation
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 1500,
+            useNativeDriver: true,
+        }).start();
+    }, [fadeAnim]);
+
+
+    useEffect(() => {
+        getNotifications();
+    }, []);
+    
+
     return (
         <LinearGradient
             colors={['#2753b2', '#e6e9f0']} // Gradient from blue to light gray
@@ -77,8 +102,8 @@ function NotificationsPage({ navigation }) {
                     showsVerticalScrollIndicator={false}
                 >
                     <View style={styles.notificationList}>
-                        {notifications.length > 0 ? (
-                            notifications.map((notification) => (
+                        {notificationList?.length > 0 ? (
+                            notificationList?.map((notification) => (
                                 <TouchableOpacity
                                     key={notification.id}
                                     style={[
@@ -88,6 +113,7 @@ function NotificationsPage({ navigation }) {
                                     onPress={() => {
                                         // Add logic to navigate to a detailed notification page or mark as read
                                         console.log(`Tapped on notification: ${notification.title}`);
+                                        navigation.navigate('NotificationView', { notification });
                                     }}
                                 >
                                     <View style={styles.notificationContent}>
@@ -98,17 +124,17 @@ function NotificationsPage({ navigation }) {
                                                 color="#2753b2"
                                                 style={styles.notificationIcon}
                                             />
-                                            <Text style={styles.notificationTitle}>{languageTexts?.notifications?.items?.[notification.titleKey] || notification.title}</Text>
-                                            <Text style={styles.notificationTimestamp}>
+                                            <Text style={styles.notificationTitle}>{notification.title}</Text>
+                                            {/* <Text style={styles.notificationTimestamp}>
                                                 {notification.timestamp}
-                                            </Text>
+                                            </Text> */}
                                         </View>
                                         <Text style={styles.notificationDescription}>
-                                            {languageTexts?.notifications?.items?.[notification.description] || notification.description}
+                                            {notification?.message || '-'}
                                         </Text>
                                         <View style={styles.dateContainer}>
                                             <Text style={styles.notificationDate}>
-                                                {notification.date}
+                                                {dateFormat(new Date(notification?.sent_at))}
                                             </Text>
                                         </View>
                                     </View>
@@ -170,7 +196,7 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     notificationItem: {
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        backgroundColor: '#f3f3f3',
         padding: 15,
         borderRadius: 8,
         marginBottom: 10,
@@ -196,7 +222,8 @@ const styles = StyleSheet.create({
 
     unreadNotification: {
         borderLeftWidth: 4,
-        borderLeftColor: '#2753b2',
+        borderLeftColor: '#e7a172b2',
+        backgroundColor: '#fff9df',
     },
     notificationTitle: {
         fontSize: 18,
@@ -234,5 +261,5 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#999',
         fontStyle: 'italic',
-    },
+    }
 });

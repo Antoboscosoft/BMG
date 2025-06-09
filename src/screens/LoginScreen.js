@@ -28,7 +28,8 @@ import { Controller, useForm } from "react-hook-form";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import BackIcon from 'react-native-vector-icons/MaterialIcons';
 import { ContextProps } from "../../App";
-import { checkAppVersion } from "../context/utils";
+import { checkAppVersion, handleNotification, notificationPermission } from "../context/utils";
+
 // import OtpInputs from 'react-native-otp-inputs';
 // import RNOtpVerify from 'react-native-otp-verify';
 
@@ -38,7 +39,7 @@ const OTP_TIMEOUT = 30;
 function LoginScreen({ navigation }) {
   // Tab state
   const [activeTab, setActiveTab] = useState("migrants");
-  const {appUpdate, setAppUpdate}= useContext(ContextProps);
+  const { appUpdate, setAppUpdate } = useContext(ContextProps);
   // Migrants login state
   const [mobile, setMobile] = useState("");
   const [otp, setOtp] = useState("");
@@ -157,23 +158,23 @@ function LoginScreen({ navigation }) {
   }, [countdown, otpSent]);
 
   useEffect(() => {
-  const onBackPress = () => {
-    if (navigation.isFocused()) {
-      setShowExitModal(true);
-      return true;
-    }
-    return false;
-  };
-  BackHandler.addEventListener('hardwareBackPress', onBackPress);
-  // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-}, [navigation]);
+    const onBackPress = () => {
+      if (navigation.isFocused()) {
+        setShowExitModal(true);
+        return true;
+      }
+      return false;
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, [navigation]);
 
-const handleExitApp = () => {
-  setShowExitModal(false);
-  setTimeout(() => {
-    BackHandler.exitApp();
-  }, 200);
-};
+  const handleExitApp = () => {
+    setShowExitModal(false);
+    setTimeout(() => {
+      BackHandler.exitApp();
+    }, 200);
+  };
 
   const handleInputFocus = () => {
     if (textInputRef.current) {
@@ -701,7 +702,9 @@ const handleExitApp = () => {
 
   useEffect(() => {
     checkAppVersion(appUpdate, setAppUpdate);
-  }, [])
+    notificationPermission();
+  }, []);
+
 
   return (
     <KeyboardAvoidingView
@@ -796,8 +799,8 @@ const handleExitApp = () => {
         animationType="fade"
         onRequestClose={() => setShowNotRegisteredModal(false)}
       >
-        <View style={[ {flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-          <View style={[styles.modelView,{ backgroundColor: '#fff', padding: 24, borderRadius: 8, alignItems: 'center', minWidth: 280 }]}>
+        <View style={[{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+          <View style={[styles.modelView, { backgroundColor: '#fff', padding: 24, borderRadius: 8, alignItems: 'center', minWidth: 280 }]}>
             <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12, color: '#333' }}>
               You're not registered
             </Text>
@@ -825,37 +828,37 @@ const handleExitApp = () => {
         </View>
       </Modal>
       <Modal
-  visible={showExitModal}
-  transparent
-  animationType="fade"
-  onRequestClose={() => setShowExitModal(false)}
-> 
-  <TouchableOpacity
-    style={[{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }]}
-    activeOpacity={1}
-    onPressOut={() => setShowExitModal(false)}
-  >
-    <View style={[styles.modalOverlay,{ backgroundColor: '#fff', padding: 24, borderRadius: 8, alignItems: 'center', minWidth: 280 }]}>
-      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12, color: '#333' }}>
-        Are you sure you want to close the app?
-      </Text>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+        visible={showExitModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowExitModal(false)}
+      >
         <TouchableOpacity
-          style={{ flex: 1, marginRight: 8, padding: 12, borderRadius: 6, backgroundColor: '#eee', alignItems: 'center' }}
-          onPress={() => setShowExitModal(false)}
+          style={[{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }]}
+          activeOpacity={1}
+          onPressOut={() => setShowExitModal(false)}
         >
-          <Text style={{ color: '#333', fontWeight: 'bold' }}>Cancel</Text>
+          <View style={[styles.modalOverlay, { backgroundColor: '#fff', padding: 24, borderRadius: 8, alignItems: 'center', minWidth: 280 }]}>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12, color: '#333' }}>
+              Are you sure you want to close the app?
+            </Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+              <TouchableOpacity
+                style={{ flex: 1, marginRight: 8, padding: 12, borderRadius: 6, backgroundColor: '#eee', alignItems: 'center' }}
+                onPress={() => setShowExitModal(false)}
+              >
+                <Text style={{ color: '#333', fontWeight: 'bold' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ flex: 1, marginLeft: 8, padding: 12, borderRadius: 6, backgroundColor: '#d9534f', alignItems: 'center' }}
+                onPress={handleExitApp}
+              >
+                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Close App</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={{ flex: 1, marginLeft: 8, padding: 12, borderRadius: 6, backgroundColor: '#d9534f', alignItems: 'center' }}
-          onPress={handleExitApp}
-        >
-          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Close App</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </TouchableOpacity>
-</Modal>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -1184,11 +1187,11 @@ const styles = StyleSheet.create({
   // model for cancel app
   modalOverlay: {
     // flex: 1,
-    width: '80%', 
+    width: '80%',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.5)'
-  } 
+  }
 });
 
 export default LoginScreen;

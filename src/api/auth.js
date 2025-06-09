@@ -794,3 +794,23 @@ export const deleteNewsAttachment = async (attachmentId) => {
     throw error;
   }
 };
+
+// update fierbase token
+export const updateFirebaseToken = async (token) => {   
+  try {
+    const response = await axiosInstance.put('user/update_user_mobile_token', { "token":token });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// notificaation APIs
+export const getNotificationsAPI = async (skip=0, limit=25) => {
+  try {
+    const response = await axiosInstance.get(`/notification/all?skip=${skip}&limit=${limit}&draft=false`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

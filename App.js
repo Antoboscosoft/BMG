@@ -7,7 +7,6 @@ import ProfileScreen from './src/screens/ProfileScreen.js';
 import DashboardPage from './src/pages/DashboardPage.js';
 import ServicesDirectory from './src/pages/ServicesDirectory.js';
 import MultilingualSupportPage from './src/pages/MultilingualSupportPage.js';
-import NotificationsPage from './src/pages/NotificationsPage.js';
 import HelpRequestPage from './src/pages/HelpRequestPage.js';
 import EventCalendarPage from './src/pages/EventCalendarPage.js';
 import CreateEventPage from './src/pages/CreateEventPage.js';
@@ -32,6 +31,10 @@ import CategotryServices from './src/pages/CategotryServices.js';
 import CategoryHelp from './src/pages/help/CategoryHelp.js';
 import CreateHelp from './src/pages/help/CreateHelp.js';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+// notification
+import NotificationList from './src/pages/notifications/NotificationList.jsx';
+import NotificationView from './src/pages/notifications/NotificationView.jsx';
 
 
 // Custom Toast configuration
@@ -128,7 +131,9 @@ function App() {
             <Stack.Screen name="CategoryServices" component={CategotryServices} />
 
             <Stack.Screen name="MultilingualSupport" component={MultilingualSupportPage} />
-            <Stack.Screen name="Notifications" component={NotificationsPage} />
+            <Stack.Screen name="Notifications" component={NotificationList} />
+            <Stack.Screen name="NotificationView" component={NotificationView} />
+
             <Stack.Screen name="HelpRequest" component={HelpRequestPage} />
             <Stack.Screen name="CategoryHelp" component={CategoryHelp} />
             <Stack.Screen name="CreateHelp" component={CreateHelp} />

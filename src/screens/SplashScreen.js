@@ -18,7 +18,10 @@ import splashImg3 from '../asserts/images/spss4c.jpg';
 import splashImg4 from '../asserts/images/ss2c.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FastImage from 'react-native-fast-image';
+import messaging from '@react-native-firebase/messaging';
+
 import { LanguageContext } from '../language/commondir';
+import { handleNotification } from '../context/utils';
 
 const { width, height } = Dimensions.get('window');
 
@@ -59,7 +62,7 @@ function SplashScreen({ navigation }) {
   const flatListRef = useRef();
   const { user } = useContext(LanguageContext);
   // console.log("user", user);
-  
+
   // smooth slide moovement:
   const scrollX = useRef(new Animated.Value(0)).current;
   const [showExitModal, setShowExitModal] = useState(false);
@@ -82,8 +85,8 @@ function SplashScreen({ navigation }) {
     };
     BackHandler.addEventListener('hardwareBackPress', onBackPress);
     // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-  }, [navigation]); 
-  
+  }, [navigation]);
+
   const handleExitApp = () => {
     setShowExitModal(false);
     setTimeout(() => {
@@ -109,7 +112,7 @@ function SplashScreen({ navigation }) {
             // navigation.replace('Login');
           }
           // navigation.replace(token ? 'Dashboard' : 'Login');
-        },  1000);
+        }, 1000);
       } catch (error) {
         console.error("Error checking token in SplashScreen:", error);
         // If there's an error, navigate to Login as a fallback
@@ -161,8 +164,32 @@ function SplashScreen({ navigation }) {
   );
 
   // console.log("user", user);
-  
+
   const currentSlide = slides[currentIndex];
+
+  useEffect(() => {
+    // Handle background/quit notification taps
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage?.data?.screen) {
+          remoteMessage.data.screen && navigation.navigate(remoteMessage.data.screen);
+        }
+      });
+    const unsubscribeShowForegroundNotification = messaging().onMessage(handleNotification);
+
+    // Handle foreground/background notification taps
+    const unsubscribeForegroundClick = messaging().onNotificationOpenedApp(remoteMessage => {
+      if (remoteMessage?.data?.screen) {
+        navigation.navigate(remoteMessage.data.screen);
+      }
+    });
+
+    return () => {
+      unsubscribeForegroundClick();
+      unsubscribeShowForegroundNotification();
+    }
+  }, [])
 
   return (
     <View style={styles.container}>
@@ -206,20 +233,20 @@ function SplashScreen({ navigation }) {
             </Text>
           </TouchableOpacity>
         </>
-        : <ActivityIndicator color="#ffffff" size={'large'} style={[styles.button, {backgroundColor:'transparent'}]} />
+        : <ActivityIndicator color="#ffffff" size={'large'} style={[styles.button, { backgroundColor: 'transparent' }]} />
       }
       <Modal
         visible={showExitModal}
         transparent
         animationType="fade"
         onRequestClose={() => setShowExitModal(false)}
-      > 
+      >
         <TouchableOpacity
           style={[{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }]}
           activeOpacity={1}
           onPressOut={() => setShowExitModal(false)}
         >
-          <View style={[styles.modalOverlay,{ backgroundColor: '#fff', padding: 24, borderRadius: 8, alignItems: 'center', minWidth: 280 }]}>
+          <View style={[styles.modalOverlay, { backgroundColor: '#fff', padding: 24, borderRadius: 8, alignItems: 'center', minWidth: 280 }]}>
             <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12, color: '#333' }}>
               Are you sure you want to close the app?
             </Text>
@@ -334,5 +361,5 @@ const styles = StyleSheet.create({
     width: '80%',
     justifyContent: 'center',
     alignItems: 'center',
-  }, 
+  },
 }); 

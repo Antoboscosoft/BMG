@@ -58,6 +58,21 @@ function DashboardPage({ navigation, route }) {
         { id: '9', name: 'helpRequest', screen: 'HelpRequest', icon: 'life-ring' }, // Icon field kept for consistency, but we'll use the local image
     ];
 
+    // function to send firebase token to API
+    const sendToken = async () => {
+        try {
+            let token = await getFirebaseToken();
+
+            updateFirebaseToken(token).then((response) => {
+                console.log('Firebase token sent successfully:', response);
+            }).catch((error) => {
+                console.error('Failed to send Firebase token:', error);
+            })
+        } catch (error) {
+            console.error('Failed to send Firebase token:', error);
+        }
+    }
+
     useEffect(() => {
         const setRoleInAsyncStorage = async () => {
             try {
@@ -70,6 +85,8 @@ function DashboardPage({ navigation, route }) {
 
         if (userData) {
             setRoleInAsyncStorage();
+            sendToken();
+
         }
     }, [userData]);
 

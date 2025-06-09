@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "51383521888",
+    "project_id": "notification-dbms-test",
+    "storage_bucket": "notification-dbms-test.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:51383521888:android:019b47823ffa68b12ea905",
+        "android_client_info": {
+          "package_name": "com.boscosoft.dbms"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDN23Ed1r_lgm_MhSm2XQtRdPotvmsRwTc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
