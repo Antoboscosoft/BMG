@@ -31,6 +31,7 @@ import ContactUs from './src/pages/contactus/ContactUs.js';
 import CategotryServices from './src/pages/CategotryServices.js';
 import CategoryHelp from './src/pages/help/CategoryHelp.js';
 import CreateHelp from './src/pages/help/CreateHelp.js';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 
 // Custom Toast configuration
@@ -111,6 +112,7 @@ export const ContextProps = createContext(null);
 function App() {
   const [appUpdate, setAppUpdate] = useState(true);
   return (
+    <SafeAreaProvider>
     <LanguageProvider>
       <ContextProps.Provider value={{appUpdate, setAppUpdate}}>
         <NavigationContainer ref={navigationRef}>
@@ -152,6 +154,7 @@ function App() {
         <NetworkStatus />
       </ContextProps.Provider>
     </LanguageProvider>
+    </SafeAreaProvider>
   )
 }
 

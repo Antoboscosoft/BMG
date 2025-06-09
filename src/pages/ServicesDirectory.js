@@ -31,7 +31,7 @@ function ServicesDirectory({ navigation }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     console.log("services >>>> ", services);
-    
+
     useEffect(() => {
         const fetchServices = async () => {
             try {
@@ -101,10 +101,11 @@ function ServicesDirectory({ navigation }) {
                         onPress={() => handleApply(item, isApplied)}
                         activeOpacity={0.8}
                     >
+                        <BackIcon name="visibility" size={20} color="#FFF" />
                         <Text style={[isApplied ? styles.appliedButtonText : styles.applyButtonText]}>
                             {/* {isApplied ? languageTexts?.servicesDirectory?.applied || 'Applied' : languageTexts?.servicesDirectory?.apply || 'Apply'} */}
                             View
-                            </Text>
+                        </Text>
                     </TouchableOpacity>
                 ) : (
                     <View style={styles.disabledButton}>
@@ -201,7 +202,7 @@ function ServicesDirectory({ navigation }) {
                 style={styles.backButton}
                 onPress={() => navigation.navigate('Dashboard')}
             >
-                <BackIcon name="arrow-back-ios" size={24} color="#FFF" />
+                <BackIcon name="arrow-back" size={24} color="#FFF" />
             </TouchableOpacity>
 
             {/* Header with Logo and Title */}
@@ -275,11 +276,11 @@ const styles = StyleSheet.create({
     },
     backButton: {
         position: 'absolute',
-        top: 20,
+        top: 35,
         left: 20,
         padding: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 8,
+        borderRadius: 80,
         zIndex: 1,
     },
     backButtonText: {
@@ -376,6 +377,7 @@ const styles = StyleSheet.create({
         marginRight: 3,
     },
     applyButton: {
+        flexDirection: 'row',
         backgroundColor: '#2753b2',
         paddingVertical: 8,
         paddingHorizontal: 15,
@@ -390,9 +392,11 @@ const styles = StyleSheet.create({
         color: '#FFF',
         fontSize: 14,
         fontWeight: 'bold',
+        marginLeft: 5,
     },
 
     appliedButton: {
+        flexDirection: 'row',
         backgroundColor: '#4CAF50',
         paddingVertical: 8,
         paddingHorizontal: 15,
@@ -407,6 +411,7 @@ const styles = StyleSheet.create({
         color: '#FFF',
         fontSize: 14,
         fontWeight: 'bold',
+        marginLeft: 5,
     },
 });
 

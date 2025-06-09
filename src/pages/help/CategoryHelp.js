@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getHelpRequestsByCategory, getHelpRequestStatusOptions, updateHelpRequestStatus } from '../../api/auth';
 import { useLanguage } from '../../language/commondir';
 
-	
+
 // Fallback status options if API fails
 const fallbackStatusOptions = [
     { label: 'Open', value: 'OPEN' },
@@ -33,7 +33,7 @@ function CategoryHelp({ route, navigation }) {
             const role = user?.data?.role?.name.toUpperCase();
             const idToPass = role === 'MIGRANT' ? userId : undefined;
             console.log("userId:", userId, "role:", role, "idToPass:", idToPass);
-            
+
             const response = await getHelpRequestsByCategory(category?.id, idToPass);
             setRequests(response.data || []);
         } catch (err) {
@@ -106,15 +106,17 @@ function CategoryHelp({ route, navigation }) {
                 {/* {console.log("item.status: help req >>>", item.status)} */}
                 {user.data.role.name === "Admin" || user.data.role.name === "Staff" && item.status !== 'CLOSED' &&
 
-                <TouchableOpacity onPress={() => openStatusModal(item)}>
-                    <Text style={styles.statusChangeLabel}>{item.status}</Text>
-                </TouchableOpacity>}
+                    <TouchableOpacity style={styles.statusContainer} onPress={() => openStatusModal(item)}>
+                        <Icon name="edit" size={18} color="#0db6a5" style={styles.editIcon} />
+                        <Text style={styles.statusChangeLabel}>{item.status ? 'Update' : 'No Status'}</Text>
+                    </TouchableOpacity>}
             </View>
             <View style={styles.cardContent}>
-                <View style={styles.infoRow}>
-                    <Text style={styles.requestLabel}>Requested By </Text>
-                    <Text style={styles.requestValue}>: {item.user?.name || 'No User'}</Text>
-                </View>
+                {user.data.role.name === "Admin" || user.data.role.name === "Staff" &&
+                    <View style={styles.infoRow}>
+                        <Text style={styles.requestLabel}>Requested By </Text>
+                        <Text style={styles.requestValue}>: {item.user?.name || 'No User'}</Text>
+                    </View>}
                 <View style={styles.infoRow}>
                     <Text style={styles.requestLabel}>Requested On </Text>
                     <Text style={styles.requestValue}>
@@ -134,8 +136,8 @@ function CategoryHelp({ route, navigation }) {
                                     item.status === 'Resolved' || item.status === 'CLOSED'
                                         ? '#43A047' // Green
                                         : item.status === 'In Progress' || item.status === 'IN_PROGRESS'
-                                        ? '#FFC107' // Orange
-                                        : '#F44336', // Red (Pending/OPEN)
+                                            ? '#FFC107' // Orange
+                                            : '#35c5f9', // blue (Pending/OPEN)
                             },
                         ]}
                     >
@@ -152,9 +154,13 @@ function CategoryHelp({ route, navigation }) {
 
     if (loading) {
         return (
-            <View style={styles.centered}>
-                <ActivityIndicator size="large" color="#944D00" />
-            </View>
+            // <View style={styles.centered}>
+            //     <ActivityIndicator size="large" color="#944D00" />
+            // </View>
+            <LinearGradient colors={['#2753b2', '#e6e9f0']} style={[styles.container, styles.loadingContainer]}>
+                <ActivityIndicator size="large" color="#FFF" />
+                <Text style={styles.loadingText}>{languageTexts?.servicesDirectory?.loading || 'Loading services...'}</Text>
+            </LinearGradient>
         );
     }
 
@@ -196,31 +202,31 @@ function CategoryHelp({ route, navigation }) {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Change Status</Text>
                         {
-                        statusOptions.length ? 
-                        (
-                        statusOptions.map(opt => (
-                            <TouchableOpacity
-                                key={opt.value}
-                                onPress={() => setSelectedStatus(opt.value)}
-                                style={styles.radioRow}
-                            >
-                                <View style={styles.radioCircle}>
-                                    {selectedStatus === opt.value && <View style={styles.radioDot} />}
-                                </View>
-                                <Text style={styles.radioLabel}>{opt.label}</Text>
-                            </TouchableOpacity>
-                        ))) : (
-                            <Text style={styles.errorText}>No status options available</Text>
-                        )}
+                            statusOptions.length ?
+                                (
+                                    statusOptions.map(opt => (
+                                        <TouchableOpacity
+                                            key={opt.value}
+                                            onPress={() => setSelectedStatus(opt.value)}
+                                            style={styles.radioRow}
+                                        >
+                                            <View style={styles.radioCircle}>
+                                                {selectedStatus === opt.value && <View style={styles.radioDot} />}
+                                            </View>
+                                            <Text style={styles.radioLabel}>{opt.label}</Text>
+                                        </TouchableOpacity>
+                                    ))) : (
+                                    <Text style={styles.errorText}>No status options available</Text>
+                                )}
                         <View style={styles.modalButtonContainer}>
-                            <TouchableOpacity style={styles.modalButton} onPress={handleStatusSubmit}>
-                                <Text style={styles.buttonText}>OK</Text>
-                            </TouchableOpacity>
                             <TouchableOpacity
                                 style={[styles.modalButton, styles.cancelButton]}
                                 onPress={() => setStatusModalVisible(false)}
                             >
                                 <Text style={styles.buttonText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.modalButton} onPress={handleStatusSubmit}>
+                                <Text style={styles.buttonText}>OK</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -234,6 +240,10 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
+    },
+    loadingContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     headerRow: {
         flexDirection: 'row',
@@ -291,14 +301,25 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#2753b2',
     },
+    statusContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#E0F7FA',
+        borderRadius: 12,
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+    },
+    editIcon: {
+        marginRight: 6,
+    },
     statusChangeLabel: {
         fontSize: 14,
         fontWeight: '600',
         color: '#0db6a5',
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 12,
-        backgroundColor: '#E0F7FA',
+        // paddingVertical: 6,
+        // paddingHorizontal: 12,
+        // borderRadius: 12,
+        // backgroundColor: '#E0F7FA',
     },
     cardContent: {
         flexDirection: 'column',
@@ -334,10 +355,21 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     emptyText: {
-        fontSize: 16,
-        color: '#f35252',
-        textAlign: 'center',
-        marginTop: 50,
+        // fontSize: 16,
+        // color: '#f35252',
+        // textAlign: 'center',
+        // marginTop: 50,
+        width: '100%',
+        // flexDirection: 'row',
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        padding: 16,
+        color: '#555',
+        marginTop: 2,
+        marginBottom: 12,
+        elevation: 2,
+        alignItems: 'center',
+        alignSelf: 'center',
     },
     centered: {
         flex: 1,

@@ -102,20 +102,21 @@ function HelpRequestPage({ navigation }) {
     };
 
     const renderCategoryItem = ({ item }) => (
-         <View style={styles.serviceCard}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <View style={{ flex: 1 }}>
-                <Text style={styles.serviceTitle}>{item.name}</Text>
-                <Text style={styles.serviceDescription}>{item.description}</Text>
+        <View style={styles.serviceCard}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={{ flex: 1 }}>
+                    <Text style={styles.serviceTitle}>{item.name}</Text>
+                    <Text style={styles.serviceDescription}>{item.description}</Text>
+                </View>
+                <TouchableOpacity
+                    style={styles.viewButton}
+                    onPress={() => handleViewCategory(item)}
+                >
+                    <Icon name="visibility" size={20} color="#FFF" />
+                    <Text style={styles.viewButtonText}>View</Text>
+                </TouchableOpacity>
             </View>
-            <TouchableOpacity
-                style={styles.viewButton}
-                onPress={() => handleViewCategory(item)}
-            >
-                <Text style={styles.viewButtonText}>View</Text>
-            </TouchableOpacity>
         </View>
-    </View>
     );
 
     if (loading) {
@@ -142,7 +143,7 @@ function HelpRequestPage({ navigation }) {
                         style={styles.backButton}
                         onPress={() => navigation.navigate('Dashboard')}
                     >
-                        <Icon name="arrow-back-ios" size={24} color="#FFF" />
+                        <Icon name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <Text style={styles.titleText}>{languageTexts?.helpRequest?.title || 'Help Requests'}</Text>
                     <View style={{ width: 60 }} />
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         paddingHorizontal: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 8,
+        borderRadius: 80,
         zIndex: 1,
     },
     headerRow: {
@@ -248,13 +249,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        paddingTop: 30,
+        paddingTop: 40,
     },
     cardHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-},
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
     titleText: {
         fontSize: 22,
         fontWeight: 'bold',
@@ -288,6 +289,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     viewButton: {
+        flexDirection: 'row',
         backgroundColor: '#2753b2',
         paddingVertical: 8,
         paddingHorizontal: 20,
@@ -298,6 +300,7 @@ const styles = StyleSheet.create({
         color: '#FFF',
         fontSize: 14,
         fontWeight: '600',
+        marginLeft: 5,
     },
     emptyText: {
         textAlign: 'center',

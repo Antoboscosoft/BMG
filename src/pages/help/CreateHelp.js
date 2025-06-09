@@ -46,10 +46,10 @@ function CreateHelp({ route, navigation }) {
                 languageTexts?.helpRequest?.success?.message || 'Your help request has been submitted successfully!'
             );
             navigation.navigate('CategoryHelp', {
-    category: { id: category.id, name: category.name },
-    userId: userId,
-    newRequest: response, // Pass the newly created request
-});
+                category: { id: category.id, name: category.name },
+                userId: userId,
+                newRequest: response, // Pass the newly created request
+            });
         } catch (err) {
             const errorMessage = err.message || 'Failed to submit help request. Please try again.';
             Alert.alert(
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        paddingTop: 30,
+        paddingTop: 40,
     },
     backButton: {
         paddingVertical: 6,

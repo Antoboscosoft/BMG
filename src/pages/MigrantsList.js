@@ -90,10 +90,10 @@ function MigrantsList({ navigation, route }) {
     const renderMigrantItem = ({ item }) => (
         <View style={styles.listItem}>
             <View style={styles.userIconContainer}>
-                {item.photo ? 
-                <Image source={{ uri: item.photo }} style={styles.userIcon} />
-            
-                : <Icon name="account" size={75} color="#FFF" />}
+                {item.photo ?
+                    <Image source={{ uri: item.photo }} style={styles.userIcon} />
+
+                    : <Icon name="account" size={75} color="#FFF" />}
             </View>
             {
                 // console.log("Rendering migrant item:", item)
@@ -207,6 +207,7 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
         marginBottom: 20,
+        marginTop: 15,
     },
     backButton: {
         padding: 10,
@@ -249,8 +250,8 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     userInfoName: {
-      color: "#FFF",
-      fontSize: 18,  
+        color: "#FFF",
+        fontSize: 18,
     },
     userInfoText: {
         color: "#FFF",
@@ -333,11 +334,11 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
 
-        userIcon: {
-            width: 75,
-            height: 75,
-            borderRadius: 40,
-        },
+    userIcon: {
+        width: 75,
+        height: 75,
+        borderRadius: 40,
+    },
 });
 
 export default MigrantsList;

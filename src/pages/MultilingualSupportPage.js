@@ -61,7 +61,7 @@ function MultilingualSupportPage({ navigation }) {
                         onPress={() => navigation.goBack()}
                     >
                         {/* <Text style={styles.backButtonText}>{'< Back'}</Text> */}
-                        <Icon name="arrow-back-ios" size={24} color="#FFF" />
+                        <Icon name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <Text style={styles.titleText}>
                         {languageTexts?.menu?.multilingualSupport || 'Multilingual Support'}
@@ -121,8 +121,10 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         paddingHorizontal: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 8,
+        borderRadius: 80,
         zIndex: 1,
+        marginLeft: 5,
+        marginTop: 5,
     },
     headerRow: {
         flexDirection: 'row',

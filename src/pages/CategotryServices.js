@@ -111,9 +111,13 @@ function CategoryServices({ navigation, route }) {
 
     if (loading) {
         return (
-            <View style={styles.centered}>
-                <ActivityIndicator size="large" color="#944D00" />
-            </View>
+            // <View style={styles.centered}>
+            //     <ActivityIndicator size="large" color="#944D00" />
+            // </View>
+            <LinearGradient colors={['#2753b2', '#e6e9f0']} style={[styles.container, styles.loadingContainer]}>
+                <ActivityIndicator size="large" color="#FFF" />
+                <Text style={styles.loadingText}>{languageTexts?.servicesDirectory?.loading || 'Loading services...'}</Text>
+            </LinearGradient>
         );
     }
 
@@ -169,6 +173,7 @@ function CategoryServices({ navigation, route }) {
                                         onPress={() => handleStatusPress(item)}
                                         disabled={user.data.role.name !== 'ADMIN' && item.status === 'RESOLVED'}
                                     >
+                                        <Icon name="edit" size={20} color="#FFF" />
                                         <Text style={styles.statusButtonText}>
                                             {console.log("item.status:", item.status)}
                                             {item.status === 'RESOLVED' ? 'Resolved' : 'Resolve'}
@@ -176,10 +181,11 @@ function CategoryServices({ navigation, route }) {
                                     </TouchableOpacity>}
                             </View>
                             <View style={styles.cardContent}>
-                                <View style={styles.infoRow}>
-                                    <Text style={styles.serviceLabel}>Requested By </Text>
-                                    <Text style={styles.serviceValue}>: {item.user?.name || 'No User'}</Text>
-                                </View>
+                                {user.data.role.name === "Admin" || user.data.role.name === "Staff" &&
+                                    <View style={styles.infoRow}>
+                                        <Text style={styles.serviceLabel}>Requested By </Text>
+                                        <Text style={styles.serviceValue}>: {item.user?.name || 'No User'}</Text>
+                                    </View>}
                                 <View style={styles.infoRow}>
                                     <Text style={styles.serviceLabel}>Requested On </Text>
                                     {/* <Text style={styles.serviceValue}>
@@ -235,6 +241,10 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
+    },
+    loadingContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     scrollContainer: {
         flexGrow: 1,
@@ -302,6 +312,7 @@ const styles = StyleSheet.create({
         color: '#2753b2',
     },
     statusButton: {
+        flexDirection: 'row',
         paddingVertical: 6,
         paddingHorizontal: 12,
         borderRadius: 12,
@@ -311,6 +322,7 @@ const styles = StyleSheet.create({
         color: '#FFF',
         fontSize: 14,
         fontWeight: '600',
+        marginLeft: 4,
     },
     cardContent: {
         flexDirection: 'column',

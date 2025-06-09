@@ -15,11 +15,13 @@ import {
     Modal,
     BackHandler,
     Pressable,
+    StatusBar,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { SafeAreaView } from 'react-native-safe-area-context'; // Import SafeAreaView
 import { getUserData } from '../api/auth';
 import { clearAuthToken } from '../api/axiosInstance';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -42,9 +44,9 @@ function DashboardPage({ navigation, route }) {
     const isSuperAdmin = userData?.data?.role?.name === "Super Admin" || userData?.data?.role?.name === "Admin" || userData?.data?.role?.name === "Staff";
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [showExitModal, setShowExitModal] = useState(false);
-    
-    const [isLoggingOut, setIsLoggingOut] = useState(false); // Track logout state
-  const { setUser } = useContext(LanguageContext);
+
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const { setUser } = useContext(LanguageContext);
 
     const dashboardMenuItems = [
         { id: '6', name: 'profile', screen: 'Profile', icon: 'account' },
@@ -54,10 +56,9 @@ function DashboardPage({ navigation, route }) {
         { id: '4', name: 'multilingualSupport', screen: 'MultilingualSupport', icon: 'translate' },
         { id: '7', name: 'migrants', screen: 'MigrantsList', icon: 'account-group' },
         { id: '8', name: 'news', screen: 'NewsList', icon: 'newspaper' },
-        { id: '9', name: 'helpRequest', screen: 'HelpRequest', icon: 'help' },
+        { id: '9', name: 'helpRequest', screen: 'HelpRequest', icon: 'life-ring' },
     ];
 
-    // Use asyncStorage to setItem for role which user has logged in:
     useEffect(() => {
         const setRoleInAsyncStorage = async () => {
             try {
@@ -73,14 +74,12 @@ function DashboardPage({ navigation, route }) {
         }
     }, [userData]);
 
-    // Filter menu items based on role
     const filteredMenuItems = isSuperAdmin
         ? dashboardMenuItems.filter(item =>
             ['multilingualSupport', 'profile', 'migrants', 'eventCalendar', 'servicesDirectory', 'news', 'helpRequest'].includes(item.name)
         )
         : dashboardMenuItems.filter(item => item.name !== 'migrants' && item.name !== 'notifications');
 
-    // Carousel items
     const carouselItems = [
         {
             title: languageTexts?.dashboard?.welcome?.replace('{name}', userData?.data?.name || 'User'),
@@ -124,7 +123,7 @@ function DashboardPage({ navigation, route }) {
     const handleMenuItemPress = async (label, screen) => {
         let name = screen.screen;
         if (name === 'Login') {
-            setShowLogoutModal(true); // Show modal on logout press
+            setShowLogoutModal(true);
         } else {
             navigation.navigate(name);
             closeSidebar();
@@ -162,27 +161,24 @@ function DashboardPage({ navigation, route }) {
     useEffect(() => {
         const onBackPress = () => {
             if (isLoggingOut) {
-                return true; // Prevent back press during logout
+                return true;
             }
             if (navigation.isFocused()) {
-                // setShowLogoutModal(true); 
                 setShowExitModal(true);
-                return true; // Prevent default behavior
+                return true;
             }
-            return false; // Allow default behavior
+            return false;
         };
         BackHandler.addEventListener('hardwareBackPress', onBackPress);
-        // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
     }, [navigation, isLoggingOut]);
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', (e) => {
             if (isLoggingOut) {
-                return; // Prevent navigation events during logout
+                return;
             }
             if (navigation.isFocused()) {
                 e.preventDefault();
-                // setShowLogoutModal(true);
                 setShowExitModal(true);
             }
         });
@@ -190,7 +186,6 @@ function DashboardPage({ navigation, route }) {
     }, [navigation, isLoggingOut]);
 
     useEffect(() => {
-        // Check update
         checkAppVersion(appUpdate, setAppUpdate);
 
         const fetchUserData = async () => {
@@ -203,10 +198,8 @@ function DashboardPage({ navigation, route }) {
                 }
                 setLoading(true);
                 const data = await getUserData();
-                // console.log("Fetched User Data:1", data);
-                
                 setUserData(data);
-                setUser(data)
+                setUser(data);
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
                 Toast.show({
@@ -240,7 +233,6 @@ function DashboardPage({ navigation, route }) {
         }
     }, [carouselItems, isSuperAdmin]);
 
-    // Session Expired Toast logic
     useEffect(() => {
         if (route?.params?.sessionExpired) {
             Toast.show({
@@ -305,96 +297,117 @@ function DashboardPage({ navigation, route }) {
     };
 
     const handleLogout = async () => {
-        setIsLoggingOut(true); // Set logout state to true
-        setShowLogoutModal(false); // Hide modal
-        await clearAuthToken(); // Clear token
+        setIsLoggingOut(true);
+        setShowLogoutModal(false);
+        await clearAuthToken();
         setUser({});
         navigation.reset({
             index: 0,
             routes: [{ name: 'Login' }],
         });
-        setIsLoggingOut(false); // Reset logout state after navigation
+        setIsLoggingOut(false);
     };
 
     const handleExitApp = () => {
-      setShowExitModal(false);
-      setTimeout(() => {
-        BackHandler.exitApp();
-      }, 200);
+        setShowExitModal(false);
+        setTimeout(() => {
+            BackHandler.exitApp();
+        }, 200);
     };
+
     return (
         <View style={styles.wrapper} {...screenPanResponder.panHandlers}>
-            <LinearGradient colors={['#C97B3C', '#7A401D']} style={styles.container}>
-                <TouchableOpacity style={styles.menuButton} onPress={openSidebar}>
-                    <Icon name="menu" size={26} color="#FFF" />
-                </TouchableOpacity>
+            {/* Add StatusBar to control the notch area */}
+            <StatusBar
+                translucent
+                backgroundColor="transparent" // Make the status bar transparent
+                barStyle="light-content" // Ensure icons are visible against the gradient
+            />
 
-                <Text style={styles.title}>
-                    {languageTexts?.dashboard?.title || 'Dashboard'}
-                </Text>
-                <Text style={styles.welcomeText}>
-                    👋 {languageTexts?.dashboard?.welcome?.replace('{name}', userData?.data?.name || 'User') || `Hi ${userData?.data?.name || 'User'}! Welcome to Bosco Migrants.`}
-                </Text>
-                <View style={styles.carouselContainer}>
-                    <FlatList
-                        data={carouselItems}
-                        horizontal
-                        pagingEnabled
-                        ref={carouselRef}
-                        showsHorizontalScrollIndicator={false}
-                        onMomentumScrollEnd={(event) => {
-                            const index = Math.floor(event.nativeEvent.contentOffset.x / width);
-                            setActiveIndex(index);
-                        }}
-                        renderItem={renderCarouselItem}
-                        keyExtractor={(_, index) => index.toString()}
-                    />
-                </View>
-
-                <View style={styles.gridContainer}>
-                    {filteredMenuItems.map((item) => (
-                        <View key={item.id} style={[
-                            styles.gridItem,
-                            filteredMenuItems.length % 3 !== 0 && styles.gridItemFlex
-                        ]}>
-                            <TouchableOpacity
-                                style={styles.iconTouchable}
-                                onPress={() => handleIconPress(item.screen)}
-                            >
-                                <View style={[styles.iconBackground, { backgroundColor: '#c5894a' }]}>
-                                        <Icon
-                                            name={item.icon}
-                                            size={28}
-                                            color="#FFF"
-                                        />
-                                </View>
-                            </TouchableOpacity>
-                            <Text style={styles.gridText}>
-                                {languageTexts?.menu?.[item?.name] || item?.name}
-                            </Text>
-                        </View>
-                    ))}
-
-                    {filteredMenuItems.length % 3 === 2 && (
-                        <View style={[styles.gridItem, styles.emptyItem]} />
-                    )}
-                </View>
-
-                {sidebarOpen && (
-                    <TouchableWithoutFeedback onPress={closeSidebar}>
-                        <View style={styles.overlay} />
-                    </TouchableWithoutFeedback>
-                )}
-
-                <Animated.View
-                    style={[
-                        styles.sidebar,
-                        {
-                            transform: [{ translateX: slideAnim }],
-                        },
-                    ]}
-                    {...sidebarPanResponder.panHandlers}
+            {/* Wrap the main content in SafeAreaView */}
+            <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
+                <LinearGradient
+                    colors={['#C97B3C', '#7A401D']}
+                    style={styles.container}
                 >
+                    <TouchableOpacity style={styles.menuButton} onPress={openSidebar}>
+                        <Icon name="menu" size={26} color="#FFF" />
+                    </TouchableOpacity>
+
+                    <Text style={styles.title}>
+                        {languageTexts?.dashboard?.title || 'Dashboard'}
+                    </Text>
+                    <Text style={styles.welcomeText}>
+                        👋 {languageTexts?.dashboard?.welcome?.replace('{name}', userData?.data?.name || 'User') || `Hi ${userData?.data?.name || 'User'}! Welcome to Bosco Migrants.`}
+                    </Text>
+                    <View style={styles.carouselContainer}>
+                        <FlatList
+                            data={carouselItems}
+                            horizontal
+                            pagingEnabled
+                            ref={carouselRef}
+                            showsHorizontalScrollIndicator={false}
+                            onMomentumScrollEnd={(event) => {
+                                const index = Math.floor(event.nativeEvent.contentOffset.x / width);
+                                setActiveIndex(index);
+                            }}
+                            renderItem={renderCarouselItem}
+                            keyExtractor={(_, index) => index.toString()}
+                        />
+                    </View>
+
+                    <View style={styles.gridContainer}>
+                        {filteredMenuItems.map((item) => (
+                            <View key={item.id} style={[
+                                styles.gridItem,
+                                filteredMenuItems.length % 3 !== 0 && styles.gridItem
+                            ]}>
+                                <TouchableOpacity
+                                    style={styles.iconTouchable}
+                                    onPress={() => handleIconPress(item.screen)}
+                                >
+                                    <View style={[styles.iconBackground, { backgroundColor: '#c5894a' }]}>
+                                        {item.name === 'helpRequest' ? (
+                                            <Image source={require('../asserts/images/helpimg3.png')} style={[styles.helpImage, { color: '#fff' }]} />
+                                        ) : (
+                                            <Icon
+                                                name={item.icon}
+                                                size={28}
+                                                color="#FFF"
+                                            />
+                                        )}
+                                    </View>
+                                </TouchableOpacity>
+                                <Text style={styles.gridText}>
+                                    {languageTexts?.menu?.[item?.name] || item?.name}
+                                </Text>
+                            </View>
+                        ))}
+
+                        {filteredMenuItems.length % 3 === 2 && (
+                            <View style={[styles.gridItem, styles.emptyItem]} />
+                        )}
+                    </View>
+                </LinearGradient>
+            </SafeAreaView>
+
+            {/* Sidebar and overlay remain unchanged */}
+            {sidebarOpen && (
+                <TouchableWithoutFeedback onPress={closeSidebar}>
+                    <View style={styles.overlay} />
+                </TouchableWithoutFeedback>
+            )}
+
+            <Animated.View
+                style={[
+                    styles.sidebar,
+                    {
+                        transform: [{ translateX: slideAnim }],
+                    },
+                ]}
+                {...sidebarPanResponder.panHandlers}
+            >
+                <SafeAreaView style={styles.sidebarSafeArea} edges={['top']}>
                     <TouchableOpacity onPress={handleMenuHeaderPress} style={styles.sidebarHeader}>
                         <Text style={styles.sidebarTitle}>
                             {languageTexts?.menu?.menus || 'Menus'}
@@ -429,10 +442,10 @@ function DashboardPage({ navigation, route }) {
                     <View style={styles.sidebarVersionContainer}>
                         <Text style={styles.sidebarVersionText}>{appVersion}</Text>
                     </View>
-                </Animated.View>
-            </LinearGradient>
+                </SafeAreaView>
+            </Animated.View>
 
-            {/* logout model */}
+            {/* Modals remain unchanged */}
             <Modal
                 visible={showLogoutModal}
                 transparent
@@ -444,7 +457,6 @@ function DashboardPage({ navigation, route }) {
                         <View style={styles.modalContainer}>
                             <Text style={styles.modalTitle}>Are you sure you want to logout?</Text>
                             <View style={styles.modalButtonRow}>
-                                
                                 <TouchableOpacity style={styles.modalButton} onPress={() => setShowLogoutModal(false)}>
                                     <Text style={styles.modalButtonText}>Cancel</Text>
                                 </TouchableOpacity>
@@ -457,48 +469,52 @@ function DashboardPage({ navigation, route }) {
                 </View>
             </Modal>
 
-            {/* exit app model */}
             <Modal
-              visible={showExitModal}
-              transparent
-              animationType="fade"
-              onRequestClose={() => setShowExitModal(false)}
-            > 
-              <TouchableOpacity
-                style={[{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }]}
-                activeOpacity={1}
-                onPressOut={() => setShowExitModal(false)}
-              >
-                <View style={[styles.modalOverlayExit,{ padding: 24, borderRadius: 8, alignItems: 'center', minWidth: 280 }]}>
-                  <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12, color: '#333' }}>
-                    Are you sure you want to close the app?
-                  </Text>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
-                    <TouchableOpacity
-                      style={{ flex: 1, marginRight: 8, padding: 12, borderRadius: 6, 
-                        // backgroundColor: '#eee',
-                        backgroundColor: '#6a6865',
-                         alignItems: 'center' }}
-                      onPress={() => setShowExitModal(false)}
-                    >
-                      <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>Cancel</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={{ flex: 1, marginLeft: 8, padding: 12, borderRadius: 6, 
-                        // backgroundColor: '#d9534f', 
-                        backgroundColor: '#944D00',
-                        alignItems: 'center' }}
-                      onPress={handleExitApp}
-                    >
-                      <Text style={{ color: '#fff', fontWeight: 'bold' }}>Close App</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </TouchableOpacity>
+                visible={showExitModal}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowExitModal(false)}
+            >
+                <TouchableOpacity
+                    style={[{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }]}
+                    activeOpacity={1}
+                    onPressOut={() => setShowExitModal(false)}
+                >
+                    <View style={[styles.modalOverlayExit, { padding: 24, borderRadius: 8, alignItems: 'center', minWidth: 280 }]}>
+                        <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12, color: '#333' }}>
+                            Are you sure you want to close the app?
+                        </Text>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+                            <TouchableOpacity
+                                style={{
+                                    flex: 1, marginRight: 8, padding: 12, borderRadius: 6,
+                                    backgroundColor: '#6a6865',
+                                    alignItems: 'center'
+                                }}
+                                onPress={() => setShowExitModal(false)}
+                            >
+                                <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={{
+                                    flex: 1, marginLeft: 8, padding: 12, borderRadius: 6,
+                                    backgroundColor: '#944D00',
+                                    alignItems: 'center'
+                                }}
+                                onPress={handleExitApp}
+                            >
+                                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Close App</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </TouchableOpacity>
             </Modal>
         </View>
     );
 }
+
+// export default DashboardPage;
+
 
 export default DashboardPage;
 
@@ -506,17 +522,20 @@ const styles = StyleSheet.create({
     wrapper: {
         flex: 1,
     },
+    safeArea: {
+        flex: 1,
+    },
     container: {
         flex: 1,
-        paddingTop: 50,
-        paddingHorizontal: 20,
+        paddingHorizontal: 20, // Removed paddingTop to let SafeAreaView handle it
+        paddingTop: 0,
     },
     menuButton: {
         backgroundColor: '#944D00',
         padding: 12,
         borderRadius: 25,
         position: 'absolute',
-        top: 20,
+        top: 40, // Reduced top value to bring it closer to the edge, SafeAreaView will add padding
         left: 20,
         zIndex: 10,
     },
@@ -525,7 +544,7 @@ const styles = StyleSheet.create({
         fontSize: 28,
         fontWeight: 'bold',
         textAlign: 'center',
-        marginTop: -20,
+        marginTop: 40, // Adjusted to ensure spacing after SafeAreaView padding
     },
     welcomeText: {
         color: '#fff',
@@ -573,10 +592,12 @@ const styles = StyleSheet.create({
         bottom: 0,
         width: 250,
         backgroundColor: '#944D00',
-        paddingTop: 50,
         paddingHorizontal: 15,
         elevation: 10,
         zIndex: 20,
+    },
+    sidebarSafeArea: {
+        flex: 1,
     },
     overlay: {
         position: 'absolute',
@@ -590,6 +611,7 @@ const styles = StyleSheet.create({
     sidebarHeader: {
         alignItems: 'center',
         marginBottom: 30,
+        marginTop: 20, // Adjusted to ensure spacing after SafeAreaView padding
     },
     sidebarTitle: {
         fontSize: 20,
@@ -672,6 +694,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginHorizontal: '1.66%',
     },
+    helpText: {
+        color: '#FFF',
+        fontSize: 16,
+        fontWeight: '600',
+        textAlign: 'center',
+    },
     iconTouchable: {
         marginBottom: 8,
     },
@@ -682,6 +710,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#944D00',
+    },
+    iconImage: {
+        width: 40,
+        height: 40,
+    },
+    helpImage: {
+        width: '60%',
+        height: 60,
+        color: '#FFF',
+        resizeMode: 'contain',
     },
     gridText: {
         color: '#FFF',
@@ -694,7 +732,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.6)'
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
     },
     loadingBackground: {
         ...StyleSheet.absoluteFillObject,
@@ -732,10 +770,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     modalOverlayExit: {
-        // flex: 1,
-        width: '10%',
-        height: '20%',
-        // backgroundColor: 'rgba(0, 0, 0, 0.4)',
         backgroundColor: '#ffffff',
         justifyContent: 'center',
         alignItems: 'center',
@@ -764,9 +798,7 @@ const styles = StyleSheet.create({
     modalButton: {
         flex: 1,
         marginHorizontal: 8,
-        // backgroundColor: '#944D00',
         backgroundColor: '#6a6865',
-        // backgroundColor: '#333',
         borderRadius: 8,
         paddingVertical: 10,
         alignItems: 'center',
@@ -775,8 +807,6 @@ const styles = StyleSheet.create({
         flex: 1,
         marginHorizontal: 8,
         backgroundColor: '#944D00',
-        // backgroundColor: '#f90c0c',
-        // backgroundColor: '#333',
         borderRadius: 8,
         paddingVertical: 10,
         alignItems: 'center',
