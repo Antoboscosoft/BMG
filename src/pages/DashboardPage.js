@@ -21,7 +21,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import { SafeAreaView } from 'react-native-safe-area-context'; // Import SafeAreaView
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUserData } from '../api/auth';
 import { clearAuthToken } from '../api/axiosInstance';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -44,7 +44,6 @@ function DashboardPage({ navigation, route }) {
     const isSuperAdmin = userData?.data?.role?.name === "Super Admin" || userData?.data?.role?.name === "Admin" || userData?.data?.role?.name === "Staff";
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [showExitModal, setShowExitModal] = useState(false);
-
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const { setUser } = useContext(LanguageContext);
 
@@ -56,7 +55,7 @@ function DashboardPage({ navigation, route }) {
         { id: '4', name: 'multilingualSupport', screen: 'MultilingualSupport', icon: 'translate' },
         { id: '7', name: 'migrants', screen: 'MigrantsList', icon: 'account-group' },
         { id: '8', name: 'news', screen: 'NewsList', icon: 'newspaper' },
-        { id: '9', name: 'helpRequest', screen: 'HelpRequest', icon: 'life-ring' },
+        { id: '9', name: 'helpRequest', screen: 'HelpRequest', icon: 'life-ring' }, // Icon field kept for consistency, but we'll use the local image
     ];
 
     useEffect(() => {
@@ -317,14 +316,11 @@ function DashboardPage({ navigation, route }) {
 
     return (
         <View style={styles.wrapper} {...screenPanResponder.panHandlers}>
-            {/* Add StatusBar to control the notch area */}
             <StatusBar
                 translucent
-                backgroundColor="transparent" // Make the status bar transparent
-                barStyle="light-content" // Ensure icons are visible against the gradient
+                backgroundColor="transparent"
+                barStyle="light-content"
             />
-
-            {/* Wrap the main content in SafeAreaView */}
             <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
                 <LinearGradient
                     colors={['#C97B3C', '#7A401D']}
@@ -333,7 +329,6 @@ function DashboardPage({ navigation, route }) {
                     <TouchableOpacity style={styles.menuButton} onPress={openSidebar}>
                         <Icon name="menu" size={26} color="#FFF" />
                     </TouchableOpacity>
-
                     <Text style={styles.title}>
                         {languageTexts?.dashboard?.title || 'Dashboard'}
                     </Text>
@@ -355,7 +350,6 @@ function DashboardPage({ navigation, route }) {
                             keyExtractor={(_, index) => index.toString()}
                         />
                     </View>
-
                     <View style={styles.gridContainer}>
                         {filteredMenuItems.map((item) => (
                             <View key={item.id} style={[
@@ -368,7 +362,7 @@ function DashboardPage({ navigation, route }) {
                                 >
                                     <View style={[styles.iconBackground, { backgroundColor: '#c5894a' }]}>
                                         {item.name === 'helpRequest' ? (
-                                            <Image source={require('../asserts/images/helpimg3.png')} style={[styles.helpImage, { color: '#fff' }]} />
+                                            <Image source={require('../asserts/images/helpimg3.png')} style={styles.helpImage} />
                                         ) : (
                                             <Icon
                                                 name={item.icon}
@@ -383,21 +377,17 @@ function DashboardPage({ navigation, route }) {
                                 </Text>
                             </View>
                         ))}
-
                         {filteredMenuItems.length % 3 === 2 && (
                             <View style={[styles.gridItem, styles.emptyItem]} />
                         )}
                     </View>
                 </LinearGradient>
             </SafeAreaView>
-
-            {/* Sidebar and overlay remain unchanged */}
             {sidebarOpen && (
                 <TouchableWithoutFeedback onPress={closeSidebar}>
                     <View style={styles.overlay} />
                 </TouchableWithoutFeedback>
             )}
-
             <Animated.View
                 style={[
                     styles.sidebar,
@@ -413,39 +403,40 @@ function DashboardPage({ navigation, route }) {
                             {languageTexts?.menu?.menus || 'Menus'}
                         </Text>
                     </TouchableOpacity>
-
                     {filteredMenuItems.map((item) => (
                         <TouchableOpacity
                             key={item.id}
                             style={styles.menuItem}
                             onPress={() => handleMenuItemPress(languageTexts?.menu?.[item.name] || item.name, { screen: item.screen })}
                         >
-                            <Icon name={item.icon} size={22} color="#fff" style={styles.menuIcon} />
+                            {item.name === 'helpRequest' ? (
+                                <Image
+                                    source={require('../asserts/images/helpimg3.png')}
+                                    style={styles.helpImageMenu}
+                                />
+                            ) : (
+                                <Icon name={item.icon} size={22} color="#fff" style={styles.menuIcon} />
+                            )}
                             <Text style={styles.menuText}>
                                 {languageTexts?.menu?.[item.name] || item.name}
                             </Text>
                         </TouchableOpacity>
                     ))}
-
                     <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Contact Us', { screen: 'ContactUs' })}>
                         <Feather name="phone-call" size={22} color="#fff" style={styles.menuIcon} />
                         <Text style={styles.menuText}>{languageTexts?.menu?.contactUs || "Contact Us"}</Text>
                     </TouchableOpacity>
-
                     <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('Logout', { screen: 'Login' })}>
                         <Icon name="logout" size={22} color="#fff" style={styles.menuIcon} />
                         <Text style={styles.menuText}>
                             {languageTexts?.menu?.logout || 'Logout'}
                         </Text>
                     </TouchableOpacity>
-
                     <View style={styles.sidebarVersionContainer}>
                         <Text style={styles.sidebarVersionText}>{appVersion}</Text>
                     </View>
                 </SafeAreaView>
             </Animated.View>
-
-            {/* Modals remain unchanged */}
             <Modal
                 visible={showLogoutModal}
                 transparent
@@ -468,7 +459,6 @@ function DashboardPage({ navigation, route }) {
                     </Pressable>
                 </View>
             </Modal>
-
             <Modal
                 visible={showExitModal}
                 transparent
@@ -513,9 +503,6 @@ function DashboardPage({ navigation, route }) {
     );
 }
 
-// export default DashboardPage;
-
-
 export default DashboardPage;
 
 const styles = StyleSheet.create({
@@ -527,7 +514,7 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        paddingHorizontal: 20, // Removed paddingTop to let SafeAreaView handle it
+        paddingHorizontal: 20,
         paddingTop: 0,
     },
     menuButton: {
@@ -535,7 +522,7 @@ const styles = StyleSheet.create({
         padding: 12,
         borderRadius: 25,
         position: 'absolute',
-        top: 40, // Reduced top value to bring it closer to the edge, SafeAreaView will add padding
+        top: 40,
         left: 20,
         zIndex: 10,
     },
@@ -544,7 +531,7 @@ const styles = StyleSheet.create({
         fontSize: 28,
         fontWeight: 'bold',
         textAlign: 'center',
-        marginTop: 40, // Adjusted to ensure spacing after SafeAreaView padding
+        marginTop: 40,
     },
     welcomeText: {
         color: '#fff',
@@ -611,7 +598,7 @@ const styles = StyleSheet.create({
     sidebarHeader: {
         alignItems: 'center',
         marginBottom: 30,
-        marginTop: 20, // Adjusted to ensure spacing after SafeAreaView padding
+        marginTop: 20,
     },
     sidebarTitle: {
         fontSize: 20,
@@ -621,16 +608,25 @@ const styles = StyleSheet.create({
     menuItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 30,
-        paddingVertical: 5,
+        marginBottom: 20,
+        paddingVertical: 8,
     },
     menuIcon: {
-        marginRight: 10,
+        marginRight: 15,
+        width: 24,
+        height: 24,
+        textAlign: 'center',
     },
     menuText: {
         fontSize: 16,
         color: '#fff',
         fontWeight: '600',
+    },
+    helpImageMenu: {
+        width: 24,
+        height: 24,
+        marginRight: 15,
+        resizeMode: 'contain',
     },
     carouselContainer: {
         marginTop: 20,
@@ -718,7 +714,6 @@ const styles = StyleSheet.create({
     helpImage: {
         width: '60%',
         height: 60,
-        color: '#FFF',
         resizeMode: 'contain',
     },
     gridText: {
