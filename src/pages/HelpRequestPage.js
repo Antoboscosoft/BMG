@@ -160,14 +160,14 @@ function HelpRequestPage({ navigation }) {
                     />
                 </SafeAreaView>
 
-                <TouchableOpacity
+                {/* <TouchableOpacity
                     style={styles.fab}
                     onPress={() => setModalVisible(true)}
                 >
                     <Icon name="add" size={24} color="#fff" />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
 
-                <Modal
+                {/* <Modal
                     animationType="slide"
                     transparent={true}
                     visible={modalVisible}
@@ -217,7 +217,7 @@ function HelpRequestPage({ navigation }) {
                             </TouchableOpacity>
                         </View>
                     </View>
-                </Modal>
+                </Modal> */}
             </Animated.View>
         </LinearGradient>
     );

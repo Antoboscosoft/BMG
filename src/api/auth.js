@@ -393,7 +393,11 @@ export const getHelpCategories = async () => {
 // getHelpRequestsByCategory
 export const getHelpRequestsByCategory = async (categoryId, userId) => {
     try {
-        const response = await axiosInstance.get(`helprequests?category_id=${categoryId}&user_id=${userId}&skip=0&limit=0`);
+        const url = userId
+        ? `helprequests?category_id=${categoryId}&user_id=${userId}&skip=0&limit=0`
+            : `helprequests?category_id=${categoryId}&skip=0&limit=0`;
+        // const response = await axiosInstance.get(`helprequests?category_id=${categoryId}&user_id=${userId}&skip=0&limit=0`);
+        const response = await axiosInstance.get(url);
         return response.data;
     } catch (error) {
         console.error("Get Help Service Categories Error:", error);

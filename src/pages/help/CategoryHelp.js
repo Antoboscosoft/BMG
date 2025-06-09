@@ -5,6 +5,14 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getHelpRequestsByCategory, getHelpRequestStatusOptions, updateHelpRequestStatus } from '../../api/auth';
 import { useLanguage } from '../../language/commondir';
 
+	
+// Fallback status options if API fails
+const fallbackStatusOptions = [
+    { label: 'Open', value: 'OPEN' },
+    { label: 'In Progress', value: 'IN_PROGRESS' },
+    { label: 'Closed', value: 'CLOSED' },
+];
+
 function CategoryHelp({ route, navigation }) {
     const { category, userId, refresh } = route.params;
     const { languageTexts, user } = useLanguage();
@@ -21,7 +29,12 @@ function CategoryHelp({ route, navigation }) {
         setLoading(true);
         setError(null);
         try {
-            const response = await getHelpRequestsByCategory(category?.id, userId);
+            // Pass userId only if the role is MIGRANT
+            const role = user?.data?.role?.name.toUpperCase();
+            const idToPass = role === 'MIGRANT' ? userId : undefined;
+            console.log("userId:", userId, "role:", role, "idToPass:", idToPass);
+            
+            const response = await getHelpRequestsByCategory(category?.id, idToPass);
             setRequests(response.data || []);
         } catch (err) {
             setError('Failed to load help requests. Please try again.');
@@ -44,7 +57,9 @@ function CategoryHelp({ route, navigation }) {
                 }));
                 setStatusOptions(formattedOptions);
             } catch (err) {
-                Alert.alert('Error', 'Failed to load status options');
+                // Alert.alert('Error', 'Failed to load status options');
+                console.error('Failed to load status options:', err); // Log error for debugging
+                setStatusOptions(fallbackStatusOptions); // Use fallback options
             }
         };
 
@@ -58,7 +73,7 @@ function CategoryHelp({ route, navigation }) {
 
     const openStatusModal = (item) => {
         // Only allow status change for admins or staff
-        if (user?.data?.role?.name !== 'ADMIN' && user?.data?.role?.name !== 'STAFF') {
+        if (user?.data?.role?.name.toUpperCase() !== 'ADMIN' && user?.data?.role?.name.toUpperCase() !== 'STAFF') {
             Alert.alert('Permission Denied', 'Only admins or staff can change the status.');
             return;
         }
@@ -88,9 +103,12 @@ function CategoryHelp({ route, navigation }) {
         <View style={styles.requestCard}>
             <View style={styles.cardHeader}>
                 <Text style={styles.requestTitle}>Help Request Detail</Text>
+                {/* {console.log("item.status: help req >>>", item.status)} */}
+                {user.data.role.name === "Admin" || user.data.role.name === "Staff" && item.status !== 'CLOSED' &&
+
                 <TouchableOpacity onPress={() => openStatusModal(item)}>
                     <Text style={styles.statusChangeLabel}>{item.status}</Text>
-                </TouchableOpacity>
+                </TouchableOpacity>}
             </View>
             <View style={styles.cardContent}>
                 <View style={styles.infoRow}>
@@ -177,7 +195,10 @@ function CategoryHelp({ route, navigation }) {
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Change Status</Text>
-                        {statusOptions.map(opt => (
+                        {
+                        statusOptions.length ? 
+                        (
+                        statusOptions.map(opt => (
                             <TouchableOpacity
                                 key={opt.value}
                                 onPress={() => setSelectedStatus(opt.value)}
@@ -188,7 +209,9 @@ function CategoryHelp({ route, navigation }) {
                                 </View>
                                 <Text style={styles.radioLabel}>{opt.label}</Text>
                             </TouchableOpacity>
-                        ))}
+                        ))) : (
+                            <Text style={styles.errorText}>No status options available</Text>
+                        )}
                         <View style={styles.modalButtonContainer}>
                             <TouchableOpacity style={styles.modalButton} onPress={handleStatusSubmit}>
                                 <Text style={styles.buttonText}>OK</Text>
@@ -312,7 +335,7 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         fontSize: 16,
-        color: '#888',
+        color: '#f35252',
         textAlign: 'center',
         marginTop: 50,
     },
