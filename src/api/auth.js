@@ -147,7 +147,7 @@ export const registerUser = async (userData) => {
         return response.data;
     } catch (error) {
         console.error("Registration Error:", error);
-        throw error.response?.data || { message: "Registration failed" };
+        throw error.response?.data || { message: "Registration failed", code: error.code, isNetworkError: !error.response };
     }
 };
 
@@ -204,6 +204,7 @@ export const getUserById = async (userId) => {
         throw error.response?.data || { message: "Failed to fetch user data" };
     }
 };
+
 // export const updateUserData = async (userId, data) => {
 //     try {
 //         const response = await axiosInstance.put(`user/update/${userId}`, data);
@@ -216,6 +217,7 @@ export const getUserById = async (userId) => {
 
 
 // Function to update user data
+
 export const updateUserData = async (userId, userData) => {
     try {
         console.log("Updating user data for ID:", userId, "with data:", userData);
@@ -512,6 +514,120 @@ export const deleteServiceRequest = async (serviceId) => {
         throw error.response?.data || { message: "Failed to delete service request" };
     }
 };
+
+// get job opportunity:
+export const getJobOpportunity = async () => {
+    try {
+        const response = await axiosInstance.get('job');
+        console.log("Get Job Opportunity Response:", response.data);
+        
+        return response.data;
+    } catch (error) {
+        console.error("Get Job Opportunity Error:", error);
+        throw error.response?.data || { message: "Failed to fetch job opportunity" };
+    }
+}
+
+// create job opportunity:
+export const createJobOpportunity = async (jobData) => {
+    try {
+        console.log("Creating job opportunity with data:", jobData);
+        const response = await axiosInstance.post('job', jobData);
+        return response.data;
+    } catch (error) {
+        console.error("Create Job Opportunity Error:", error);
+        throw error.response?.data || { message: "Failed to create job opportunity" };
+    }
+}
+
+// Edit a job opportunity
+export const editJobOpportunity = async (jobId, jobData) => {
+    try {
+        console.log("Editing job opportunity with ID:", jobId, "and data:", jobData);
+        const response = await axiosInstance.put(`job/${jobId}`, jobData);
+        return response.data;
+    } catch (error) {
+        console.error("Edit Job Opportunity Error:", error);
+        throw error.response?.data || { message: "Failed to edit job opportunity" };
+    }
+}
+
+// Delete a job opportunity
+export const deleteJobOpportunity = async (jobId) => {
+    try {
+        console.log("Deleting job opportunity with ID:", jobId);
+        const response = await axiosInstance.delete(`job/${jobId}`);
+        return response.data;
+    } catch (error) {
+        console.error("Delete Job Opportunity Error:", error);
+        throw error.response?.data || { message: "Failed to delete job opportunity" };
+    }
+}
+
+
+// Apply for a job (POST /job/request)
+export const applyForJob = async (jobId) => {
+    console.log("Applying for job with ID:", jobId);
+    
+    try {
+        const response = await axiosInstance.post(`job/request?job_id=${jobId}`);
+        console.log("response",response.data);
+        
+        return response.data;
+    } catch (error) {
+        console.error("Apply for Job Error:", error);
+        throw error.response?.data || { message: "Failed to apply for job" };
+    }
+};
+
+// Get all job requests (for non-migrants) (GET /job/requests)
+export const getJobRequests = async (job_id) => {
+    try {
+        const response = await axiosInstance.get(`job/requests?skip=0&limit=0`);
+        // const response = await axiosInstance.get(`job/requests?job_id=${job_id}skip=0&limit=0`);
+        return response.data;
+    } catch (error) {
+        console.error("Get Job Requests Error:", error);
+        throw error.response?.data || { message: "Failed to fetch job requests" };
+    }
+};
+
+// Get user's own job requests (for migrants) (GET /job/my_requests)
+export const getMyJobRequests = async (job_id) => {
+    try {
+        const response = await axiosInstance.get(`job/my_requests?skip=0&limit=0`);
+        return response.data;
+    } catch (error) {
+        console.error("Get My Job Requests Error:", error);
+        throw error.response?.data || { message: "Failed to fetch my job requests" };
+    }
+};
+
+// Update job request status (PUT /job/request/{request_id})
+export const updateJobRequestStatus = async (request_id, status) => {
+    console.log("api request_id",request_id, "status",status);
+    
+    try {
+        const response = await axiosInstance.put(`job/request/${request_id}?status=${status}`);
+        return response.data;
+    } catch (error) {
+        console.error("Update Job Request Status Error:", error);
+        throw error.response?.data || { message: "Failed to update job request status" };
+    }
+};
+
+// Withdraw a job application (DELETE /job/request/{request_id})
+export const withdrawJobApplication = async (requestId) => {
+    try {
+        const response = await axiosInstance.delete(`job/request/${requestId}`);
+        return response.data;
+    } catch (error) {
+        console.error("Withdraw Job Application Error:", error);
+        throw error.response?.data || { message: "Failed to withdraw job application" };
+    }
+};
+
+
 
 // Add this to your auth.js file
 export const getEvents = async () => {

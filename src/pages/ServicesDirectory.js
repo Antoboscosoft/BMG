@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BackIcon from 'react-native-vector-icons/MaterialIcons';
-import LinearGradient from 'react-native-linear-gradient'; // <-- make sure this is installed
-import { getServiceCategories } from '../api/auth'; // Import the new API function
+import LinearGradient from 'react-native-linear-gradient';
+import { getJobOpportunity, getServiceCategories } from '../api/auth';
 import { useLanguage } from '../language/commondir';
-
 
 // Updated icon mapping based on API response names
 const serviceIcons = {
@@ -28,29 +27,29 @@ const serviceDescriptions = {
 function ServicesDirectory({ navigation }) {
     const { languageTexts } = useLanguage();
     const [services, setServices] = useState([]);
+    const [jobOpportunity, setJobOpportunity] = useState(null); // State for job opportunity
     const [loading, setLoading] = useState(true);
+    const [jobLoading, setJobLoading] = useState(true); // Separate loading state for job opportunity
     const [error, setError] = useState(null);
-    console.log("services >>>> ", services);
+    const [jobError, setJobError] = useState(null); // Separate error state for job opportunity
 
+    // Fetch service categories
     useEffect(() => {
         const fetchServices = async () => {
             try {
                 setLoading(true);
                 const response = await getServiceCategories();
-                console.log("response data from api  >>>> ", response);
+                // console.log("response data from api >>>> ", response);
 
                 if (response && response.status && response.data) {
-                    // Transform API data to match our UI structure
                     const formattedServices = response.data.map(service => ({
                         id: service?.id.toString(),
                         name: languageTexts?.servicesDirectory?.services?.[service.name.replace(/\s+/g, '')] || service?.name,
                         icon: serviceIcons[service.name] || serviceIcons['default'],
                         description: languageTexts?.servicesDirectory?.descriptions?.[service.name.replace(/\s+/g, '')] || languageTexts?.servicesDirectory?.descriptions?.default || 'Service description not available',
-                        // description: serviceDescriptions[service.name] || serviceDescriptions['default'],
-                        category_id: service?.id, // Keep the original ID for API calls
+                        category_id: service?.id,
                         available: service?.available,
-                        // services: service?.services, // Include the services object if available
-                        services: service?.requested // Include the services object if available
+                        services: service?.requested
                     }));
                     setServices(formattedServices);
                 } else {
@@ -64,6 +63,23 @@ function ServicesDirectory({ navigation }) {
         };
 
         fetchServices();
+    }, [languageTexts]);
+
+    // Fetch job opportunities
+    useEffect(() => {
+        const getJobOpportunityFunc = async () => {
+            try {
+                setJobLoading(true);
+                const response = await getJobOpportunity();
+                console.log("response job oppo: -> ", response);
+                setJobOpportunity(response.data); // Store job opportunity data
+            } catch (err) {
+                setJobError(languageTexts?.servicesDirectory?.error?.fetch || 'Failed to load job opportunities.');
+            } finally {
+                setJobLoading(false);
+            }
+        };
+        getJobOpportunityFunc();
     }, [languageTexts]);
 
     const renderServiceItem = ({ item }) => {
@@ -103,7 +119,6 @@ function ServicesDirectory({ navigation }) {
                     >
                         <BackIcon name="visibility" size={20} color="#FFF" />
                         <Text style={[isApplied ? styles.appliedButtonText : styles.applyButtonText]}>
-                            {/* {isApplied ? languageTexts?.servicesDirectory?.applied || 'Applied' : languageTexts?.servicesDirectory?.apply || 'Apply'} */}
                             View
                         </Text>
                     </TouchableOpacity>
@@ -112,6 +127,70 @@ function ServicesDirectory({ navigation }) {
                         <Text style={styles.disabledButtonText}>{languageTexts?.servicesDirectory?.unavailable || 'Unavailable'}</Text>
                     </View>
                 )}
+            </View>
+        );
+    };
+
+    // Render Job Opportunity Card
+    const renderJobOpportunityCard = () => {
+        if (jobLoading) {
+            return (
+                <View style={[styles.jobCard, styles.loadingContainer]}>
+                    <ActivityIndicator size="small" color="#FFF" />
+                    <Text style={styles.loadingText}>{languageTexts?.servicesDirectory?.loading || 'Loading job opportunities...'}</Text>
+                </View>
+            );
+        }
+
+        if (jobError) {
+            return (
+                <View style={[styles.jobCard, styles.errorContainer]}>
+                    <Text style={styles.errorText}>{jobError}</Text>
+                </View>
+            );
+        }
+
+        if (!jobOpportunity || jobOpportunity.length === 0) {
+            return (
+                <View style={[styles.jobCard, styles.emptyContainer]}>
+                    <Text style={styles.emptyText}>{languageTexts?.servicesDirectory?.emptyJob || 'No job opportunities available at the moment.'}</Text>
+                </View>
+            );
+        }
+
+        // Assuming jobOpportunity is an array; display the first job for simplicity
+        const job = jobOpportunity[0];
+        return (
+            <View style={styles.jobCard}>
+                <View style={styles.serviceContent}>
+                    <Icon
+                        name="briefcase" // Icon for job opportunity
+                        size={30}
+                        color="#333"
+                        style={styles.serviceIcon}
+                    />
+                    <View style={styles.serviceTextContainer}>
+                        <Text style={styles.jobTitle}>
+                            {languageTexts?.servicesDirectory?.jobOpportunity || 'Job Opportunity'}
+                        </Text>
+                        <Text style={styles.serviceDescription}>
+                            {job?.title || 'Job Title Not Available'} - {job?.type || 'Type Not Available'}
+                        </Text>
+                        <Text style={styles.serviceDescription}>
+                            {job?.description || 'No description available.'}
+                        </Text>
+                    </View>
+                </View>
+                <TouchableOpacity
+                    style={styles.applyButton}
+                    onPress={() => navigation.navigate('JobView', { jobData: job })}
+                    activeOpacity={0.8}
+                >
+                    <BackIcon name="visibility" size={20} color="#FFF" />
+                    <Text style={styles.applyButtonText}>
+                        {languageTexts?.servicesDirectory?.view || 'View'}
+                    </Text>
+                </TouchableOpacity>
             </View>
         );
     };
@@ -134,7 +213,6 @@ function ServicesDirectory({ navigation }) {
                     onPress={() => {
                         setError(null);
                         setLoading(true);
-                        // Retry fetching
                         useEffect(() => {
                             const fetchServices = async () => {
                                 try {
@@ -165,17 +243,15 @@ function ServicesDirectory({ navigation }) {
         );
     }
 
-    if (services.length === 0) {
+    if (services.length === 0 && !jobOpportunity) {
         return (
             <LinearGradient colors={['#2753b2', '#e6e9f0']} style={[styles.container, styles.emptyContainer]}>
-                <Text style={styles.emptyText}>{languageTexts?.servicesDirectory?.empty || 'No services available at the moment.'}</Text>
+                <Text style={styles.emptyText}>{languageTexts?.servicesDirectory?.empty || 'No services or job opportunities available at the moment.'}</Text>
             </LinearGradient>
         );
     }
 
-
     const handleApply = (service, isApplied) => {
-        // Data to pass to CreateService
         const serviceData = {
             category_id: service.id,
             category_name: service.name,
@@ -184,18 +260,12 @@ function ServicesDirectory({ navigation }) {
             isApplied: isApplied,
             requested_user_id: isApplied ? service?.services?.requested_user_id : null
         };
-        // navigation.navigate('CreateService', { serviceData });
         navigation.navigate('CategoryServices', { serviceData });
     };
 
-
-
-
     return (
         <LinearGradient
-            //   colors={['#F7F8FA', '#E5ECF6']}
-            colors={['#2753b2', '#e6e9f0']} // Gradient from blue to light gray
-            //   colors={['#5e3b15', '#b06a2c']}
+            colors={['#2753b2', '#e6e9f0']}
             style={styles.container}
         >
             <TouchableOpacity
@@ -205,7 +275,6 @@ function ServicesDirectory({ navigation }) {
                 <BackIcon name="arrow-back" size={24} color="#FFF" />
             </TouchableOpacity>
 
-            {/* Header with Logo and Title */}
             <View style={styles.header}>
                 <Image
                     source={require('../asserts/images/s1.png')}
@@ -215,12 +284,12 @@ function ServicesDirectory({ navigation }) {
                 <Text style={styles.headerText}>{languageTexts?.menu?.servicesDirectory || 'Services Directory'}</Text>
             </View>
 
-            {/* List of Services */}
             <FlatList
                 data={services}
                 renderItem={renderServiceItem}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.listContainer}
+                ListHeaderComponent={renderJobOpportunityCard} // Add the job opportunity card at the top
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Icon name="emoticon-sad" size={40} color="#666" />
@@ -321,6 +390,22 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
     },
+    jobCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#FFF',
+        borderRadius: 10,
+        padding: 15,
+        marginBottom: 15,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        borderLeftWidth: 4,
+        borderLeftColor: '#FFD700', // Gold color to distinguish job card
+    },
     serviceContent: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -336,14 +421,17 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '600',
         color: '#333',
-        // marginTop: 25,
+    },
+    jobTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#333',
     },
     serviceDescription: {
         fontSize: 14,
         color: '#666',
         marginTop: 5,
     },
-
     availableCard: {
         backgroundColor: '#f9f9f9',
         borderLeftWidth: 4,
@@ -378,7 +466,7 @@ const styles = StyleSheet.create({
     },
     applyButton: {
         flexDirection: 'row',
-        backgroundColor: '#2753b2',
+        backgroundColor: '#4CAF50',
         paddingVertical: 8,
         paddingHorizontal: 15,
         borderRadius: 5,
@@ -394,7 +482,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginLeft: 5,
     },
-
     appliedButton: {
         flexDirection: 'row',
         backgroundColor: '#4CAF50',
@@ -414,4 +501,3 @@ const styles = StyleSheet.create({
         marginLeft: 5,
     },
 });
-

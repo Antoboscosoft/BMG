@@ -63,6 +63,7 @@ function ProfileEdit({ navigation, route }) {
     const [skills, setSkills] = useState([]);
     const [loadingJobTypes, setLoadingJobTypes] = useState(false);
     const [loadingSkills, setLoadingSkills] = useState(false);
+console.log("nativeStates",nativeStates);
 
     const { control, handleSubmit, reset, formState: { errors }, setValue, watch } = useForm({
         defaultValues: {
@@ -92,6 +93,7 @@ function ProfileEdit({ navigation, route }) {
             native_country_name: userData?.native_country?.name || '',
             native_state_name: userData?.native_state?.name || '',
             native_district_name: userData?.native_district?.name || '',
+            // Removed unused fields to avoid confusion
         }
     });
 
@@ -100,6 +102,7 @@ function ProfileEdit({ navigation, route }) {
     const nativeCountryId = watch('native_country_id');
     const nativeStateId = watch('native_state_id');
 
+    // Fetch countries on mount
     useEffect(() => {
         const fetchCountries = async () => {
             setLoadingCountries(true);
@@ -120,6 +123,7 @@ function ProfileEdit({ navigation, route }) {
         fetchCountries();
     }, []);
 
+    // Fetch current states when current country changes
     useEffect(() => {
         const fetchCurrentStates = async () => {
             if (currentCountryId) {
@@ -153,6 +157,7 @@ function ProfileEdit({ navigation, route }) {
         fetchCurrentStates();
     }, [currentCountryId, setValue]);
 
+    // Fetch current districts when current state changes
     useEffect(() => {
         const fetchCurrentDistricts = async () => {
             if (currentStateId) {
@@ -183,6 +188,7 @@ function ProfileEdit({ navigation, route }) {
         fetchCurrentDistricts();
     }, [currentStateId, setValue]);
 
+    // Fetch native states on mount if native_country_id exists, and when native country changes
     useEffect(() => {
         const fetchNativeStates = async () => {
             if (nativeCountryId) {
@@ -192,7 +198,8 @@ function ProfileEdit({ navigation, route }) {
                     const states = response.data || [];
                     setNativeStates(states);
 
-                    if (!states.some(state => String(state.id) === nativeStateId)) {
+                    // Only clear native_state_id if the current value is not in the new list
+                    if (nativeStateId && !states.some(state => String(state.id) === String(nativeStateId))) {
                         setValue('native_state_id', '');
                         setValue('native_district_id', '');
                     }
@@ -214,8 +221,9 @@ function ProfileEdit({ navigation, route }) {
             }
         };
         fetchNativeStates();
-    }, [nativeCountryId, setValue]);
+    }, [nativeCountryId, setValue, nativeStateId]);
 
+    // Fetch native districts on mount if native_state_id exists, and when native state changes
     useEffect(() => {
         const fetchNativeDistricts = async () => {
             if (nativeStateId) {
@@ -225,7 +233,8 @@ function ProfileEdit({ navigation, route }) {
                     const districts = response.data || [];
                     setNativeDistricts(districts);
 
-                    if (!districts.some(district => String(district.id) === watch('native_district_id'))) {
+                    // Only clear native_district_id if the current value is not in the new list
+                    if (watch('native_district_id') && !districts.some(district => String(district.id) === String(watch('native_district_id')))) {
                         setValue('native_district_id', '');
                     }
                 } catch (error) {
@@ -246,13 +255,12 @@ function ProfileEdit({ navigation, route }) {
         fetchNativeDistricts();
     }, [nativeStateId, setValue]);
 
+    // Fetch job types on mount
     useEffect(() => {
         const fetchJobTypes = async () => {
             setLoadingJobTypes(true);
             try {
                 const response = await getJobTypes();
-                console.log("response.data", response.data);
-
                 setJobTypes(response.data || []);
             } catch (error) {
                 Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to load job types' });
@@ -263,6 +271,7 @@ function ProfileEdit({ navigation, route }) {
         fetchJobTypes();
     }, []);
 
+    // Fetch skills when job types change
     useEffect(() => {
         const selectedJobTypeIds = Array.isArray(watch('job_type')) ? watch('job_type').map(j => j.id) : [];
         if (selectedJobTypeIds.length > 0) {
@@ -302,9 +311,6 @@ function ProfileEdit({ navigation, route }) {
             delete submissionData.current_country_name;
             delete submissionData.current_state_name;
             delete submissionData.current_district_name;
-            delete submissionData.native_country_name;
-            delete submissionData.native_state_name;
-            delete submissionData.native_district_name;
 
             let response;
             let attempts = 0;
@@ -431,7 +437,6 @@ function ProfileEdit({ navigation, route }) {
             }
             onSelect(updatedValues);
             validateField(updatedValues);
-            // DO NOT close modal here!
         };
 
         const selectedItems = data.filter((item) => selectedValues.includes(item.id));
@@ -576,7 +581,7 @@ function ProfileEdit({ navigation, route }) {
                             onPress={() => !disabled && setModalVisible(true)}
                             disabled={disabled}
                         >
-                            <Text style={selectedValue ? styles.dropdownText : styles.placeholderText}>
+                            <Text style={selectedValue && selectedItem ? styles.dropdownText : styles.placeholderText}>
                                 {selectedItem ? (selectedItem.name || selectedItem.id) : placeholder}
                             </Text>
                             <Icon name="arrow-drop-down" size={20} color="#FFF2E0" />
@@ -1067,7 +1072,6 @@ function ProfileEdit({ navigation, route }) {
                                             const selected = jobTypes.filter(j => ids.includes(j.id));
                                             onChange(selected);
                                         }}
-                                        // error={errors.job_type?.message}
                                         disabled={loadingJobTypes}
                                         loading={loadingJobTypes}
                                         isMandatory={false}
@@ -1075,7 +1079,6 @@ function ProfileEdit({ navigation, route }) {
                                     />
                                 )}
                                 name="job_type"
-                                // rules={{ required: languageTexts?.profile?.edit?.error?.jobType || 'At least one job type is required' }}
                             />
                         </View>
                         {errors.job_type && (
@@ -1097,7 +1100,6 @@ function ProfileEdit({ navigation, route }) {
                                             const selected = skills.filter(s => ids.includes(s.id));
                                             onChange(selected);
                                         }}
-                                        // error={errors.skills?.message}
                                         disabled={!watch('job_type') || watch('job_type').length === 0 || loadingSkills}
                                         loading={loadingSkills}
                                         isMandatory={false}
@@ -1105,7 +1107,6 @@ function ProfileEdit({ navigation, route }) {
                                     />
                                 )}
                                 name="skills"
-                                // rules={{ required: languageTexts?.profile?.edit?.error?.skills || 'At least one skill is required' }}
                             />
                         </View>
                         {errors.skills && (
@@ -1258,7 +1259,6 @@ const styles = StyleSheet.create({
     },
     pickerContainer: {
         flex: 1,
-        // marginLeft: 20,
         marginBottom: 10,
     },
     button: {
@@ -1357,17 +1357,6 @@ const styles = StyleSheet.create({
         marginLeft: 10,
     },
     whiteModalItem: {
-        // backgroundColor: '#F5F5F5',
-        // padding: 12,
-        // borderRadius: 8,
-        // flexDirection: 'row',
-        // justifyContent: 'space-between',
-        // alignItems: 'center',
-        // marginBottom: 10,
-
-        // flexDirection: 'row',
-        // justifyContent: 'center', // Center the entire row content
-        // alignItems: 'center',
         paddingVertical: 14,
         paddingHorizontal: 16,
         borderBottomWidth: 1,
@@ -1377,18 +1366,12 @@ const styles = StyleSheet.create({
     itemContentContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between', // Ensure children are centered within this container
-    },
-    itemIcon: {
-        width: 22,
-        height: 22,
-        borderRadius: 4,
-        marginRight: 10,
+        justifyContent: 'space-between',
     },
     textContainer: {
-        flex: 1, // Take remaining space between icon and tick
+        flex: 1,
         marginLeft: 10,
-        alignItems: 'flex-start', // Center text horizontally within this container
+        alignItems: 'flex-start',
         justifyContent: 'center',
     },
     selectedItem: {
@@ -1398,18 +1381,13 @@ const styles = StyleSheet.create({
         color: '#333',
         fontSize: 16,
         fontWeight: '500',
-        // marginRight: 10,
-        textAlign: 'left', // Center text within its container
+        textAlign: 'left',
         flexWrap: 'wrap',
     },
     tickIcon: {
         marginLeft: 10,
     },
     whiteEmptyText: {
-        // color: '#666',
-        // textAlign: 'center',
-        // padding: 20,
-
         textAlign: 'center',
         color: '#888',
         fontSize: 16,

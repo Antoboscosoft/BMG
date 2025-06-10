@@ -5,8 +5,8 @@ import { navigate, getCurrentRouteName } from './navigationRef'; // We'll create
 
 const axiosInstance = axios.create({
     // baseURL: 'http://192.168.1.148:8000/',
-    // baseURL: 'http://172.105.54.28:8004/', // test server
-    baseURL: 'http://172.105.54.28:8005/', // production server
+    baseURL: 'http://172.105.54.28:8004/', // test server
+    // baseURL: 'http://172.105.54.28:8005/', // production server
     // baseURL: 'http://10.0.2.2:8000/',
     timeout: 10000,
     headers:{
@@ -17,6 +17,11 @@ const axiosInstance = axios.create({
 // Add a request interceptor to log request details
 axiosInstance.interceptors.request.use(
   async (config) => {
+    // Skip token for registration endpoint
+    if (config.url === 'user/register') {
+      return config;
+    }
+    
     const token = await AsyncStorage.getItem('accessToken');
     // console.log("Retrieved Token in Interceptor:", token); // Debug token retrieval
     if (token) {

@@ -303,6 +303,9 @@ const RegisterScreen = ({ navigation, route }) => {
         currentStateId: '',
         currentCountryId: '',
         nativeAddressLine: '',
+        nativeDistrictId: '',
+        nativeStateId: '',
+        nativeCountryId: '',
         aadhaarNumber: '',
         skills: [],
         jobType: [],
@@ -355,6 +358,10 @@ const RegisterScreen = ({ navigation, route }) => {
         currentCountryId: false,
         currentStateId: false,
         currentDistrictId: false,
+        nativeAddressLine: false,
+        nativeCountryId: false,
+        nativeStateId: false,
+        nativeDistrictId: false,
         jobTypes: false,
         skills: false,
         photo: false,
@@ -530,6 +537,9 @@ const RegisterScreen = ({ navigation, route }) => {
                 current_district_id: form.currentDistrictId,
                 current_address_line: form.currentAddressLine || '',
                 native_address_line: form.nativeAddressLine || '',
+                native_country_id: form.nativeCountryId,
+                native_state_id: form.nativeStateId,
+                native_district_id: form.nativeDistrictId,
                 date_of_birth: form.dateOfBirth ? formatDate(form.dateOfBirth) : null,
                 aadhaar_number: form.aadhaarNumber || '',
                 skills: form.skills.map(id => ({ id })),
@@ -543,11 +553,16 @@ const RegisterScreen = ({ navigation, route }) => {
             console.log("Registration Data:", registrationData);
 
             // Append profile photo (mandatory)
+            // Ensure photo exists before appending
+        if (form.photo) {
             fm.append("profile", {
                 uri: form.photo,
                 type: 'image/jpeg',
                 name: form.photo.split('/').pop() || 'profile.jpg',
             })
+        } else {
+            throw new Error("Profile photo is required");
+        }
             if (form.identity) {
                 fm.append("identity", {
                     uri: form.identity,
@@ -556,43 +571,52 @@ const RegisterScreen = ({ navigation, route }) => {
                 });
             }
 
-            const response = await registerUser(fm);
-
-
-            if (response.status || response.success === true) {
-                // Show success toast
-                Toast.show('Your account has been created successfully!', Toast.LONG);
-
-                setTimeout(() => {
-                    // navigation.navigate('Login');
-                    // navigation.goBack();
-                    handleBack();
-                }, 1000);
-            } else {
-                let errorMsg = 'Registration failed';
-
-                if (response.details) {
-                    if (response.details.includes("Mobile number already exists")) {
-                        errorMsg = 'This mobile number is already registered. Please login or use a different number.';
-                        setErrors(prev => ({ ...prev, mobileNumber: errorMsg }));
-                    }
-                    // Add more specific error checks here if needed
-                    else {
-                        errorMsg = response.details;
-                    }
+        // Add retry logic
+        let retryCount = 0;
+        const maxRetries = 2;
+        let lastError = null;
+            // return;
+        while (retryCount < maxRetries) {
+            try {
+                const response = await registerUser(fm);
+                if (response.status || response.success === true) {
+                    Toast.show('Account created successfully!', Toast.LONG);
+                    setTimeout(() => handleBack(), 1000);
+                    return; // Success - exit function
                 }
-                Alert.alert('Error', errorMsg || response.details || 'Registration failed');
-                Toast.show(errorMsg || 'Registration failed', Toast.LONG);
-
+                lastError = response.details || 'Registration failed';
+            } catch (error) {
+                lastError = error;
+                console.error(`Attempt ${retryCount + 1} failed:`, error);
+                
+                // If it's a network error, wait a bit before retrying
+                if (error.isNetworkError) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                } else {
+                    break; // Non-network error, don't retry
+                }
             }
-        } catch (error) {
-            console.error("Registration Error:", error);
-            Toast.show(error.message || 'Registration failed. Please try again.', Toast.LONG);
-
-        } finally {
-            setLoading(false);
+            retryCount++;
         }
-    };
+
+        // If we got here, all attempts failed
+        throw lastError;
+
+    } catch (error) {
+        console.error("Final Registration Error:", error);
+        let errorMsg = 'Registration failed. Please try again.';
+        
+        if (typeof error === 'string') {
+            errorMsg = error;
+        } else if (error.message) {
+            errorMsg = error.message;
+        }
+        
+        Toast.show(errorMsg, Toast.LONG);
+    } finally {
+        setLoading(false);
+    }
+};
 
     // Camera function for profile photo
     const takePhoto = async () => {
@@ -848,6 +872,10 @@ const RegisterScreen = ({ navigation, route }) => {
             currentDistrictId: '',
             // jobType: '',
             // skills: '',
+            nativeAddressLine: '',
+            nativeCountryId: '',
+            nativeStateId: '',
+            nativeDistrictId: '',
         };
 
         let isValid = true;
@@ -1307,10 +1335,23 @@ const RegisterScreen = ({ navigation, route }) => {
                                 maximumDate={new Date()}
                             />
                         )}
+                        
+                        {/* Aadhaar Number */}
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.label}>Aadhaar Number (Eshram & Abha Card)</Text>
+                            <TextInput
+                                style={[styles.input, styles.aadhaarInput]}
+                                placeholder="Enter 12-digit Aadhaar"
+                                keyboardType="number-pad"
+                                value={form.aadhaarNumber ? formatAadhaar(form.aadhaarNumber) : ''}
+                                onChangeText={handleAadhaarChange}
+                                maxLength={14}
+                            />
+                        </View>
 
                         {/* Current Address */}
                         <View style={styles.inputContainer}>
-                            <Text style={styles.label}>Current Address</Text>
+                            <Text style={styles.label}>Current Address Line</Text>
                             <TextInput
                                 style={styles.multilineInput}
                                 placeholder="Enter your current address..."
@@ -1326,22 +1367,9 @@ const RegisterScreen = ({ navigation, route }) => {
                             />
                         </View>
 
-                        {/* Aadhaar Number */}
-                        <View style={styles.inputContainer}>
-                            <Text style={styles.label}>Aadhaar Number</Text>
-                            <TextInput
-                                style={[styles.input, styles.aadhaarInput]}
-                                placeholder="Enter 12-digit Aadhaar"
-                                keyboardType="number-pad"
-                                value={form.aadhaarNumber ? formatAadhaar(form.aadhaarNumber) : ''}
-                                onChangeText={handleAadhaarChange}
-                                maxLength={14}
-                            />
-                        </View>
-
                         {/* Country */}
                         <SearchableDropdown
-                            label="Country"
+                            label="Current Country"
                             placeholder="Select Country"
                             data={countries}
                             selectedValue={form.currentCountryId}
@@ -1355,7 +1383,7 @@ const RegisterScreen = ({ navigation, route }) => {
 
                         {/* State */}
                         <SearchableDropdown
-                            label="State"
+                            label="Current State"
                             placeholder={form.currentCountryId ? 'Select State' : 'Select Country first'}
                             data={states}
                             selectedValue={form.currentStateId}
@@ -1369,7 +1397,7 @@ const RegisterScreen = ({ navigation, route }) => {
 
                         {/* District */}
                         <SearchableDropdown
-                            label="District"
+                            label="Current District"
                             placeholder={form.currentStateId ? 'Select District' : 'Select State first'}
                             data={districts}
                             selectedValue={form.currentDistrictId}
@@ -1379,6 +1407,66 @@ const RegisterScreen = ({ navigation, route }) => {
                             loading={loadingDistricts}
                             isMandatory={true}
                             validateField={(value) => validateField('currentDistrictId', value)}
+                        />
+
+                        {/* Native Address */}
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.label}>Native Address Line</Text>
+                            <TextInput
+                                style={styles.multilineInput}
+                                placeholder="Enter your native address..."
+                                placeholderTextColor="#999"
+                                // multiline
+                                numberOfLines={5}
+                                maxHeight={100}
+                                textAlignVertical="top"
+                                value={form.nativeAddressLine}
+                                onChangeText={(text) => handleChange('nativeAddressLine', text)}
+                                blurOnSubmit={true}
+                                returnKeyType="done"
+                            />
+                        </View>
+
+                        {/* Native Country */}
+                        <SearchableDropdown
+                            label="Native Country"
+                            placeholder="Select Native Country"
+                            data={countries}
+                            selectedValue={form.nativeCountryId}
+                            onSelect={(value) => handleChange('nativeCountryId', value)}
+                            error={touched.nativeCountryId && errors.nativeCountryId}
+                            disabled={false}
+                            loading={loadingCountries}
+                            // isMandatory={true}
+                            validateField={(value) => validateField('nativeCountryId', value)}
+                        />
+
+                        {/* Native State */}
+                        <SearchableDropdown
+                            label="Native State"
+                            placeholder={form.nativeCountryId ? 'Select Native State' : 'Select Native Country first'}
+                            data={states}
+                            selectedValue={form.nativeStateId}
+                            onSelect={(value) => handleChange('nativeStateId', value)}
+                            error={touched.nativeStateId && errors.nativeStateId}
+                            disabled={!form.nativeCountryId}
+                            loading={loadingStates}
+                            // isMandatory={true}
+                            validateField={(value) => validateField('nativeStateId', value)}
+                        />
+
+                        {/* Native District */}
+                        <SearchableDropdown
+                            label="Native District"
+                            placeholder={form.nativeStateId ? 'Select Native District' : 'Select Native State first'}
+                            data={districts}
+                            selectedValue={form.nativeDistrictId}
+                            onSelect={(value) => handleChange('nativeDistrictId', value)}
+                            error={touched.nativeDistrictId && errors.nativeDistrictId}
+                            disabled={!form.nativeStateId}
+                            loading={loadingDistricts}
+                            // isMandatory={true}
+                            validateField={(value) => validateField('nativeDistrictId', value)}
                         />
 
                         {/* Job Type */}
@@ -1618,8 +1706,8 @@ const styles = StyleSheet.create({
         padding: 16,
         fontSize: 16,
         textAlignVertical: 'top',
-        minHeight: 100,
-        maxHeight: 200,
+        // minHeight: 100,
+        // maxHeight: 200,
     },
     mobileContainer: {
         flexDirection: 'row',
