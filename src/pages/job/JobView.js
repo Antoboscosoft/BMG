@@ -41,7 +41,7 @@ function JobView({ navigation, route }) {
     });
 
     const statusOptions = [
-        { id: 'PENDING', name: 'PENDING' },
+        // { id: 'PENDING', name: 'PENDING' },
         { id: 'APPROVED', name: 'APPROVED' },
         { id: 'REJECTED', name: 'REJECTED' },
     ];
