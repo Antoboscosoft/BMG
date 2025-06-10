@@ -10,7 +10,6 @@ import {
     PanResponder,
     Image,
     FlatList,
-    ScrollView,
     ActivityIndicator,
     Modal,
     BackHandler,
@@ -20,15 +19,16 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getUserData } from '../api/auth';
+import { getUserData, updateFirebaseToken } from '../api/auth';
 import { clearAuthToken } from '../api/axiosInstance';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { LanguageContext, useLanguage } from '../language/commondir';
-import { appVersion, checkAppVersion } from '../context/utils';
+import { appVersion, checkAppVersion, getFirebaseToken, handleNotification } from '../context/utils';
 import { ContextProps } from '../../App';
+import notifee from '@notifee/react-native';
+import { messaging } from '../..';
 
 const { width, height } = Dimensions.get('window');
 
@@ -62,7 +62,6 @@ function DashboardPage({ navigation, route }) {
     const sendToken = async () => {
         try {
             let token = await getFirebaseToken();
-
             updateFirebaseToken(token).then((response) => {
                 console.log('Firebase token sent successfully:', response);
             }).catch((error) => {
@@ -92,9 +91,9 @@ function DashboardPage({ navigation, route }) {
 
     const filteredMenuItems = isSuperAdmin
         ? dashboardMenuItems.filter(item =>
-            ['multilingualSupport', 'profile', 'migrants', 'eventCalendar', 'servicesDirectory', 'news', 'helpRequest'].includes(item.name)
+            ['multilingualSupport', 'profile', 'migrants', 'eventCalendar', 'servicesDirectory', 'news', 'helpRequest', 'notifications'].includes(item.name)
         )
-        : dashboardMenuItems.filter(item => item.name !== 'migrants' && item.name !== 'notifications');
+        : dashboardMenuItems.filter(item => item.name !== 'migrants');
 
     const carouselItems = [
         {
@@ -268,6 +267,36 @@ function DashboardPage({ navigation, route }) {
             });
         }
     }, [route?.params?.sessionExpired, navigation]);
+
+    // Push Notification click
+    useEffect(() => {
+        const handleNotificationClick = (remoteMessage) => {
+            remoteMessage?.data?.screen && navigation.navigate(remoteMessage.data.screen, { notification_id: remoteMessage.data?.notification_id });
+        }
+        // Handle quit notification taps
+        messaging.getInitialNotification().then(handleNotificationClick);
+
+        // Handle background notification taps
+        const unsubscribeForegroundClick = messaging.onNotificationOpenedApp(handleNotificationClick);
+
+        // Handle foreground notification show
+        const unsubscribeShowForegroundNotification = messaging.onMessage(handleNotification);
+
+        // Handle foreground notification click
+        const unsubscribeNotifeeEvent = notifee.onForegroundEvent(({ type, detail }) => {
+            const { notification, pressAction } = detail;
+
+            if (pressAction?.id && pressAction?.id === 'default') {
+                handleNotificationClick(notification);
+            }
+        });
+
+        return () => {
+            unsubscribeForegroundClick();
+            unsubscribeShowForegroundNotification();
+            unsubscribeNotifeeEvent();
+        }
+    }, [])
 
     if (loading) {
         return (

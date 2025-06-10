@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView, Image } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BackIcon from 'react-native-vector-icons/MaterialIcons';
 import { useLanguage } from '../../language/commondir';
 import { getNotificationsAPI } from '../../api/auth';
-import { dateFormat, page_limit } from '../../context/utils';
+import { dateFormat, Loader, page_limit } from '../../context/utils';
 
-function NotificationsPage({ navigation }) {
+function NotificationsPage({ navigation, route }) {
     const { languageTexts } = useLanguage();
     const [notificationList, setNotificationList] = useState(notifications);
     const [skip, setSkip] = useState(0);
@@ -55,8 +55,8 @@ function NotificationsPage({ navigation }) {
     const getNotifications = () => {
         setLoading(true);
         getNotificationsAPI(skip, limit).then((res) => {
-            setNotificationList(res?.data);
-            
+            setNotificationList(res?.data || []);
+
         }).catch((err) => {
             console.log(err);
         }).finally(() => {
@@ -76,8 +76,12 @@ function NotificationsPage({ navigation }) {
 
     useEffect(() => {
         getNotifications();
-    }, []);
-    
+        if (route?.params?.notification_id) {
+            navigation.navigate('NotificationView', { notification_id: route?.params?.notification_id });
+        }
+    }, [route?.params?.notification_id]);
+
+
 
     return (
         <LinearGradient
@@ -86,10 +90,11 @@ function NotificationsPage({ navigation }) {
             style={styles.container}
         >
             <Animated.View style={[styles.innerContainer, { opacity: fadeAnim }]}>
+                <Loader loading={loading} />
                 <View style={styles.headerRow}>
                     <TouchableOpacity
                         style={styles.backButton}
-                        onPress={() => navigation.goBack()}
+                        onPress={() => navigation.navigate('Dashboard')}
                     >
                         {/* <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text> */}
                         <BackIcon name="arrow-back-ios" size={24} color="#FFF" />
@@ -111,9 +116,7 @@ function NotificationsPage({ navigation }) {
                                         notification.unread && styles.unreadNotification,
                                     ]}
                                     onPress={() => {
-                                        // Add logic to navigate to a detailed notification page or mark as read
-                                        console.log(`Tapped on notification: ${notification.title}`);
-                                        navigation.navigate('NotificationView', { notification });
+                                        navigation.navigate('NotificationView', { notification_id: notification.id });
                                     }}
                                 >
                                     <View style={styles.notificationContent}>

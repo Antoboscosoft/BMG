@@ -18,10 +18,8 @@ import splashImg3 from '../asserts/images/spss4c.jpg';
 import splashImg4 from '../asserts/images/ss2c.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FastImage from 'react-native-fast-image';
-import messaging from '@react-native-firebase/messaging';
 
 import { LanguageContext } from '../language/commondir';
-import { handleNotification } from '../context/utils';
 
 const { width, height } = Dimensions.get('window');
 
@@ -166,30 +164,6 @@ function SplashScreen({ navigation }) {
   // console.log("user", user);
 
   const currentSlide = slides[currentIndex];
-
-  useEffect(() => {
-    // Handle background/quit notification taps
-    messaging()
-      .getInitialNotification()
-      .then(remoteMessage => {
-        if (remoteMessage?.data?.screen) {
-          remoteMessage.data.screen && navigation.navigate(remoteMessage.data.screen);
-        }
-      });
-    const unsubscribeShowForegroundNotification = messaging().onMessage(handleNotification);
-
-    // Handle foreground/background notification taps
-    const unsubscribeForegroundClick = messaging().onNotificationOpenedApp(remoteMessage => {
-      if (remoteMessage?.data?.screen) {
-        navigation.navigate(remoteMessage.data.screen);
-      }
-    });
-
-    return () => {
-      unsubscribeForegroundClick();
-      unsubscribeShowForegroundNotification();
-    }
-  }, [])
 
   return (
     <View style={styles.container}>

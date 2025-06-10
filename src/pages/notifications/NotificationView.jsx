@@ -1,16 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView, Image } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import BackIcon from 'react-native-vector-icons/MaterialIcons';
 import { useLanguage } from '../../language/commondir';
-import { dateFormat } from '../../context/utils';
+import { dateFormat, Loader } from '../../context/utils';
+import { getNotificationByIdAPI, markAsRead } from '../../api/auth';
 
 function NotificationsView({ navigation, route }) {
     const { languageTexts } = useLanguage();
-    const notification = route?.params?.notification;
-
+    const [notification, setNotification] = useState({});
+    const [loading, setLoading] = useState(false);
     const fadeAnim = useState(new Animated.Value(0))[0]; // Animation for fade-in effect
 
+    const getNotification = () => {
+        setLoading(true);
+        console.log(route?.params?.notification_id);
+
+        getNotificationByIdAPI(route?.params?.notification_id).then((res) => {
+            if (res?.status) {
+                setNotification(res?.data || {});
+                markAsRead(route?.params?.notification_id);
+            }
+            else
+                navigation.navigate('Notifications');
+        }).catch((err) => {
+            console.log(err);
+        }).finally(() => {
+            setLoading(false);
+        });
+    };
 
 
     useEffect(() => {
@@ -24,44 +42,42 @@ function NotificationsView({ navigation, route }) {
 
 
     useEffect(() => {
-        if (!route?.params?.notification) {
+        setLoading(true);
+        if (!route?.params?.notification_id) {
             navigation.navigate('Notifications');
+        } else {
+            getNotification();
         }
-    }, []);
+    }, [route?.params?.notification_id]);
 
 
     return (
         <LinearGradient
-            colors={['#2753b2', '#e6e9f0']} // Gradient from blue to light gray
-            //   colors={['#5e3b15', '#b06a2c']}
+            colors={['#2753b2', '#e6e9f0']}
             style={styles.container}
         >
             <Animated.View style={[styles.innerContainer, { opacity: fadeAnim }]}>
+                <Loader loading={loading} />
                 <View style={styles.headerRow}>
-                    <TouchableOpacity
-                        style={styles.backButton}
-                        onPress={() => navigation.goBack()}
-                    >
-                        {/* <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text> */}
+                    <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Notifications')} >
                         <BackIcon name="arrow-back-ios" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <Text style={styles.titleText}>{languageTexts?.notifications?.title || 'Notifications'}</Text>
                     <View style={{ width: 60 }} />
                 </View>
-                <ScrollView contentContainerStyle={styles.contentContainer}
-                    showsVerticalScrollIndicator={false}
-                >
+                <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false} >
                     <View style={styles.notificationItem}>
-                        <Text style={styles.notificationTitle}>{notification.title}</Text>8
+                        <Text style={styles.notificationTitle}>{notification.title}</Text>
 
-                        <Text style={styles.notificationDescription}>
-                            {notification?.message || '-'}
-                        </Text>
+                        <Text style={styles.notificationDescription}> {notification?.message || '-'} </Text>
 
+                        {notification.notification_image &&
+                            <View style={styles.notificationImageContainer}>
+                                <Image source={{ uri: notification.notification_image }} style={styles.notificationImage} resizeMode="contain" />
+                            </View>
+                        }
                         <Text style={styles.notificationDate}>{dateFormat(new Date(notification?.sent_at))} </Text>
-
                     </View>
-
                 </ScrollView>
             </Animated.View>
         </LinearGradient>
@@ -100,7 +116,14 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 40,
         paddingBottom: 40,
+    },
+    notificationImageContainer: {
         alignItems: 'center',
+        paddingVertical: 10
+    },
+    notificationImage: {
+        width: '100%',
+        height: 250,
     },
     titleText: {
         fontSize: 22,

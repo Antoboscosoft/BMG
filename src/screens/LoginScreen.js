@@ -13,8 +13,6 @@ import {
   Animated,
   ActivityIndicator,
   Keyboard,
-  Alert,
-  Linking,
   Modal,
   BackHandler,
 } from "react-native";
@@ -26,9 +24,8 @@ import { getLoginOtp, staffLogin, verifyOtp } from "../api/auth";
 import { setAuthToken } from "../api/axiosInstance";
 import { Controller, useForm } from "react-hook-form";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import BackIcon from 'react-native-vector-icons/MaterialIcons';
 import { ContextProps } from "../../App";
-import { checkAppVersion, handleNotification, notificationPermission } from "../context/utils";
+import { checkAppVersion, notificationPermission } from "../context/utils";
 
 // import OtpInputs from 'react-native-otp-inputs';
 // import RNOtpVerify from 'react-native-otp-verify';

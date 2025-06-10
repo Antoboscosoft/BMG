@@ -930,3 +930,23 @@ export const getNotificationsAPI = async (skip=0, limit=25) => {
     throw error;
   }
 };
+
+
+// get notification by id
+export const getNotificationByIdAPI = async (id) => {
+  try {
+    const response = await axiosInstance.get(`/notification/view/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const markAsRead = async (notification_id) =>{
+  try {
+    const response = await axiosInstance.put(`/notification/read/${notification_id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
