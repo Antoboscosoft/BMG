@@ -19,7 +19,8 @@ function NotificationsView({ navigation, route }) {
         getNotificationByIdAPI(route?.params?.notification_id).then((res) => {
             if (res?.status) {
                 setNotification(res?.data || {});
-                markAsRead(route?.params?.notification_id);
+                markAsRead(route?.params?.notification_id).then((res) => { console.log("res", res);
+                }).catch((err) => { console.log(err); });
             }
             else
                 navigation.navigate('Notifications');
@@ -76,7 +77,7 @@ function NotificationsView({ navigation, route }) {
                                 <Image source={{ uri: notification.notification_image }} style={styles.notificationImage} resizeMode="contain" />
                             </View>
                         }
-                        <Text style={styles.notificationDate}>{dateFormat(new Date(notification?.sent_at))} </Text>
+                        <Text style={styles.notificationDate}>{dateFormat(new Date(notification?.sent_at),true)} </Text>
                     </View>
                 </ScrollView>
             </Animated.View>
@@ -141,16 +142,16 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.2,
         shadowRadius: 3,
-        minHeight: '20%'
+        paddingBottom: 25
     },
 
     notificationTitle: {
-        fontSize: 18,
+        fontSize: 17,
         fontWeight: '600',
         color: '#333',
     },
     notificationDescription: {
-        fontSize: 14.5,
+        fontSize: 14,
         color: '#666',
         marginVertical: 10,
         paddingLeft: 15,

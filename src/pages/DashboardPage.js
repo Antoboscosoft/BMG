@@ -280,7 +280,9 @@ function DashboardPage({ navigation, route }) {
         const unsubscribeForegroundClick = messaging.onNotificationOpenedApp(handleNotificationClick);
 
         // Handle foreground notification show
-        const unsubscribeShowForegroundNotification = messaging.onMessage(handleNotification);
+        const unsubscribeShowForegroundNotification = messaging.onMessage(remoteMessage => {
+            handleNotification(remoteMessage);
+        });
 
         // Handle foreground notification click
         const unsubscribeNotifeeEvent = notifee.onForegroundEvent(({ type, detail }) => {

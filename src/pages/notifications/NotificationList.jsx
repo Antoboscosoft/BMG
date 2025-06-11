@@ -4,58 +4,28 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BackIcon from 'react-native-vector-icons/MaterialIcons';
 import { useLanguage } from '../../language/commondir';
-import { getNotificationsAPI } from '../../api/auth';
-import { dateFormat, Loader, page_limit } from '../../context/utils';
+import { getMyNotificationsAPI } from '../../api/auth';
+import { dateFormat, handleReachEnd, Loader, page_limit, removeDuplicates, ScrollLoader } from '../../context/utils';
+import { set } from 'react-hook-form';
 
 function NotificationsPage({ navigation, route }) {
     const { languageTexts } = useLanguage();
-    const [notificationList, setNotificationList] = useState(notifications);
+    const [notificationList, setNotificationList] = useState([]);
     const [skip, setSkip] = useState(0);
-    const [limit, setLimit] = useState(page_limit);
+    const [limit, setLimit] = useState(7);
+    const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
     const fadeAnim = useState(new Animated.Value(0))[0]; // Animation for fade-in effect
 
-    // Sample notification data (inferred based on app context)
-    const notifications = [
-        {
-            id: '1',
-            title: 'New Job Opportunity',
-            description: 'A new construction job is available in your area. Apply now!',
-            timestamp: languageTexts?.notifications?.timestamps?.twoHoursAgo || '2 hours ago',
-            date: 'May 16, 2025', // Add this
-            unread: true,
-        },
-        {
-            id: '2',
-            title: 'Policy Update',
-            description: 'New government policy on migrant worker rights announced.',
-            timestamp: languageTexts?.notifications?.timestamps?.oneDayAgo || '1 day ago',
-            date: 'May 15, 2025', // Add this
-            unread: false,
-        },
-        {
-            id: '3',
-            title: 'Event Reminder',
-            description: 'Legal consultation session tomorrow at 10 AM.',
-            timestamp: languageTexts?.notifications?.timestamps?.threeDaysAgo || '3 days ago',
-            date: 'May 11, 2025', // Add this
-            unread: false,
-        },
-        {
-            id: '4',
-            title: 'Health Checkup',
-            description: 'Free health checkup scheduled for next week.',
-            timestamp: languageTexts?.notifications?.timestamps?.fiveDaysAgo || '5 days ago',
-            date: 'May 9, 2025', // Add this
-            unread: false,
-        },
-    ];
-
-
     const getNotifications = () => {
-        setLoading(true);
-        getNotificationsAPI(skip, limit).then((res) => {
-            setNotificationList(res?.data || []);
+        getMyNotificationsAPI(skip, limit).then((res) => {
+            if (res?.status) {
+                setTotal(res?.total_count || 0);                
+                let listArr = notificationList.length > 0 ? removeDuplicates([...notificationList, ...res?.data], 'id') : [...res?.data];
+                setNotificationList(listArr);
+            } else {
+                setNotificationList([]);
+            }
 
         }).catch((err) => {
             console.log(err);
@@ -75,11 +45,14 @@ function NotificationsPage({ navigation, route }) {
 
 
     useEffect(() => {
-        getNotifications();
         if (route?.params?.notification_id) {
             navigation.navigate('NotificationView', { notification_id: route?.params?.notification_id });
         }
     }, [route?.params?.notification_id]);
+
+    useEffect(() => {
+        getNotifications();
+    }, [skip, limit]);
 
 
 
@@ -105,43 +78,46 @@ function NotificationsPage({ navigation, route }) {
                 <ScrollView
                     contentContainerStyle={styles.contentContainer}
                     showsVerticalScrollIndicator={false}
+                    onScroll={({ nativeEvent }) => handleReachEnd(nativeEvent, skip, limit, total, setLoading, setSkip)}
                 >
                     <View style={styles.notificationList}>
                         {notificationList?.length > 0 ? (
-                            notificationList?.map((notification) => (
-                                <TouchableOpacity
-                                    key={notification.id}
-                                    style={[
-                                        styles.notificationItem,
-                                        notification.unread && styles.unreadNotification,
-                                    ]}
-                                    onPress={() => {
-                                        navigation.navigate('NotificationView', { notification_id: notification.id });
-                                    }}
-                                >
-                                    <View style={styles.notificationContent}>
-                                        <View style={styles.notificationHeader}>
-                                            <Icon
-                                                name={notification.unread ? "bell-ring" : "bell-outline"}
-                                                size={24}
-                                                color="#2753b2"
-                                                style={styles.notificationIcon}
-                                            />
-                                            <Text style={styles.notificationTitle}>{notification.title}</Text>
-                                            {/* <Text style={styles.notificationTimestamp}>
+                            [...notificationList, { loader: true }]?.map((notification, index) => (
+                                notification.loader ?
+                                    <ScrollLoader loading={total > limit*skip} key={`loader-${index}`} />
+                                    :
+                                    <TouchableOpacity
+                                        key={notification.id}
+                                        style={[
+                                            styles.notificationItem,
+                                            notification.unread && styles.unreadNotification,
+                                        ]}
+                                        onPress={() => {
+                                            navigation.navigate('NotificationView', { notification_id: notification.id });
+                                        }}
+                                    >
+
+                                        <View style={styles.notificationContent}>
+                                            <View style={styles.notificationHeader}>
+                                                <Icon
+                                                    name={notification.unread ? "bell-ring" : "bell-outline"}
+                                                    size={24}
+                                                    color="#2753b2"
+                                                    style={styles.notificationIcon}
+                                                />
+                                                <Text style={styles.notificationTitle} numberOfLines={1}>{notification.title}</Text>
+                                                {/* <Text style={styles.notificationTimestamp}>
                                                 {notification.timestamp}
                                             </Text> */}
+                                            </View>
+                                            <Text style={styles.notificationDescription} numberOfLines={2}>{notification?.message || '-'} </Text>
+                                            <View style={styles.dateContainer}>
+                                                <Text style={styles.notificationDate}>
+                                                    {dateFormat(new Date(notification?.sent_at))}
+                                                </Text>
+                                            </View>
                                         </View>
-                                        <Text style={styles.notificationDescription}>
-                                            {notification?.message || '-'}
-                                        </Text>
-                                        <View style={styles.dateContainer}>
-                                            <Text style={styles.notificationDate}>
-                                                {dateFormat(new Date(notification?.sent_at))}
-                                            </Text>
-                                        </View>
-                                    </View>
-                                </TouchableOpacity>
+                                    </TouchableOpacity>
                             ))
                         ) : (
                             <Text style={styles.noNotificationsText}>
@@ -229,7 +205,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff9df',
     },
     notificationTitle: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: '600',
         color: '#333',
         flex: 1,
@@ -246,7 +222,7 @@ const styles = StyleSheet.create({
         marginLeft: 20,
     },
     noNotificationsText: {
-        fontSize: 16,
+        fontSize: 15,
         color: '#FFF',
         textAlign: 'center',
         marginTop: 20,
