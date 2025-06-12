@@ -116,6 +116,18 @@ function DashboardPage({ navigation, route }) {
             title: languageTexts?.dashboard?.carousel?.discoverSector || 'Discover Your Sector',
             image: require('../asserts/images/car05.jpg'),
         },
+        {
+            title: languageTexts?.dashboard?.carousel?.discoverSector || 'Discover Your Sector',
+            image: require('../asserts/images/imgpngdash3.png'),
+        },
+        {
+            title: languageTexts?.dashboard?.carousel?.discoverSector || 'Discover Your Sector',
+            image: require('../asserts/images/imgpngdash5.png'),
+        },
+        {
+            title: languageTexts?.dashboard?.carousel?.discoverSector || 'Discover Your Sector',
+            image: require('../asserts/images/imgpngdash7.png'),
+        },
     ];
 
     const openSidebar = () => {
@@ -520,7 +532,7 @@ function DashboardPage({ navigation, route }) {
                 >
                     <View style={[styles.modalOverlayExit, { padding: 24, borderRadius: 8, alignItems: 'center', minWidth: 280 }]}>
                         <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12, color: '#333' }}>
-                            Are you sure you want to close the app?
+                            { languageTexts?.dashboard?.closeApp || "Are you sure you want to close the app?"}
                         </Text>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
                             <TouchableOpacity
@@ -531,7 +543,7 @@ function DashboardPage({ navigation, route }) {
                                 }}
                                 onPress={() => setShowExitModal(false)}
                             >
-                                <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>Cancel</Text>
+                                <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>{ languageTexts?.dashboard?.cancel || "Cancel"}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={{
@@ -541,7 +553,7 @@ function DashboardPage({ navigation, route }) {
                                 }}
                                 onPress={handleExitApp}
                             >
-                                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Close App</Text>
+                                <Text style={{ color: '#fff', fontWeight: 'bold' }}>{ languageTexts?.dashboard?.close || "Close App"}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -813,6 +825,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     modalOverlayExit: {
+        width: '80%',
         backgroundColor: '#ffffff',
         justifyContent: 'center',
         alignItems: 'center',

@@ -36,6 +36,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import NotificationList from './src/pages/notifications/NotificationList.jsx';
 import NotificationView from './src/pages/notifications/NotificationView.jsx';
 import JobView from './src/pages/job/JobView.js';
+import ViewApplicants from './src/pages/job/ViewApplicants.js';
 
 
 // Custom Toast configuration
@@ -132,6 +133,7 @@ function App() {
             <Stack.Screen name="CategoryServices" component={CategotryServices} />
 
             <Stack.Screen name="JobView" component={JobView} />
+            <Stack.Screen name="ViewApplicants" component={ViewApplicants} />
 
             <Stack.Screen name="MultilingualSupport" component={MultilingualSupportPage} />
             <Stack.Screen name="Notifications" component={NotificationList} />

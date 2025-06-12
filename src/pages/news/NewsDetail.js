@@ -74,7 +74,11 @@ function NewsDetail({ navigation, route }) {
                     /> */}
                     <View style={[styles.descriptionContainer, { overflow: 'hidden' }]}>
                         <HTML
-                            source={{ html: newsItem.description || '<p>No description available</p>' }}
+                            source={{
+                                html: newsItem.description
+                                    ? newsItem.description
+                                    : `<p>${languageTexts?.news?.noDescription || 'No description available'}</p>`,
+                            }}
                             contentWidth={Dimensions.get('window').width - 40} // Adjust for padding (15 + 15 on each side)
                             tagsStyles={{
                                 h3: {

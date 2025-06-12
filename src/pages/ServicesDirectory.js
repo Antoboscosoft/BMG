@@ -119,7 +119,7 @@ function ServicesDirectory({ navigation }) {
                     >
                         <BackIcon name="visibility" size={20} color="#FFF" />
                         <Text style={[isApplied ? styles.appliedButtonText : styles.applyButtonText]}>
-                            View
+                            { languageTexts?.servicesDirectory?.view || "View"}
                         </Text>
                     </TouchableOpacity>
                 ) : (
@@ -173,12 +173,12 @@ function ServicesDirectory({ navigation }) {
                         <Text style={styles.jobTitle}>
                             {languageTexts?.servicesDirectory?.jobOpportunity || 'Job Opportunity'}
                         </Text>
-                        <Text style={styles.serviceDescription}>
+                        {/* <Text style={styles.serviceDescription}>
                             {job?.title || 'Job Title Not Available'} - {job?.type || 'Type Not Available'}
-                        </Text>
-                        <Text style={styles.serviceDescription}>
+                        </Text> */}
+                        {/* <Text style={styles.serviceDescription}>
                             {job?.description || 'No description available.'}
-                        </Text>
+                        </Text> */}
                     </View>
                 </View>
                 <TouchableOpacity

@@ -77,30 +77,28 @@ function CategoryServices({ navigation, route }) {
         if (item.status === 'RESOLVED') return;
 
         Alert.alert(
-            'Service Status',
-            `Are you sure you want to resolve this service request?`,
+            languageTexts?.services?.serviceStatus || 'Service Status',
+            languageTexts?.services?.confirmResolve || 'Are you sure you want to resolve this service request?',
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: languageTexts?.services?.cancel || 'Cancel', style: 'cancel' },
                 {
-                    text: 'Resolve',
+                    text: languageTexts?.services?.resolve || 'Resolve',
                     style: 'default',
                     onPress: async () => {
                         try {
                             await updateServiceStatus(item?.id, 'RESOLVED');
                             const data = await getServiceRequests(user?.data?.role.name.toUpperCase(), categoryId, 0, 0);
                             setServices(data?.data || []);
-                            // const data = await getServiceMyRequest(categoryId);
-                            // setServices(data?.data || []);
                             Alert.alert(
-                                'Success',
-                                'Service status updated to Resolved.',
-                                [{ text: 'OK' }],
+                                languageTexts?.services?.successTitle || 'Success',
+                                languageTexts?.services?.successMessage || 'Service status updated to Resolved.',
+                                [{ text: languageTexts?.services?.ok || 'OK' }],
                             );
                         } catch (err) {
                             Alert.alert(
-                                'Error',
-                                err.message || 'Failed to update service status. Please try again.',
-                                [{ text: 'OK' }],
+                                languageTexts?.services?.errorTitle || 'Error',
+                                err.message || languageTexts?.services?.errorMessage || 'Failed to update service status. Please try again.',
+                                [{ text: languageTexts?.services?.ok || 'OK' }],
                             );
                         }
                     },
@@ -149,16 +147,16 @@ function CategoryServices({ navigation, route }) {
                         <Icon name="add" size={24} color="#FFF" />
                     </TouchableOpacity>
                 </View>
-                <Text style={styles.categoryNameText}>Category: {categoryName}</Text>
+                <Text style={styles.categoryNameText}>{languageTexts?.services?.category || "Category"} : {categoryName}</Text>
                 {services.length === 0 ? (
                     <View style={styles.noDataContainer}>
-                        <Text style={styles.noDataText}>No service requests found.</Text>
+                        <Text style={styles.noDataText}>{languageTexts?.services?.noData || "No service requests found."}</Text>
                     </View>
                 ) : (
                     services.map((item) => (
                         <View key={item.id?.toString() || Math.random().toString()} style={styles.serviceItem}>
                             <View style={styles.cardHeader}>
-                                <Text style={styles.serviceTitle}>Service Request Detail</Text>
+                                <Text style={styles.serviceTitle}>{languageTexts?.services?.serviceRequestDetail || "Service Request Detail"}</Text>
                                 {user.data.role.name === "Admin" || user.data.role.name === "Staff" && item.status !== 'RESOLVED' &&
                                     <TouchableOpacity
                                         style={[
@@ -175,19 +173,19 @@ function CategoryServices({ navigation, route }) {
                                     >
                                         <Icon name="edit" size={20} color="#FFF" />
                                         <Text style={styles.statusButtonText}>
-                                            {console.log("item.status:", item.status)}
-                                            {item.status === 'RESOLVED' ? 'Resolved' : 'Resolve'}
+                                            {languageTexts?.services?.resolved || "Resolved"}
+                                            {/* {item.status === 'RESOLVED' ? 'Resolved' : 'Resolve'} */}
                                         </Text>
                                     </TouchableOpacity>}
                             </View>
                             <View style={styles.cardContent}>
                                 {user.data.role.name === "Admin" || user.data.role.name === "Staff" &&
                                     <View style={styles.infoRow}>
-                                        <Text style={styles.serviceLabel}>Requested By </Text>
+                                        <Text style={styles.serviceLabel}>{languageTexts?.services?.requestedBy || "Requested By"} </Text>
                                         <Text style={styles.serviceValue}>: {item.user?.name || 'No User'}</Text>
                                     </View>}
                                 <View style={styles.infoRow}>
-                                    <Text style={styles.serviceLabel}>Requested On </Text>
+                                    <Text style={styles.serviceLabel}>{languageTexts?.services?.requestedOn || "Requested On"} </Text>
                                     {/* <Text style={styles.serviceValue}>
                                         : {item.created_at ? new Date(item.created_at).toLocaleString() : 'No Date'}
                                     </Text> */}
@@ -198,7 +196,7 @@ function CategoryServices({ navigation, route }) {
                                     </Text>
                                 </View>
                                 <View style={styles.infoRow}>
-                                    <Text style={styles.serviceLabel}>Status </Text>
+                                    <Text style={styles.serviceLabel}>{languageTexts?.services?.status || "Status"} </Text>
                                     <Text > :</Text>
                                     <View
                                         style={[styles.statusBadge,
@@ -218,12 +216,12 @@ function CategoryServices({ navigation, route }) {
                                         ]}
                                     >
                                         <Text style={[styles.statusBadgeText, { color: '#FFF', fontWeight: 'bold', fontSize: 14 }]}>
-                                            {item.status || 'No Status'}
+                                            {item.status === 'RESOLVED' ? languageTexts?.services?.resolved || 'Resolved' : item.status === 'OPEN' ? languageTexts?.services?.open || "Open" : 'Open' || 'No Status'}
                                         </Text>
                                     </View>
                                 </View>
                                 <View style={styles.infoRow}>
-                                    <Text style={styles.serviceLabel}>Description </Text>
+                                    <Text style={styles.serviceLabel}>{languageTexts?.services?.description || "Description"} </Text>
                                     <Text style={styles.serviceValue}>
                                         : {item.description || 'No Description'}
                                     </Text>
@@ -304,12 +302,15 @@ const styles = StyleSheet.create({
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         marginBottom: 8,
     },
     serviceTitle: {
         fontSize: 18,
         fontWeight: 'bold',
         color: '#2753b2',
+        flex: 1,               // Allow title to take available space
+        marginRight: 8,
     },
     statusButton: {
         flexDirection: 'row',
@@ -317,6 +318,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         borderRadius: 12,
         elevation: 1,
+        alignItems: 'center',  // Center icon and text vertically
+        justifyContent: 'center', // Center horizontally
+        minWidth: 100,
     },
     statusButtonText: {
         color: '#FFF',
@@ -452,6 +456,11 @@ const styles1 = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: '#2753b2',
+        flex: 1,
+        marginRight: 8,
+        flexShrink: 1,       // Allows text to truncate
+        numberOfLines: 1,    // Optional: limit to 1 line
+        ellipsizeMode: 'tail',
     },
     statusButton: {
         paddingVertical: 6,

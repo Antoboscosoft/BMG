@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
     },
     backButton: {
         position: 'absolute',
-        top: 20,
+        top: 50,
         left: 20,
         padding: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
@@ -557,8 +557,8 @@ const styles = StyleSheet.create({
     },
     header: {
         alignItems: 'center',
-        paddingTop: 60,
-        paddingBottom: 20,
+        paddingTop: 40,
+        // paddingBottom: 20,
     },
     headerText: {
         fontSize: 24,

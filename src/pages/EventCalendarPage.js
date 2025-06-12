@@ -9,12 +9,13 @@ import {
     TextInput,
     Modal,
     Image,
+    Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import moment from 'moment';
 import Toast from 'react-native-simple-toast';
-import { getEvents } from '../api/auth';
+import { getEvents, deleteEvent } from '../api/auth';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useLanguage } from '../language/commondir';
 import { useRoute } from '@react-navigation/native';
@@ -27,18 +28,12 @@ function EventCalendarPage({ navigation }) {
     const [fadeAnim] = useState(new Animated.Value(0));
     const [events, setEvents] = useState({});
     const route = useRoute();
-
-    //     const userData = route.params?.userData || null; // Assuming userData is passed from the previous screen
-    //     const isSuperAdmin = userData?.data?.role?.name === "Super Admin" || userData?.data?.role?.name === "Admin";
-    // console.log('User Data:', isSuperAdmin);
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
     const stripHtmlTags = (html) => {
         return html.replace(/<[^>]+>/g, '');
     };
 
-    // to getuser role logged in from getItem using asyncstorage:
-    // Fetch user role from AsyncStorage
     useEffect(() => {
         const getUserRole = async () => {
             try {
@@ -47,14 +42,13 @@ function EventCalendarPage({ navigation }) {
                 setIsSuperAdmin(role === 'Super Admin' || role === 'Admin' || role === 'Staff');
             } catch (error) {
                 console.error('Failed to retrieve user role from AsyncStorage:', error);
-                setIsSuperAdmin(false); // Fallback to non-admin
+                setIsSuperAdmin(false);
             }
         };
 
         getUserRole();
     }, []);
     console.log("isSuperAdmin:", isSuperAdmin);
-
 
     useEffect(() => {
         Animated.timing(fadeAnim, {
@@ -66,10 +60,6 @@ function EventCalendarPage({ navigation }) {
 
     const markedDates = Object.keys(events).reduce((acc, date) => {
         acc[date] = { marked: true, dotColor: '#2753b2' };
-        // if (date === selectedDate) {
-        //     acc[date].selected = true;
-        //     acc[date].selectedColor = '#2753b2';
-        // }
         return acc;
     }, {});
     if (selectedDate) {
@@ -80,7 +70,6 @@ function EventCalendarPage({ navigation }) {
         markedDates[selectedDate].selectedColor = '#2753b2';
     }
 
-    // Configure calendar locale based on language
     useEffect(() => {
         LocaleConfig.locales['custom'] = {
             monthNames: languageTexts?.calendar?.monthNames || [
@@ -103,16 +92,11 @@ function EventCalendarPage({ navigation }) {
         LocaleConfig.defaultLocale = 'custom';
     }, [languageTexts]);
 
-
     const fetchEvents = async () => {
         try {
-            // setLoading(true);
             const response = await getEvents();
-            // console.log('API Response: event >>>>>>>>', response);
             if (response.status && response.data) {
-                // Transform API data to match our UI structure
                 const formattedEvents = {};
-
                 response.data.forEach(event => {
                     const eventDate = event.start_datetime.split('T')[0];
                     const formattedEvent = {
@@ -138,49 +122,37 @@ function EventCalendarPage({ navigation }) {
             }
         } catch (err) {
             console.error('Failed to fetch events:', err);
-            setError(err.message);
             Toast.show(err.message, Toast.LONG);
-        } finally {
-            // setLoading(false);
         }
     };
 
-    // Fetch events when the component mounts
     useEffect(() => {
         fetchEvents();
     }, []);
 
     const selectedEvents = events[selectedDate] || [];
 
-    // Format date range for display
     const formatDateRange = (start, end) => {
         const startMoment = moment(start);
         const endMoment = moment(end);
 
-
         if (startMoment.isSame(endMoment, 'day')) {
-            // Same day event only
             return `${startMoment.format('MMM D, YYYY')}, ${startMoment.format('h:mm A')} - ${endMoment.format('h:mm A')}`;
         } else {
-            // Multi-day event
             return `${startMoment.format('MMM D')} - ${endMoment.format('MMM D, YYYY')}`;
         }
     };
 
-    // Enhanced date and time formatting
     const formatEventDateTime = (start, end) => {
         const startMoment = moment(start);
         const endMoment = moment(end);
 
-
         if (startMoment.isSame(endMoment, 'day')) {
-            // Same day - show date once with time range
             return {
                 date: startMoment.format('MMM D, YYYY'),
                 time: `${startMoment.format('h:mm A')} - ${endMoment.format('h:mm A')}`
             };
         } else {
-            // Multi-day event - show date range
             return {
                 date: `${startMoment.format('MMM D')} - ${endMoment.format('MMM D, YYYY')}`,
                 time: `${startMoment.format('h:mm A')} - ${endMoment.format('h:mm A')}`
@@ -188,7 +160,6 @@ function EventCalendarPage({ navigation }) {
         }
     };
 
-    // Handle registration for an event
     const handleRegister = (event) => {
         try {
             if (!event?.id) {
@@ -210,7 +181,6 @@ function EventCalendarPage({ navigation }) {
         }
     };
 
-    // Handle Registered Button Press
     const handleRegistered = (event) => {
         try {
             if (!event?.id) {
@@ -233,6 +203,39 @@ function EventCalendarPage({ navigation }) {
         }
     };
 
+    const handleDelete = (eventId) => {
+        Alert.alert(
+            languageTexts?.eventCalendar?.delete?.title || 'Delete Event',
+            languageTexts?.eventCalendar?.delete?.message || 'Are you sure you want to delete this event?',
+            [
+                {
+                    text: languageTexts?.common?.cancel || 'Cancel',
+                    style: 'cancel',
+                },
+                {
+                    text: languageTexts?.common?.delete || 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await deleteEvent(eventId);
+                            Toast.show(
+                                languageTexts?.eventCalendar?.delete?.success || 'Event deleted successfully!',
+                                Toast.LONG
+                            );
+                            fetchEvents(); // Refresh the event list
+                        } catch (error) {
+                            console.error('Delete Event Error:', error);
+                            Toast.show(
+                                error.message || (languageTexts?.eventCalendar?.delete?.error || 'Failed to delete event.'),
+                                Toast.LONG
+                            );
+                        }
+                    },
+                },
+            ],
+            { cancelable: true }
+        );
+    };
 
     return (
         <LinearGradient colors={['#2753b2', '#e6e9f0']} style={styles.container}>
@@ -242,36 +245,27 @@ function EventCalendarPage({ navigation }) {
                         style={styles.backButton}
                         onPress={() => navigation.navigate('Dashboard')}
                     >
-                        {/* <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text> */}
                         <Icon name="arrow-back-ios" size={24} color="#ffffff" />
                     </TouchableOpacity>
                     <Text style={styles.titleText}>
                         {languageTexts?.menu?.eventCalendar || 'Event Calendar'}
                     </Text>
-                    {/* <View style={{ width: 60 }} /> */}
-                    {isSuperAdmin ?
-                        (
-                            <TouchableOpacity
-                                style={styles.createButton}
-                                onPress={() => navigation.navigate('CreateEvent')}
-                            >
-                                {/* <Icon name="add-circle" size={24} color="#ffffff" /> */}
-                                <Image
-                                    source={require('../asserts/images/calendar1.png')}
-                                    style={{ width: 24, height: 24, tintColor: '#ffffff' }}
-                                />
-                                {/* <Icon name="add-circle" size={24} color="#ffffff" /> */}
-                            </TouchableOpacity>
-                        ) : (
-                            <View style={{ width: 60 }} />
-                        )}
+                    {isSuperAdmin ? (
+                        <TouchableOpacity
+                            style={styles.createButton}
+                            onPress={() => navigation.navigate('CreateEvent')}
+                        >
+                            <Image
+                                source={require('../asserts/images/calendar1.png')}
+                                style={{ width: 24, height: 24, tintColor: '#ffffff' }}
+                            />
+                        </TouchableOpacity>
+                    ) : (
+                        <View style={{ width: 60 }} />
+                    )}
                 </View>
 
                 <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
-                    {/* <Text style={styles.subtitleText}>
-                        {languageTexts?.eventCalendar?.subtitle || 'View upcoming events and activities.'}
-                    </Text> */}
-
                     <View style={styles.calendarContainer}>
                         <Calendar
                             current={selectedDate}
@@ -308,6 +302,22 @@ function EventCalendarPage({ navigation }) {
                             selectedEvents.map((event) => (
                                 <View key={event?.id} style={styles.eventCard}>
                                     <View style={styles.eventContent}>
+                                        {isSuperAdmin && (
+                                            <View style={styles.actionButtons}>
+                                                <TouchableOpacity
+                                                    onPress={() => navigation.navigate('CreateEvent', { eventData: event.eventData })}
+                                                    style={styles.editButton}
+                                                >
+                                                    <Icon name="edit" size={22} color="#2753b2" />
+                                                </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    onPress={() => handleDelete(event.id)}
+                                                    style={styles.deleteButton}
+                                                >
+                                                    <Icon name="delete" size={22} color="#ff4444" />
+                                                </TouchableOpacity>
+                                            </View>
+                                        )}
                                         <Text style={styles.eventTitle}>
                                             {languageTexts?.eventCalendar?.events?.[event.titleKey] || event.title}
                                         </Text>
@@ -422,17 +432,6 @@ const styles = StyleSheet.create({
         color: '#FFF',
         textAlign: 'center',
     },
-    subtitleText: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#F0F0F0',
-        marginVertical: 20,
-        textAlign: 'center',
-        lineHeight: 22,
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 3,
-    },
     calendarContainer: {
         marginTop: 20,
         marginHorizontal: 20,
@@ -461,15 +460,35 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.2,
         shadowRadius: 2,
+        position: 'relative',
     },
     eventContent: {
         flex: 1,
+    },
+    actionButtons: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        flexDirection: 'row',
+        zIndex: 1,
+    },
+    editButton: {
+        backgroundColor: '#e6e9f0',
+        padding: 6,
+        borderRadius: 8,
+        marginRight: 8,
+    },
+    deleteButton: {
+        backgroundColor: '#ffe6e6',
+        padding: 6,
+        borderRadius: 8,
     },
     eventTitle: {
         fontSize: 18,
         fontWeight: 'bold',
         color: '#333',
         marginBottom: 10,
+        paddingRight: 80, // Increased padding to accommodate both edit and delete buttons
     },
     eventDetailRow: {
         flexDirection: 'row',
@@ -482,11 +501,6 @@ const styles = StyleSheet.create({
     eventDetailText: {
         fontSize: 14,
         color: '#333',
-        flex: 1,
-    },
-    eventDescription: {
-        fontSize: 14,
-        color: '#666',
         flex: 1,
     },
     buttonContainer: {
@@ -528,4 +542,3 @@ const styles = StyleSheet.create({
         color: '#666',
     },
 });
-

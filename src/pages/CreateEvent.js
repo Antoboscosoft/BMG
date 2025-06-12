@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -12,24 +12,26 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-// import DocumentPicker from 'react-native-document-picker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useLanguage } from '../language/commondir';
-import { createEvent } from '../api/auth';
+import { createEvent, updateEvent } from '../api/auth';
 import { useForm, Controller } from 'react-hook-form';
 
 function CreateEvent({ navigation, route }) {
     const { languageTexts } = useLanguage();
-    const { userData } = route.params || {};
+    const { userData, eventData } = route.params || {};
     const isAdmin = userData?.data?.role?.name === "Super Admin" || userData?.data?.role?.name === "Admin";
     console.log('User Data:', isAdmin);
+    console.log('Event Data for Update:', eventData);
+
+    const isUpdate = !!eventData; // Check if eventData exists to determine if this is an update
+
     const now = new Date();
     const defaultStart = new Date(now);
     defaultStart.setHours(9, 0, 0, 0); // 9:00 AM
     const defaultEnd = new Date(now);
     defaultEnd.setHours(23, 59, 0, 0); // 11:59 PM
 
-    
     const {
         control,
         handleSubmit,
@@ -38,17 +40,17 @@ function CreateEvent({ navigation, route }) {
         watch,
     } = useForm({
         defaultValues: {
-            title: '',
-            description: '',
-            all_day: false,
-            // start_datetime: new Date(),
-            start_datetime: defaultStart,
-            // end_datetime: new Date(),
-            end_datetime: defaultEnd,
-            location: '',
-            max_participants: '80',
+            id: eventData?.id || '',
+            title: eventData?.title || '',
+            description: eventData?.description || '',
+            all_day: eventData?.all_day || false,
+            start_datetime: eventData?.start_datetime ? new Date(eventData.start_datetime) : defaultStart,
+            end_datetime: eventData?.end_datetime ? new Date(eventData.end_datetime) : defaultEnd,
+            location: eventData?.location || '',
+            max_participants: eventData?.max_participants ? String(eventData.max_participants) : '80',
         },
     });
+
     const [files, setFiles] = useState([]);
     const [isStartDatePickerVisible, setStartDatePickerVisible] = useState(false);
     const [isStartTimePickerVisible, setStartTimePickerVisible] = useState(false);
@@ -61,25 +63,8 @@ function CreateEvent({ navigation, route }) {
     const start_datetime = watch('start_datetime');
     const end_datetime = watch('end_datetime');
 
-    const handleFilePick = async () => {
-        try {
-            const results = await DocumentPicker.pickMultiple({
-                type: [DocumentPicker.types.allFiles],
-            });
-            setFiles([...files, ...results]);
-        } catch (err) {
-            if (!DocumentPicker.isCancel(err)) {
-                setError(languageTexts?.createEvent?.error?.filePick || 'Failed to pick files');
-            }
-        }
-    };
-
-    const removeFile = (index) => {
-        setFiles(files.filter((_, i) => i !== index));
-    };
-
     const formatDateTime = (date) => {
-        return date.toISOString(); // e.g., "2025-05-23T03:30:00.000Z"
+        return date.toISOString();
     };
 
     const formatDisplayDate = (date) => {
@@ -102,6 +87,7 @@ function CreateEvent({ navigation, route }) {
 
         try {
             const payload = {
+                id: data.id,
                 title: data.title,
                 description: data.description,
                 all_day: data.all_day,
@@ -113,33 +99,47 @@ function CreateEvent({ navigation, route }) {
             console.log('Payload:', payload);
             const fm = new FormData();
             fm.append('event_data', JSON.stringify(payload));
-            if (files || files.length > 0) {
-            files.forEach((file) => {
-                fm.append('files', {
-                    uri: file.uri,
-                    name: file.name,
-                    type: file.type || 'application/octet-stream',
+            if (files && files.length > 0) {
+                files.forEach((file) => {
+                    fm.append('files', {
+                        uri: file.uri,
+                        name: file.name,
+                        type: file.type || 'application/octet-stream',
+                    });
                 });
-            });
             }
 
-            const response = await createEvent(fm);
-            Alert.alert(
-                languageTexts?.createEvent?.success?.title || 'Success',
-                languageTexts?.createEvent?.success?.message || 'Event created successfully!',
-                [
-                    {
-                        text: languageTexts?.common?.ok || 'OK',
-                        onPress: () => navigation.navigate('EventCalendar', {
-                            refresh: true,
-                        }),
-                    },
-                ],
-                { cancelable: false }
-            );
+            let response;
+            if (isUpdate) {
+                response = await updateEvent(data.id, fm);
+                Alert.alert(
+                    languageTexts?.createEvent?.success?.titleUpdate || 'Success',
+                    languageTexts?.createEvent?.success?.messageUpdate || 'Event updated successfully!',
+                    [
+                        {
+                            text: languageTexts?.common?.ok || 'OK',
+                            onPress: () => navigation.navigate('EventCalendar', { refresh: true }),
+                        },
+                    ],
+                    { cancelable: false }
+                );
+            } else {
+                response = await createEvent(fm);
+                Alert.alert(
+                    languageTexts?.createEvent?.success?.title || 'Success',
+                    languageTexts?.createEvent?.success?.message || 'Event created successfully!',
+                    [
+                        {
+                            text: languageTexts?.common?.ok || 'OK',
+                            onPress: () => navigation.navigate('EventCalendar', { refresh: true }),
+                        },
+                    ],
+                    { cancelable: false }
+                );
+            }
         } catch (error) {
-            console.error('Create Event Error:', error);
-            setError(error.message || (languageTexts?.createEvent?.error?.submit || 'Failed to create event. Please try again.'));
+            console.error('Event Operation Error:', error);
+            setError(error.message || (languageTexts?.createEvent?.error?.submit || 'Failed to process event. Please try again.'));
         } finally {
             setIsSubmitting(false);
         }
@@ -148,19 +148,15 @@ function CreateEvent({ navigation, route }) {
     const handleStartDateChange = (date) => {
         setValue('start_datetime', date);
         const endDate = watch('end_datetime');
-        // If end date is the same as previous start date, update it to new start date
         if (
             endDate.getFullYear() === start_datetime.getFullYear() &&
             endDate.getMonth() === start_datetime.getMonth() &&
             endDate.getDate() === start_datetime.getDate()
         ) {
-            // Set end date to new start date (keep time)
             const newEnd = new Date(date);
             newEnd.setHours(endDate.getHours(), endDate.getMinutes(), endDate.getSeconds(), endDate.getMilliseconds());
             setValue('end_datetime', newEnd);
-        }
-        // If new start date is after end date, set end date to new start date
-        else if (date > endDate) {
+        } else if (date > endDate) {
             const newEnd = new Date(date);
             newEnd.setHours(endDate.getHours(), endDate.getMinutes(), endDate.getSeconds(), endDate.getMilliseconds());
             setValue('end_datetime', newEnd);
@@ -178,12 +174,15 @@ function CreateEvent({ navigation, route }) {
                     style={styles.backButton}
                     onPress={() => navigation.navigate('EventCalendar')}
                 >
-                    <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text>
+                    <Icon name="arrow-back" size={24} color="#fff" />
+                    {/* <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text> */}
                 </TouchableOpacity>
 
                 <View style={styles.header}>
                     <Text style={styles.headerText}>
-                        {languageTexts?.createEvent?.title?.create || 'Create Event'}
+                        {isUpdate
+                            ? languageTexts?.createEvent?.title?.updateEvent || 'Update Event'
+                            : languageTexts?.createEvent?.title?.createEvent || 'Create Event'}
                     </Text>
                 </View>
 
@@ -229,30 +228,25 @@ function CreateEvent({ navigation, route }) {
                         <Controller
                             control={control}
                             name="all_day"
-                            onValueChange={(newValue) => {
-                                onChange(newValue);
-                                if (newValue) {
-                                    // When All Day is enabled
-                                    const now = new Date();
-                                    const startDate = new Date(now);
-                                    startDate.setHours(9, 0, 0, 0); // Set to 9:00 AM
-
-                                    const endDate = new Date(now);
-                                    endDate.setHours(23, 59, 0, 0); // Set to 11:59 PM
-
-                                    setValue('start_datetime', startDate);
-                                    setValue('end_datetime', endDate);
-                                } else {
-                                    // When All Day is disabled, use current time
-                                    const now = new Date();
-                                    setValue('start_datetime', now);
-                                    setValue('end_datetime', new Date(now.getTime() + 3600000)); // 1 hour later
-                                }
-                            }}
                             render={({ field: { value, onChange } }) => (
                                 <Switch
                                     value={value}
-                                    onValueChange={onChange}
+                                    onValueChange={(newValue) => {
+                                        onChange(newValue);
+                                        if (newValue) {
+                                            const now = new Date();
+                                            const startDate = new Date(now);
+                                            startDate.setHours(9, 0, 0, 0);
+                                            const endDate = new Date(now);
+                                            endDate.setHours(23, 59, 0, 0);
+                                            setValue('start_datetime', startDate);
+                                            setValue('end_datetime', endDate);
+                                        } else {
+                                            const now = new Date();
+                                            setValue('start_datetime', now);
+                                            setValue('end_datetime', new Date(now.getTime() + 3600000));
+                                        }
+                                    }}
                                     trackColor={{ false: '#767577', true: '#2753b2' }}
                                     thumbColor={value ? '#FFF' : '#f4f3f4'}
                                 />
@@ -288,7 +282,6 @@ function CreateEvent({ navigation, route }) {
                         onCancel={() => setStartDatePickerVisible(false)}
                         is24Hour={false}
                         display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                        key={isStartDatePickerVisible ? Math.random() : 'start'} // Force remount to fix not opening
                         minimumDate={new Date()}
                     />
                     <DateTimePickerModal
@@ -332,7 +325,6 @@ function CreateEvent({ navigation, route }) {
                         onCancel={() => setEndDatePickerVisible(false)}
                         is24Hour={false}
                         display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                        key={isEndDatePickerVisible ? Math.random() : 'end'} // Force remount to fix not opening
                         minimumDate={new Date()}
                     />
                     <DateTimePickerModal
@@ -365,14 +357,14 @@ function CreateEvent({ navigation, route }) {
                     />
                     {errors.location && <Text style={styles.errorText}>{errors.location.message}</Text>}
 
-                    <Text style={styles.label}>{languageTexts?.createEvent?.maxParticipants || 'Max Participants'}</Text>
+                    <Text style={styles.label}>{languageTexts?.createEvent?.maxParticipants || 'Max-Participants'}</Text>
                     <Controller
                         control={control}
                         name="max_participants"
                         rules={{
                             required: languageTexts?.createEvent?.error?.maxParticipants || 'Max participants is required',
                             pattern: {
-                                value: /^[1-9]\d*$/,
+                                value: /^[0-9]+$/,
                                 message: languageTexts?.createEvent?.error?.maxParticipantsInvalid || 'Must be a positive number',
                             },
                         }}
@@ -380,35 +372,19 @@ function CreateEvent({ navigation, route }) {
                             <TextInput
                                 style={[styles.input, errors.max_participants && styles.inputError]}
                                 value={value}
-                                onChangeText={onChange}
+                                onChangeText={(val) => {
+                                    const cleaned = val.replace(/[^0-9]/g, '');
+                                    onChange(cleaned);
+                                }}
                                 placeholder={languageTexts?.createEvent?.placeholder?.maxParticipants || 'Enter max participants'}
                                 placeholderTextColor="#999"
-                                keyboardType="numeric"
+                                keyboardType="number-pad"
                             />
                         )}
                     />
                     {errors.max_participants && <Text style={styles.errorText}>{errors.max_participants.message}</Text>}
 
-                    {/* <Text style={styles.label}>{languageTexts?.createEvent?.attachments || 'Attachments'}</Text>
-                    <TouchableOpacity style={styles.fileButton} onPress={handleFilePick}>
-                        <Text style={styles.fileButtonText}>
-                            {languageTexts?.createEvent?.pickFiles || 'Pick Files'}
-                        </Text>
-                    </TouchableOpacity>
-                    {files.length > 0 && (
-                        <View style={styles.fileList}>
-                            {files.map((file, index) => (
-                                <View key={index} style={styles.fileItem}>
-                                    <Text style={styles.fileText}>{file.name}</Text>
-                                    <TouchableOpacity onPress={() => removeFile(index)}>
-                                        <Icon name="close" size={20} color="#ff4444" />
-                                    </TouchableOpacity>
-                                </View>
-                            ))}
-                        </View>
-                    )}
-
-                    {error && <Text style={styles.errorText}>{error}</Text>} */}
+                    {error && <Text style={styles.errorText}>{error}</Text>}
 
                     <TouchableOpacity
                         style={[styles.submitButton, isSubmitting && styles.disabledButton]}
@@ -419,7 +395,9 @@ function CreateEvent({ navigation, route }) {
                             <ActivityIndicator color="#FFF" />
                         ) : (
                             <Text style={styles.buttonText}>
-                                {languageTexts?.createEvent?.submit || 'Submit'}
+                                {isUpdate
+                                    ? languageTexts?.createEvent?.update || 'Update'
+                                    : languageTexts?.createEvent?.submit || 'Submit'}
                             </Text>
                         )}
                     </TouchableOpacity>
@@ -439,7 +417,7 @@ const styles = StyleSheet.create({
     },
     backButton: {
         position: 'absolute',
-        top: 20,
+        top: 50,
         left: 20,
         padding: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
@@ -453,8 +431,7 @@ const styles = StyleSheet.create({
     },
     header: {
         alignItems: 'center',
-        paddingTop: 60,
-        paddingBottom: 20,
+        paddingTop: 40,
     },
     headerText: {
         fontSize: 24,
@@ -529,34 +506,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#333',
     },
-    fileButton: {
-        backgroundColor: '#2753b2',
-        padding: 12,
-        borderRadius: 8,
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    fileButtonText: {
-        color: '#FFF',
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    fileList: {
-        marginBottom: 10,
-    },
-    fileItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 8,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-    },
-    fileText: {
-        fontSize: 14,
-        color: '#333',
-        flex: 1,
-    },
     submitButton: {
         backgroundColor: '#2753b2',
         padding: 15,
@@ -581,475 +530,3 @@ const styles = StyleSheet.create({
 });
 
 export default CreateEvent;
-
-
-
-
-
-
-// import React, { useState } from 'react';
-// import {
-//     View,
-//     Text,
-//     StyleSheet,
-//     TouchableOpacity,
-//     ScrollView,
-//     TextInput,
-//     Switch,
-//     Alert,
-//     ActivityIndicator,
-// } from 'react-native';
-// import LinearGradient from 'react-native-linear-gradient';
-// import Icon from 'react-native-vector-icons/MaterialIcons';
-// import DocumentPicker from 'react-native-document-picker';
-// import DateTimePickerModal from 'react-native-modal-datetime-picker';
-// import { useLanguage } from '../language/commondir';
-// import { createEvent } from '../api/auth';
-
-// function CreateEvent({ navigation }) {
-//     const { languageTexts } = useLanguage();
-//     const [formData, setFormData] = useState({
-//         title: '',
-//         description: '',
-//         all_day: false,
-//         start_datetime: new Date(),
-//         end_datetime: new Date(),
-//         location: '',
-//         max_participants: '80',
-//     });
-//     const [files, setFiles] = useState([]);
-//     const [isStartDatePickerVisible, setStartDatePickerVisible] = useState(false);
-//     const [isStartTimePickerVisible, setStartTimePickerVisible] = useState(false);
-//     const [isEndDatePickerVisible, setEndDatePickerVisible] = useState(false);
-//     const [isEndTimePickerVisible, setEndTimePickerVisible] = useState(false);
-//     const [isSubmitting, setIsSubmitting] = useState(false);
-//     const [error, setError] = useState('');
-
-//     const handleInputChange = (key, value) => {
-//         setFormData({ ...formData, [key]: value });
-//     };
-
-//     const handleFilePick = async () => {
-//         try {
-//             const results = await DocumentPicker.pickMultiple({
-//                 type: [DocumentPicker.types.allFiles],
-//             });
-//             setFiles([...files, ...results]);
-//         } catch (err) {
-//             if (!DocumentPicker.isCancel(err)) {
-//                 setError(languageTexts?.createEvent?.error?.filePick || 'Failed to pick files');
-//             }
-//         }
-//     };
-
-//     const removeFile = (index) => {
-//         setFiles(files.filter((_, i) => i !== index));
-//     };
-
-//     const formatDateTime = (date) => {
-//         return date.toISOString(); // e.g., "2025-05-23T03:30:00.000Z"
-//     };
-
-//     const formatDisplayDate = (date) => {
-//         return date.toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
-//     };
-
-//     const formatDisplayTime = (date) => {
-//         return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-//     };
-
-//     const validateForm = () => {
-//         if (!formData.title.trim()) return 'Title is required';
-//         if (!formData.description.trim()) return 'Description is required';
-//         if (!formData.location.trim()) return 'Location is required';
-//         if (!formData.max_participants || isNaN(formData.max_participants) || Number(formData.max_participants) <= 0) {
-//             return 'Max participants must be a positive number';
-//         }
-//         if (formData.end_datetime <= formData.start_datetime) {
-//             return 'End date/time must be after start date/time';
-//         }
-//         return null;
-//     };
-
-//     const handleSubmit = async () => {
-//         const validationError = validateForm();
-//         if (validationError) {
-//             setError(languageTexts?.createEvent?.error?.validation || validationError);
-//             return;
-//         }
-
-//         setError('');
-//         setIsSubmitting(true);
-
-//         try {
-//             const payload = {
-//                 title: formData.title,
-//                 description: formData.description,
-//                 all_day: formData.all_day,
-//                 start_datetime: formatDateTime(formData.start_datetime),
-//                 end_datetime: formatDateTime(formData.end_datetime),
-//                 location: formData.location,
-//                 max_participants: Number(formData.max_participants),
-//             };
-
-//             const fm = new FormData();
-//             fm.append('event_data', JSON.stringify(payload));
-//             files.forEach((file) => {
-//                 fm.append('files', {
-//                     uri: file.uri,
-//                     name: file.name,
-//                     type: file.type || 'application/octet-stream',
-//                 });
-//             });
-
-//             const response = await createEvent(fm);
-//             Alert.alert(
-//                 languageTexts?.createEvent?.success?.title || 'Success',
-//                 languageTexts?.createEvent?.success?.message || 'Event created successfully!',
-//                 [
-//                     {
-//                         text: languageTexts?.common?.ok || 'OK',
-//                         onPress: () => navigation.navigate('EventCalendar'),
-//                     },
-//                 ],
-//                 { cancelable: false }
-//             );
-//         } catch (error) {
-//             console.error('Create Event Error:', error);
-//             setError(error.message || (languageTexts?.createEvent?.error?.submit || 'Failed to create event. Please try again.'));
-//         } finally {
-//             setIsSubmitting(false);
-//         }
-//     };
-
-//     return (
-//         <LinearGradient colors={['#2753b2', '#e6e9f0']} style={styles.container}>
-//             <ScrollView contentContainerStyle={styles.scrollContainer}>
-//                 <TouchableOpacity
-//                     style={styles.backButton}
-//                     onPress={() => navigation.navigate('EventCalendar')}
-//                 >
-//                     <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text>
-//                 </TouchableOpacity>
-
-//                 <View style={styles.header}>
-//                     <Text style={styles.headerText}>
-//                         {languageTexts?.createEvent?.title?.create || 'Create Event'}
-//                     </Text>
-//                 </View>
-
-//                 <View style={styles.contentContainer}>
-//                     <Text style={styles.label}>{languageTexts?.createEvent?.title || 'Title'}</Text>
-//                     <TextInput
-//                         style={styles.input}
-//                         value={formData.title}
-//                         onChangeText={(text) => handleInputChange('title', text)}
-//                         placeholder={languageTexts?.createEvent?.placeholder?.title || 'Enter event title'}
-//                         placeholderTextColor="#999"
-//                     />
-
-//                     <Text style={styles.label}>{languageTexts?.createEvent?.description || 'Description'}</Text>
-//                     <TextInput
-//                         style={[styles.input, styles.multilineInput]}
-//                         value={formData.description}
-//                         onChangeText={(text) => handleInputChange('description', text)}
-//                         placeholder={languageTexts?.createEvent?.placeholder?.description || 'Enter event description'}
-//                         placeholderTextColor="#999"
-//                         multiline
-//                         numberOfLines={4}
-//                     />
-
-//                     <View style={styles.switchContainer}>
-//                         <Text style={styles.label}>{languageTexts?.createEvent?.allDay || 'All Day'}</Text>
-//                         <Switch
-//                             value={formData.all_day}
-//                             onValueChange={(value) => handleInputChange('all_day', value)}
-//                             trackColor={{ false: '#767577', true: '#2753b2' }}
-//                             thumbColor={formData.all_day ? '#FFF' : '#f4f3f4'}
-//                         />
-//                     </View>
-
-//                     <Text style={styles.label}>{languageTexts?.createEvent?.startDateTime || 'Start Date & Time'}</Text>
-//                     <View style={styles.dateTimeRow}>
-//                         <TouchableOpacity
-//                             style={styles.dateButton}
-//                             onPress={() => setStartDatePickerVisible(true)}
-//                         >
-//                             <Text style={styles.dateText}>{formatDisplayDate(formData.start_datetime)}</Text>
-//                         </TouchableOpacity>
-//                         {!formData.all_day && (
-//                             <TouchableOpacity
-//                                 style={styles.timeButton}
-//                                 onPress={() => setStartTimePickerVisible(true)}
-//                             >
-//                                 <Text style={styles.dateText}>{formatDisplayTime(formData.start_datetime)}</Text>
-//                             </TouchableOpacity>
-//                         )}
-//                     </View>
-//                     <DateTimePickerModal
-//                         isVisible={isStartDatePickerVisible}
-//                         mode="date"
-//                         date={formData.start_datetime}
-//                         onConfirm={(date) => {
-//                             handleInputChange('start_datetime', date);
-//                             setStartDatePickerVisible(false);
-//                         }}
-//                         onCancel={() => setStartDatePickerVisible(false)}
-//                     />
-//                     <DateTimePickerModal
-//                         isVisible={isStartTimePickerVisible}
-//                         mode="time"
-//                         date={formData.start_datetime}
-//                         onConfirm={(date) => {
-//                             handleInputChange('start_datetime', date);
-//                             setStartTimePickerVisible(false);
-//                         }}
-//                         onCancel={() => setStartTimePickerVisible(false)}
-//                     />
-
-//                     <Text style={styles.label}>{languageTexts?.createEvent?.endDateTime || 'End Date & Time'}</Text>
-//                     <View style={styles.dateTimeRow}>
-//                         <TouchableOpacity
-//                             style={styles.dateButton}
-//                             onPress={() => setEndDatePickerVisible(true)}
-//                         >
-//                             <Text style={styles.dateText}>{formatDisplayDate(formData.end_datetime)}</Text>
-//                         </TouchableOpacity>
-//                         {!formData.all_day && (
-//                             <TouchableOpacity
-//                                 style={styles.timeButton}
-//                                 onPress={() => setEndTimePickerVisible(true)}
-//                             >
-//                                 <Text style={styles.dateText}>{formatDisplayTime(formData.end_datetime)}</Text>
-//                             </TouchableOpacity>
-//                         )}
-//                     </View>
-//                     <DateTimePickerModal
-//                         isVisible={isEndDatePickerVisible}
-//                         mode="date"
-//                         date={formData.end_datetime}
-//                         onConfirm={(date) => {
-//                             handleInputChange('end_datetime', date);
-//                             setEndDatePickerVisible(false);
-//                         }}
-//                         onCancel={() => setEndDatePickerVisible(false)}
-//                     />
-//                     <DateTimePickerModal
-//                         isVisible={isEndTimePickerVisible}
-//                         mode="time"
-//                         date={formData.end_datetime}
-//                         onConfirm={(date) => {
-//                             handleInputChange('end_datetime', date);
-//                             setEndTimePickerVisible(false);
-//                         }}
-//                         onCancel={() => setEndTimePickerVisible(false)}
-//                     />
-
-//                     <Text style={styles.label}>{languageTexts?.createEvent?.location || 'Location'}</Text>
-//                     <TextInput
-//                         style={styles.input}
-//                         value={formData.location}
-//                         onChangeText={(text) => handleInputChange('location', text)}
-//                         placeholder={languageTexts?.createEvent?.placeholder?.location || 'Enter event location'}
-//                         placeholderTextColor="#999"
-//                     />
-
-//                     <Text style={styles.label}>{languageTexts?.createEvent?.maxParticipants || 'Max Participants'}</Text>
-//                     <TextInput
-//                         style={styles.input}
-//                         value={formData.max_participants}
-//                         onChangeText={(text) => handleInputChange('max_participants', text)}
-//                         placeholder={languageTexts?.createEvent?.placeholder?.maxParticipants || 'Enter max participants'}
-//                         placeholderTextColor="#999"
-//                         keyboardType="numeric"
-//                     />
-
-//                     <Text style={styles.label}>{languageTexts?.createEvent?.attachments || 'Attachments'}</Text>
-//                     <TouchableOpacity style={styles.fileButton} onPress={handleFilePick}>
-//                         <Text style={styles.fileButtonText}>
-//                             {languageTexts?.createEvent?.pickFiles || 'Pick Files'}
-//                         </Text>
-//                     </TouchableOpacity>
-//                     {files.length > 0 && (
-//                         <View style={styles.fileList}>
-//                             {files.map((file, index) => (
-//                                 <View key={index} style={styles.fileItem}>
-//                                     <Text style={styles.fileText}>{file.name}</Text>
-//                                     <TouchableOpacity onPress={() => removeFile(index)}>
-//                                         <Icon name="close" size={20} color="#ff4444" />
-//                                     </TouchableOpacity>
-//                                 </View>
-//                             ))}
-//                         </View>
-//                     )}
-
-//                     {error && <Text style={styles.errorText}>{error}</Text>}
-
-//                     <TouchableOpacity
-//                         style={[styles.submitButton, isSubmitting && styles.disabledButton]}
-//                         onPress={handleSubmit}
-//                         disabled={isSubmitting}
-//                     >
-//                         {isSubmitting ? (
-//                             <ActivityIndicator color="#FFF" />
-//                         ) : (
-//                             <Text style={styles.buttonText}>
-//                                 {languageTexts?.createEvent?.submit || 'Submit'}
-//                             </Text>
-//                         )}
-//                     </TouchableOpacity>
-//                 </View>
-//             </ScrollView>
-//         </LinearGradient>
-//     );
-// }
-
-// const styles = StyleSheet.create({
-//     container: {
-//         flex: 1,
-//     },
-//     scrollContainer: {
-//         flexGrow: 1,
-//         padding: 15,
-//     },
-//     backButton: {
-//         position: 'absolute',
-//         top: 20,
-//         left: 20,
-//         padding: 10,
-//         backgroundColor: 'rgba(255, 255, 255, 0.2)',
-//         borderRadius: 8,
-//         zIndex: 1,
-//     },
-//     backButtonText: {
-//         fontSize: 16,
-//         color: '#FFF',
-//         fontWeight: 'bold',
-//     },
-//     header: {
-//         alignItems: 'center',
-//         paddingTop: 60,
-//         paddingBottom: 20,
-//     },
-//     headerText: {
-//         fontSize: 24,
-//         fontWeight: 'bold',
-//         color: '#ffffff',
-//     },
-//     contentContainer: {
-//         marginTop: 20,
-//         padding: 20,
-//         backgroundColor: '#FFF',
-//         borderRadius: 10,
-//         elevation: 3,
-//         shadowColor: '#000',
-//         shadowOffset: { width: 0, height: 2 },
-//         shadowOpacity: 0.1,
-//         shadowRadius: 4,
-//     },
-//     label: {
-//         fontSize: 16,
-//         fontWeight: '600',
-//         color: '#333',
-//         marginBottom: 8,
-//         marginTop: 10,
-//     },
-//     input: {
-//         borderWidth: 1,
-//         borderColor: '#ddd',
-//         borderRadius: 8,
-//         padding: 12,
-//         fontSize: 14,
-//         color: '#333',
-//         backgroundColor: '#f9f9f9',
-//         marginBottom: 10,
-//     },
-//     multilineInput: {
-//         height: 100,
-//         textAlignVertical: 'top',
-//     },
-//     switchContainer: {
-//         flexDirection: 'row',
-//         alignItems: 'center',
-//         justifyContent: 'space-between',
-//         marginBottom: 10,
-//     },
-//     dateTimeRow: {
-//         flexDirection: 'row',
-//         justifyContent: 'space-between',
-//         marginBottom: 10,
-//     },
-//     dateButton: {
-//         flex: 1,
-//         borderWidth: 1,
-//         borderColor: '#ddd',
-//         borderRadius: 8,
-//         padding: 12,
-//         backgroundColor: '#f9f9f9',
-//         marginRight: 5,
-//     },
-//     timeButton: {
-//         flex: 1,
-//         borderWidth: 1,
-//         borderColor: '#ddd',
-//         borderRadius: 8,
-//         padding: 12,
-//         backgroundColor: '#f9f9f9',
-//         marginLeft: 5,
-//     },
-//     dateText: {
-//         fontSize: 14,
-//         color: '#333',
-//     },
-//     fileButton: {
-//         backgroundColor: '#2753b2',
-//         padding: 12,
-//         borderRadius: 8,
-//         alignItems: 'center',
-//         marginBottom: 10,
-//     },
-//     fileButtonText: {
-//         color: '#FFF',
-//         fontSize: 14,
-//         fontWeight: '600',
-//     },
-//     fileList: {
-//         marginBottom: 10,
-//     },
-//     fileItem: {
-//         flexDirection: 'row',
-//         alignItems: 'center',
-//         justifyContent: 'space-between',
-//         padding: 8,
-//         borderBottomWidth: 1,
-//         borderBottomColor: '#eee',
-//     },
-//     fileText: {
-//         fontSize: 14,
-//         color: '#333',
-//         flex: 1,
-//     },
-//     submitButton: {
-//         backgroundColor: '#2753b2',
-//         padding: 15,
-//         borderRadius: 8,
-//         alignItems: 'center',
-//         marginTop: 20,
-//     },
-//     buttonText: {
-//         color: '#FFF',
-//         fontSize: 16,
-//         fontWeight: 'bold',
-//     },
-//     disabledButton: {
-//         opacity: 0.6,
-//     },
-//     errorText: {
-//         color: '#ff6b6b',
-//         fontSize: 14,
-//         marginBottom: 10,
-//         textAlign: 'center',
-//     },
-// });
-
-// export default CreateEvent;

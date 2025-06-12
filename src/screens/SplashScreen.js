@@ -14,7 +14,9 @@ import {
 
 import splashImg1 from '../asserts/images/ss1c.jpg';
 import splashImg2 from '../asserts/images/splash1c.jpg';
-import splashImg3 from '../asserts/images/spss4c.jpg';
+// import splashImg3 from '../asserts/images/spss4c.jpg';
+import splashImg3 from '../asserts/images/spss3.png';
+// import splashImg3 from '../asserts/images/imgpngdash7.png';
 import splashImg4 from '../asserts/images/ss2c.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FastImage from 'react-native-fast-image';
@@ -38,13 +40,13 @@ const slides = [
       'Providing legal assistance, job support, health services, and language support to migrants.',
     image: splashImg2,
   },
-  {
-    key: 'slide3',
-    titleTop: 'DON BOSCO MIGRANT SERVICES',
-    description:
-      'Works with the Unorganised workers & Migrants, Employers, Government, for a Decent work agenda and Dignified labour for intra and interstate workers.',
-    image: splashImg4,
-  },
+  // {
+  //   key: 'slide3',
+  //   titleTop: 'DON BOSCO MIGRANT SERVICES',
+  //   description:
+  //     'Works with the Unorganised workers & Migrants, Employers, Government, for a Decent work agenda and Dignified labour for intra and interstate workers.',
+  //   image: splashImg4,
+  // },
   {
     key: 'slide4',
     titleTop: 'Your Journey Starts Here',

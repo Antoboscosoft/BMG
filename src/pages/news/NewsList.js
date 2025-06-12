@@ -161,12 +161,19 @@ function NewsList({ navigation }) {
                             // numberOfLines={3} // Limit to 2 lines as per original design
                             textSelectable={false} // Optional: Prevent text selection if not needed
                         /> */}
-                        <HTML
-                            source={{ html: item.description || '<p>No description available</p>' }}
-                            contentWidth={width - 60}
-                            maxLines={3}
-                            textSelectable={false}
-                        />
+                        {console.log("item.description", item.description)
+                        }
+                        <Text style={styles.newsExcerpt}>
+                            {(item.description !== null && item.description !== undefined)
+                                ? <HTML
+                                    source={{ html: item.description || '<p>No description available</p>' }}
+                                    contentWidth={width - 60}
+                                    maxLines={3}
+                                    textSelectable={false}
+                                />
+                                : languageTexts?.news?.noDescription || 'No description available'
+                            }
+                        </Text>
                     </View>
                 </View>
             </TouchableOpacity>

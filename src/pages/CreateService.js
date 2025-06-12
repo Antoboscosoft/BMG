@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, TextInput, ScrollView 
 import LinearGradient from 'react-native-linear-gradient';
 import { createServiceRequest } from '../api/auth';
 import { useLanguage } from '../language/commondir';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 function CreateService({ navigation, route }) {
     const { languageTexts } = useLanguage();
@@ -70,9 +71,10 @@ function CreateService({ navigation, route }) {
                         })
                     }
                 >
-                    <Text style={styles.backButtonText}>
+                    <Icon name="arrow-back" size={24} color="#FFF" />
+                    {/* <Text style={styles.backButtonText}>
                         {languageTexts?.common?.back || '< Back'}
-                    </Text>
+                    </Text> */}
                 </TouchableOpacity>
 
                 <View style={styles.header}>

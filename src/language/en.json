@@ -7,7 +7,10 @@
     "carousel": {
       "stayUpdated": "Stay Updated with Events!",
       "discoverSector": "Discover Your Sector"
-    }
+    },
+    "closeApp": "Are you sure you want to close the app?",
+    "close": "Close",
+    "cancel": "Cancel"
   },
   "menu": {
     "eventCalendar": "Events",
@@ -85,6 +88,8 @@
   },
   "servicesDirectory": {
     "loading": "Loading services...",
+    "jobOpportunity": "Job Opportunity",
+    "emptyJob": "No job opportunities available at the moment.",
     "empty": "No services available at the moment.",
     "emptyList": "No services available at this time",
     "apply": "Apply",
@@ -106,7 +111,8 @@
       "Shelter": "Find temporary housing and shelter services",
       "SkillTraining": "Learn new skills for employment opportunities",
       "default": "Service available for migrants"
-    }
+    },
+    "view": "View"
   },
   "createService": {
     "title": {
@@ -149,20 +155,92 @@
   },
   "calendar": {
     "monthNames": [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
     ],
     "monthNamesShort": [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
     ],
     "dayNames": [
-      "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday"
     ],
     "dayNamesShort": [
-      "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
     ],
     "today": "Today"
+  },
+  "createEvent": {
+    "common": {
+      "ok": "OK",
+      "back": "< Back"
+    },
+    "title": {
+      "createEvent": "Create Event",
+      "updateEvent": "Update Event"
+    },
+    "placeholder": {
+      "title": "Enter event title",
+      "description": "Enter event description",
+      "location": "Enter event location",
+      "maxParticipants": "Enter max participants"
+    },
+    "title": "Title",
+    "description": "Description",
+    "allDay": "All Day",
+    "startDateTime": "Start Date & Time",
+    "endDateTime": "End Date & Time",
+    "location": "Location",
+    "maxParticipants": "Max-Participants",
+    "submit": "Submit",
+    "update": "Update",
+    "error": {
+      "title": "Title is required",
+      "description": "Description is required",
+      "location": "Location is required",
+      "maxParticipants": "Max participants is required",
+      "maxParticipantsInvalid": "Must be a positive number",
+      "validation": "End date/time must be after start date/time",
+      "submit": "Failed to process event. Please try again."
+    },
+    "success": {
+      "title": "Success",
+      "message": "Event created successfully!",
+      "titleUpdate": "Success",
+      "messageUpdate": "Event updated successfully!"
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -335,6 +413,7 @@
       "submit": "Publish News",
       "update": "Update News"
     },
+    "noDescription": "No description available",
     "deleteTitle": "Delete News",
     "deleteMessage": "Are you sure you want to delete this news?",
     "deleted": "News deleted successfully",
@@ -365,5 +444,149 @@
   "general": {
     "cancel": "Cancel",
     "delete": "Delete"
+  },
+  "jobView": {
+    "title": "Job Opportunities",
+    "applicantsTitle": "Applicants for",
+    "createJob": "Create Job Opportunity",
+    "editJob": "Edit Job Opportunity",
+    "deleteConfirmation": "Are you sure you want to delete this job opportunity?",
+    "loading": "Loading jobs...",
+    "noJobs": "No job opportunities found.",
+    "jobTitle": "Job Title",
+    "description": "Description",
+    "address": "Address",
+    "vacancies": "Number of Vacancies",
+    "type": "Type",
+    "location": "Location",
+    "postedOn": "Posted On",
+    "apply": "Apply",
+    "withdraw": "Withdraw",
+    "noOfVacancies": "Number of Vacancies",
+    "edit": "Edit",
+    "delete": "Delete",
+    "viewApplicants": "View Applicants",
+    "applicationStatus": "Application Status",
+    "approveRequest": "Approve Request",
+    "rejectRequest": "Reject Request",
+    "remark": "Remark (Optional)",
+    "closeDropdown": "Close",
+    "cancel": "Cancel",
+    "create": "Create",
+    "update": "Update",
+    "addressLine": "Address Line 1",
+    "country": "Country",
+    "state": "State",
+    "district": "District",
+    "placeholders": {
+      "jobTitle": "Enter job title",
+      "description": "Enter job description",
+      "addressc": "Enter address line",
+      "address": "Enter job address",
+      "vacancies": "Enter number of vacancies",
+      "remark": "Enter rejection remark",
+      "noOfVacancies": "Enter number of vacancies",
+      "selectCountry": "Select Country",
+      "selectState": "Select State",
+      "selectDistrict": "Select District"
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "NoJobfound": "No job opportunities found",
+    "success": {
+      "create": "Job opportunity created successfully.",
+      "update": "Job opportunity updated successfully.",
+      "delete": "Job opportunity deleted successfully.",
+      "apply": "Job application submitted successfully.",
+      "withdraw": "Job application withdrawn successfully.",
+      "statusUpdate": "Job request {status} successfully."
+    },
+    "error": {
+      "createOrUpdate": "Failed to {action} job opportunity. Please try again.",
+      "delete": "Failed to delete job opportunity. Please try again.",
+      "apply": "Failed to apply for job. Please try again.",
+      "withdraw": "Failed to withdraw job application. Please try again.",
+      "statusUpdate": "Failed to {status} job request. Please try again.",
+      "jobTitleRequired": "Job title is required",
+      "descriptionRequired": "Description is required",
+      "addressRequired": "Address is required",
+      "vacanciesRequired": "Number of vacancies is required",
+      "vacanciesInvalid": "Must be a number"
+    }
+  },
+  "viewApplicants": {
+    "title": "Applicants for {jobTitle}",
+    "noApplicants": "No applicants found for this job.",
+    "applicant": "Applicant",
+    "appliedOn": "Applied On",
+    "status": "Status",
+    "approveRequest": "Approve Job Request",
+    "rejectRequest": "Reject Job Request",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "remark": "Remark (Optional)",
+    "selectStatus": "Select Status",
+    "selectStatusTitle": "Select Status for the Job Request",
+    "closeDropdown": "Close",
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "success": {
+      "statusUpdateTitle": "Success",
+      "statusUpdate": "Job request {status} successfully."
+    },
+    "errorTitle": "Error",
+    "error": {
+      "statusUpdate": "Failed to {status} job request. Please try again."
+    }
+  },
+  "services": {
+    "title": "Services for Category",
+    "noRequests": "No service requests found.",
+    "serviceRequestDetail": "Service Request Detail",
+    "requestedBy": "Requested By",
+    "requestedOn": "Requested On",
+    "status": "Status",
+    "description": "Description",
+    "noUser": "No User",
+    "noDate": "No Date",
+    "noStatus": "No Status",
+    "noDescription": "No Description",
+    "open": "Open",
+    "resolved": "Resolved",
+    "resolve": "Resolve",
+    "successTitle": "Success",
+    "successMessage": "Service status updated to Resolved.",
+    "errorTitle": "Error",
+    "errorMessage": "Failed to update service status. Please try again.",
+    "cancel": "Cancel",
+    "serviceStatus": "Service Status",
+    "confirmResolve": "Are you sure you want to resolve this service request?",
+    "category": "Category",
+    "noData": "No service requests found."
+  },
+  "helpRequest": {
+    "modalTitle": "New Help Request",
+    "category": "Category",
+    "description": "Description",
+    "placeholder": "Describe your issue in detail...",
+    "submit": "Submit Request",
+    "error": {
+      "title": "Error",
+      "description": "Please provide a description of your issue."
+    },
+    "success": {
+      "title": "Success",
+      "message": "Your help request has been submitted successfully!"
+    },
+    "helpRequestsTitle": "{category} Help Requests",
+    "noRequests": "No help requests found for this category.",
+    "helpRequestDetail": "Help Request Detail",
+    "updateStatus": "Update",
+    "noStatus": "No Status"
   }
 }

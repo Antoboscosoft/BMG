@@ -519,7 +519,7 @@ export const deleteServiceRequest = async (serviceId) => {
 export const getJobOpportunity = async () => {
     try {
         const response = await axiosInstance.get('job');
-        console.log("Get Job Opportunity Response:", response.data);
+        // console.log("Get Job Opportunity Response:", response.data);
         
         return response.data;
     } catch (error) {
@@ -584,6 +584,8 @@ export const applyForJob = async (jobId) => {
 export const getJobRequests = async (job_id) => {
     try {
         const response = await axiosInstance.get(`job/requests?skip=0&limit=0`);
+        console.log("get job requests >>>> !! ",response.data);
+        
         // const response = await axiosInstance.get(`job/requests?job_id=${job_id}skip=0&limit=0`);
         return response.data;
     } catch (error) {
@@ -604,11 +606,13 @@ export const getMyJobRequests = async (job_id) => {
 };
 
 // Update job request status (PUT /job/request/{request_id})
-export const updateJobRequestStatus = async (request_id, status) => {
-    console.log("api request_id",request_id, "status",status);
+export const updateJobRequestStatus = async (request_id, status, remark) => {
+    console.log("api request_id",request_id, "status",status, "remark",remark);
     
     try {
-        const response = await axiosInstance.put(`job/request/${request_id}?status=${status}`);
+        const response = await axiosInstance.put(`job/request/${request_id}?status=${status}&remarks=${remark}`);
+        console.log("response",response.data);
+        
         return response.data;
     } catch (error) {
         console.error("Update Job Request Status Error:", error);
@@ -652,6 +656,7 @@ export const getEventById = async (eventId) => {
     }
 };
 
+// create event
 export const createEvent = async (formData) => {
     try {
         const response = await axiosInstance.post('event', formData, {
@@ -665,6 +670,34 @@ export const createEvent = async (formData) => {
         throw error.response?.data || { message: "Failed to create event" };
     }
 };
+
+// edit event
+export const updateEvent = async (eventId, formData) => {
+    console.log("Editing event with ID:", eventId, "and data:", formData);
+    try {
+        const response = await axiosInstance.put(`event/${eventId}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Edit Event Error:", error);
+        throw error.response?.data || { message: "Failed to edit event" };
+    }
+}
+
+// delete event
+export const deleteEvent = async (eventId) => {
+    console.log("Deleting event with ID:", eventId);
+    try {
+        const response = await axiosInstance.delete(`event/${eventId}`);
+        return response.data;
+    } catch (error) {
+        console.error("Delete Event Error:", error);
+        throw error.response?.data || { message: "Failed to delete event" };
+    }
+}
 
 // Add this to your auth.js file
 export const createEventRegistration = async (eventId, status) => {
@@ -931,6 +964,15 @@ export const getNotificationsAPI = async (skip=0, limit=25) => {
   }
 };
 
+// notificaation APIs
+export const getMyNotificationsAPI = async (skip=0, limit=25, search="") => {
+  try {
+    const response = await axiosInstance.get(`/notification/my_notification?skip=${skip}&limit=${limit}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
 
 // get notification by id
 export const getNotificationByIdAPI = async (id) => {
