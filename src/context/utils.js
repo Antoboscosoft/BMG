@@ -21,7 +21,7 @@ export const checkAppVersion = async (appUpdate, setAppUpdate) => {
   }
 };
 
-export const appVersion = 'V1.9'
+export const appVersion = 'V1.10'
 
 
 export const Loader = ({ loading }) => {
@@ -144,3 +144,5 @@ export const removeDuplicates = (arr, uniqueKey) => {
         return acc;
     }, []); // empty array refers to initial value of acc
 }
+
+export const placeholderTextColor = '#999'

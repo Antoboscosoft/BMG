@@ -1,22 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {
-    View,
-    Text,
-    TextInput,
-    StyleSheet,
-    ScrollView,
-    KeyboardAvoidingView,
-    Platform,
-    TouchableOpacity,
-    ImageBackground,
-    ActivityIndicator,
-    Alert,
-    Image,
-    PermissionsAndroid,
-    Linking,
-    Modal,
-    FlatList
-} from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, 
+    ImageBackground, ActivityIndicator, Alert, Image, PermissionsAndroid, Linking, Modal, FlatList } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -27,6 +11,7 @@ import { getCountries, getStates, getDistricts, registerUser, extractIdentityDat
 // import RegisterImg from '../asserts/images/splash1.jpg';
 import RegisterImg from '../asserts/images/loginbg1.jpg';
 import { useRoute } from '@react-navigation/native';
+import { placeholderTextColor } from '../context/utils';
 
 // Reusable Searchable Dropdown Component
 const SearchableDropdown = ({
@@ -299,13 +284,13 @@ const RegisterScreen = ({ navigation, route }) => {
         mobileNumber: '',
         dateOfBirth: '',
         currentAddressLine: '',
-        currentDistrictId: '',
-        currentStateId: '',
-        currentCountryId: '',
+        currentDistrictId: null,
+        currentStateId: null,
+        currentCountryId: null,
         nativeAddressLine: '',
-        nativeDistrictId: '',
-        nativeStateId: '',
-        nativeCountryId: '',
+        nativeDistrictId: null,
+        nativeStateId: null,
+        nativeCountryId: null,
         aadhaarNumber: '',
         skills: [],
         jobType: [],
@@ -1041,9 +1026,9 @@ const RegisterScreen = ({ navigation, route }) => {
                     dateOfBirth: data.date_of_birth ? new Date(data.date_of_birth).toISOString() : prev.dateOfBirth,
                     aadhaarNumber: data.aadhaar_number ? data.aadhaar_number.replace(/\s/g, '') : prev.aadhaarNumber,
                     nativeAddressLine: data.native_address_line || prev.nativeAddressLine,
-                    currentCountryId: data.native_country_id ? String(data.native_country_id) : prev.currentCountryId,
-                    currentStateId: data.native_state_id ? String(data.native_state_id) : prev.currentStateId,
-                    currentDistrictId: data.native_district_id ? String(data.native_district_id) : prev.currentDistrictId,
+                    nativeCountryId: data.native_country_id ? data.native_country_id : prev.nativeCountryId || null,
+                    nativeStateId: data.native_state_id ? data.native_state_id : prev.nativeStateId || null,
+                    nativeDistrictId: data.native_district_id ? data.native_district_id : prev.nativeDistrictId || null,
                 }));
 
                 // Update callingCode and mobileNumber state for the mobile input
@@ -1249,6 +1234,7 @@ const RegisterScreen = ({ navigation, route }) => {
                             <TextInput
                                 style={[styles.input, errors.name && styles.errorInput]}
                                 placeholder="Enter your full name"
+                                placeholderTextColor={placeholderTextColor}
                                 value={form.name}
                                 onChangeText={(text) => {
                                     handleChange('name', text);
@@ -1342,6 +1328,7 @@ const RegisterScreen = ({ navigation, route }) => {
                             <TextInput
                                 style={[styles.input, styles.aadhaarInput]}
                                 placeholder="Enter 12-digit Aadhaar"
+                                placeholderTextColor={placeholderTextColor}
                                 keyboardType="number-pad"
                                 value={form.aadhaarNumber ? formatAadhaar(form.aadhaarNumber) : ''}
                                 onChangeText={handleAadhaarChange}
