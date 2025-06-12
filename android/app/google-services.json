@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "51383521888",
-    "project_id": "notification-dbms-test",
-    "storage_bucket": "notification-dbms-test.firebasestorage.app"
+    "project_number": "410001340375",
+    "project_id": "migrant-service",
+    "storage_bucket": "migrant-service.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:51383521888:android:019b47823ffa68b12ea905",
+        "mobilesdk_app_id": "1:410001340375:android:0c9678802596ad8da7bd92",
         "android_client_info": {
           "package_name": "com.boscosoft.dbms"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDN23Ed1r_lgm_MhSm2XQtRdPotvmsRwTc"
+          "current_key": "AIzaSyCAqcGCCtFmSaOjCQGVcxhc0Qj6nMqBoz4"
         }
       ],
       "services": {
