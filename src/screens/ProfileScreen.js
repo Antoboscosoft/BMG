@@ -1,21 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     Dimensions,
     Image,
     KeyboardAvoidingView,
+    Modal,
     ScrollView,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { getUserData } from '../api/auth';
+import { changePassword, getUserData } from '../api/auth';
 import { clearAuthToken } from '../api/axiosInstance';
 import Toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useLanguage } from '../language/commondir';
+import { useForm, Controller } from 'react-hook-form';
 
 const { width, height } = Dimensions.get('window');
 
@@ -45,8 +49,37 @@ function ProfileScreen({ navigation, route }) {
     const [loading, setLoading] = useState(true);
     const [countryCode, setCountryCode] = useState('IN');
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+    const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
+    const [showPassword, setShowPassword] = useState({
+        oldPassword: false,
+        newPassword: false,
+        confirmPassword: false
+    });
+    const [changePasswordError, setChangePasswordError] = useState('');
 
-    // fetch user data when the component mounts or when passedUserData or updatedUserData changes:
+    const {
+        control,
+        handleSubmit,
+        formState: { errors },
+        watch,
+        reset
+    } = useForm({
+        defaultValues: {
+            oldPassword: '',
+            newPassword: '',
+            confirmPassword: ''
+        }
+    });
+
+    const newPassword = watch('newPassword');
+
+    const toggleShowPassword = (field) => {
+        setShowPassword({
+            ...showPassword,
+            [field]: !showPassword[field]
+        });
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -54,7 +87,6 @@ function ProfileScreen({ navigation, route }) {
                 let user;
                 if (updatedUserData) {
                     user = updatedUserData;
-                    // setIsSuperAdmin(user?.role?.name === 'Super Admin');
                 } else if (passedUserData) {
                     user = passedUserData;
                     setIsSuperAdmin(false);
@@ -87,6 +119,36 @@ function ProfileScreen({ navigation, route }) {
         fetchData();
     }, [passedUserData, updatedUserData, navigation]);
 
+    const handlePasswordChange = async (data) => {
+        setChangePasswordError(''); // Clear previous error
+        try {
+            const response = await changePassword({
+                old_password: data.oldPassword,
+                new_password: data.newPassword
+            });
+            console.log("Change Password Response:", response);
+
+            if (response.status) {
+                Alert.alert(
+                    languageTexts?.changePassword?.success || 'Success',
+                    languageTexts?.changePassword?.passwordChanged || 'Password changed successfully',
+                    [{ text: languageTexts?.common?.ok || 'OK' }]
+                );
+                setIsPasswordModalVisible(false);
+                reset();
+            } else if (response.details) {
+                setChangePasswordError(response.details);
+            }
+        } catch (error) {
+            setChangePasswordError(error.message || languageTexts?.changePassword?.changeFailed || 'Failed to change password');
+            Toast.show({
+                type: 'error',
+                text1: languageTexts?.changePassword?.error || 'Error',
+                text2: error.message || (languageTexts?.changePassword?.changeFailed || 'Failed to change password'),
+            });
+        }
+    };
+
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
@@ -100,8 +162,6 @@ function ProfileScreen({ navigation, route }) {
 
     const goback = () => {
         if (navigation.canGoBack()) {
-            //     navigation.goBack();
-            // } else {
             navigation.navigate('Dashboard');
         }
     };
@@ -134,19 +194,23 @@ function ProfileScreen({ navigation, route }) {
                             />
                         </View>
 
-                        {/* Name */}
+                        {userData?.role?.name === 'Staff' && !isSuperAdmin &&
+                            <TouchableOpacity style={styles.hyperlink} onPress={() => setIsPasswordModalVisible(true)}>
+                            <Text style={styles.hyperlinkText}>
+                                {languageTexts?.changePassword?.openModalLink || 'Change Password (Click to open)'}
+                            </Text>
+                        </TouchableOpacity>}
+
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.name || 'Name'}</Text>
                             <Text style={styles.value}>{userData?.name || '-'}</Text>
                         </View>
 
-                        {/* Email */}
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.email || 'Email'}</Text>
                             <Text style={styles.value}>{userData?.email || '-'}</Text>
                         </View>
 
-                        {/* Mobile */}
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.mobile || 'Mobile'}</Text>
                             <Text style={styles.value}>
@@ -154,73 +218,61 @@ function ProfileScreen({ navigation, route }) {
                             </Text>
                         </View>
 
-                        {/* Aadhaar */}
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.aadhaar || 'Aadhaar'}</Text>
                             <Text style={styles.value}>{userData?.aadhaar_number || '-'}</Text>
                         </View>
 
-                        {/* Date of Birth */}
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.dob || 'Date of Birth'}</Text>
                             <Text style={styles.value}>{formatDate(userData?.date_of_birth) || '-'}</Text>
                         </View>
 
-                        {/* Age */}
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.age || 'Age'}</Text>
                             <Text style={styles.value}>{calculateAge(userData?.date_of_birth) || '-'}</Text>
                         </View>
 
-                        {/* Current Address */}
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.currentAddress || 'Current Address'}</Text>
                             <Text style={styles.value}>{userData?.current_address_line || '-'}</Text>
                         </View>
 
-                        {/* Current Country */}
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.currentCountry || 'Current Country'}</Text>
                             <Text style={styles.value}>{userData?.current_country?.name || '-'}</Text>
                         </View>
 
-                        {/* Current State */}
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.currentState || 'Current State'}</Text>
                             <Text style={styles.value}>{userData?.current_state?.name || '-'}</Text>
                         </View>
 
-                        {/* Current District */}
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.currentDistrict || 'Current District'}</Text>
                             <Text style={styles.value}>{userData?.current_district?.name || '-'}</Text>
                         </View>
 
-                        {/* Native Address */}
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.nativeAddress || 'Native Address'}</Text>
                             <Text style={styles.value}>{userData?.native_address_line || '-'}</Text>
                         </View>
 
-                        {/* Native Country */}
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.nativeCountry || 'Native Country'}</Text>
                             <Text style={styles.value}>{userData?.native_country?.name || '-'}</Text>
                         </View>
 
-                        {/* Native State */}
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.nativeState || 'Native State'}</Text>
                             <Text style={styles.value}>{userData?.native_state?.name || '-'}</Text>
                         </View>
 
-                        {/* Native District */}
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.nativeDistrict || 'Native District'}</Text>
                             <Text style={styles.value}>{userData?.native_district?.name || '-'}</Text>
                         </View>
 
-                        {/* Job Type */}
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.jobType || 'Job Type'}</Text>
                             <Text style={styles.value}>{
@@ -230,7 +282,6 @@ function ProfileScreen({ navigation, route }) {
                             }</Text>
                         </View>
 
-                        {/* Skills */}
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.skills || 'Skills'}</Text>
                             <Text style={styles.value}>{
@@ -240,27 +291,194 @@ function ProfileScreen({ navigation, route }) {
                             }</Text>
                         </View>
 
-                        {/* Language Preference */}
                         <View style={styles.row}>
                             <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.language || 'Language'}</Text>
                             <Text style={styles.value}>
-                                {/* {languageTexts?.profile?.screen?.languages?.[userData?.language_pref] || '-'} */}
                                 {userData?.language_pref === 'en' ? 'English' :
                                     userData?.language_pref === 'hi' ? 'Hindi' :
                                         userData?.language_pref === 'ta' ? 'Tamil' :
                                             userData?.language_pref === 'kn' ? 'Kannada' : '-'}
                             </Text>
                         </View>
-
                     </View>
                 </ScrollView>
-                {/* Add the floating edit button */}
+
                 <TouchableOpacity
                     style={styles.floatingButton}
                     onPress={() => navigation.navigate('ProfileEdit', { userData })}
                 >
                     <Icon name="edit" size={24} color="#3D2A1A" />
                 </TouchableOpacity>
+
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={isPasswordModalVisible}
+                    onRequestClose={() => {
+                        setIsPasswordModalVisible(false);
+                        reset();
+                        setChangePasswordError('');
+                    }}
+                >
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>
+                                {languageTexts?.changePassword?.title || 'Change Password'}
+                            </Text>
+                            {changePasswordError ? (
+                                <Text style={[styles.errorText, { textAlign: 'center', marginBottom: 10 }]}>
+                                    {changePasswordError}
+                                </Text>
+                            ) : null}
+
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.inputLabel}>
+                                    {languageTexts?.changePassword?.oldPassword || 'Old Password'}
+                                </Text>
+                                <Controller
+                                    control={control}
+                                    name="oldPassword"
+                                    rules={{
+                                        required: languageTexts?.changePassword?.oldPasswordRequired || 'Old password is required',
+                                    }}
+                                    render={({ field: { onChange, value } }) => (
+                                        <View style={[styles.passwordInputWrapper, errors.oldPassword && styles.invalidInput]}>
+                                            <TextInput
+                                                style={styles.input}
+                                                secureTextEntry={!showPassword.oldPassword}
+                                                value={value}
+                                                onChangeText={onChange}
+                                                placeholder={languageTexts?.changePassword?.oldPasswordPlaceholder || 'Enter old password'}
+                                                placeholderTextColor="#999"
+                                            />
+                                            <TouchableOpacity
+                                                style={styles.eyeIcon}
+                                                onPress={() => toggleShowPassword('oldPassword')}
+                                            >
+                                                <Icon
+                                                    name={showPassword.oldPassword ? "visibility-off" : "visibility"}
+                                                    size={20}
+                                                    color="#666"
+                                                />
+                                            </TouchableOpacity>
+                                        </View>
+                                    )}
+                                />
+                                {errors.oldPassword && (
+                                    <Text style={styles.errorText}>{errors.oldPassword.message}</Text>
+                                )}
+                            </View>
+
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.inputLabel}>
+                                    {languageTexts?.changePassword?.newPassword || 'New Password'}
+                                </Text>
+                                <Controller
+                                    control={control}
+                                    name="newPassword"
+                                    rules={{
+                                        required: languageTexts?.changePassword?.newPasswordRequired || 'New password is required',
+                                        minLength: {
+                                            value: 8,
+                                            message: languageTexts?.changePassword?.passwordLength || 'Password must be at least 8 characters long',
+                                        },
+                                        pattern: {
+                                            value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+                                            message: languageTexts?.changePassword?.passwordComplexity || 'Password must include uppercase, lowercase, number, and special character',
+                                        }
+                                    }}
+                                    render={({ field: { onChange, value } }) => (
+                                        <View style={[styles.passwordInputWrapper, errors.newPassword && styles.invalidInput]}>
+                                            <TextInput
+                                                style={styles.input}
+                                                secureTextEntry={!showPassword.newPassword}
+                                                value={value}
+                                                onChangeText={onChange}
+                                                placeholder={languageTexts?.changePassword?.newPasswordPlaceholder || 'Enter new password'}
+                                                placeholderTextColor="#999"
+                                            />
+                                            <TouchableOpacity
+                                                style={styles.eyeIcon}
+                                                onPress={() => toggleShowPassword('newPassword')}
+                                            >
+                                                <Icon
+                                                    name={showPassword.newPassword ? "visibility-off" : "visibility"}
+                                                    size={20}
+                                                    color="#666"
+                                                />
+                                            </TouchableOpacity>
+                                        </View>
+                                    )}
+                                />
+                                {errors.newPassword && (
+                                    <Text style={styles.errorText}>{errors.newPassword.message}</Text>
+                                )}
+                            </View>
+
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.inputLabel}>
+                                    {languageTexts?.changePassword?.confirmPassword || 'Confirm Password'}
+                                </Text>
+                                <Controller
+                                    control={control}
+                                    name="confirmPassword"
+                                    rules={{
+                                        required: languageTexts?.changePassword?.confirmPasswordRequired || 'Please confirm your new password',
+                                        validate: value =>
+                                            value === newPassword || (languageTexts?.changePassword?.passwordMismatch || 'New passwords do not match')
+                                    }}
+                                    render={({ field: { onChange, value } }) => (
+                                        <View style={[styles.passwordInputWrapper, errors.confirmPassword && styles.invalidInput]}>
+                                            <TextInput
+                                                style={styles.input}
+                                                secureTextEntry={!showPassword.confirmPassword}
+                                                value={value}
+                                                onChangeText={onChange}
+                                                placeholder={languageTexts?.changePassword?.confirmPasswordPlaceholder || 'Confirm new password'}
+                                                placeholderTextColor="#999"
+                                            />
+                                            <TouchableOpacity
+                                                style={styles.eyeIcon}
+                                                onPress={() => toggleShowPassword('confirmPassword')}
+                                            >
+                                                <Icon
+                                                    name={showPassword.confirmPassword ? "visibility-off" : "visibility"}
+                                                    size={20}
+                                                    color="#666"
+                                                />
+                                            </TouchableOpacity>
+                                        </View>
+                                    )}
+                                />
+                                {errors.confirmPassword && (
+                                    <Text style={styles.errorText}>{errors.confirmPassword.message}</Text>
+                                )}
+                            </View>
+
+                            <View style={styles.modalButtonContainer}>
+                                <TouchableOpacity
+                                    style={[styles.modalButton, styles.cancelButton]}
+                                    onPress={() => {
+                                        setIsPasswordModalVisible(false);
+                                        reset();
+                                    }}
+                                >
+                                    <Text style={styles.cancelButtonText}>
+                                        {languageTexts?.common?.cancel || 'Cancel'}
+                                    </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.modalButton, styles.submitButton]}
+                                    onPress={handleSubmit(handlePasswordChange)}
+                                >
+                                    <Text style={styles.submitButtonText}>
+                                        {languageTexts?.changePassword?.submit || 'Submit'}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
             </LinearGradient>
         </KeyboardAvoidingView>
     );
@@ -268,7 +486,7 @@ function ProfileScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
     background: { flex: 1, width, height },
-    scrollContainer: { flexGrow: 1, paddingBottom: 50 },
+    scrollContainer: { flexGrow: 1, paddingBottom: 100 },
     headerContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -282,11 +500,6 @@ const styles = StyleSheet.create({
         padding: 10,
         backgroundColor: 'rgba(255, 242, 224, 0.2)',
         borderRadius: 8,
-    },
-    backButtonText: {
-        fontSize: 16,
-        color: '#FFF2E0',
-        fontWeight: 'bold',
     },
     headerTitle: {
         fontSize: 20,
@@ -336,22 +549,6 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 20,
     },
-    button: {
-        backgroundColor: '#FFECD2',
-        paddingVertical: 14,
-        paddingHorizontal: 30,
-        borderRadius: 18,
-        shadowColor: '#000',
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 3,
-        marginTop: 20,
-    },
-    buttonText: {
-        fontSize: 18,
-        color: '#3D2A1A',
-        fontWeight: 'bold',
-    },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -377,7 +574,6 @@ const styles = StyleSheet.create({
         height: 56,
         borderRadius: 28,
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
-
         justifyContent: 'center',
         alignItems: 'center',
         bottom: 30,
@@ -387,6 +583,101 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.3,
         shadowRadius: 3,
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        width: '90%',
+        backgroundColor: '#FFF',
+        borderRadius: 10,
+        padding: 20,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        color: '#3D2A1A',
+        textAlign: 'center',
+    },
+    inputContainer: {
+        marginBottom: 15,
+    },
+    inputLabel: {
+        marginBottom: 5,
+        color: '#3D2A1A',
+        fontSize: 16,
+    },
+    passwordInputWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#CCC',
+        borderRadius: 5,
+    },
+    input: {
+        flex: 1,
+        padding: 10,
+        color: '#000',
+    },
+    eyeIcon: {
+        padding: 10,
+    },
+    modalButtonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 20,
+    },
+    modalButton: {
+        padding: 12,
+        borderRadius: 5,
+        width: '48%',
+        alignItems: 'center',
+    },
+    cancelButton: {
+        backgroundColor: '#E0E0E0',
+    },
+    cancelButtonText: {
+        color: '#333',
+    },
+    submitButton: {
+        backgroundColor: '#5e3b15',
+    },
+    submitButtonText: {
+        color: '#FFF',
+    },
+    invalidInput: {
+        borderColor: '#ff4444',
+    },
+    errorText: {
+        color: '#ff4444',
+        fontSize: 12,
+        marginTop: 5,
+    },
+    hyperlink: {
+        color: '#4DA8FF', // Brighter blue for better visibility
+          justifyContent: 'flex-end',
+          alignItems: 'flex-end',
+        alignSelf: 'flex-end',
+          textAlign: 'right',
+    },
+    hyperlinkText: {
+        color: '#25dac7', // Brighter blue for better visibility
+        // textDecorationLine: 'underline',
+        textAlign: 'center',
+        marginVertical: 10,
+        fontWeight: '600',
+        fontSize: 16,
+        textShadowColor: 'rgba(0, 0, 0, 0.5)', // Add shadow for contrast
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 2,
+        paddingVertical: 2,
+        paddingHorizontal: 8,
+        borderRadius: 4,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)', // Slight background for emphasis
     },
 });
 

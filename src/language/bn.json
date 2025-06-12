@@ -10,7 +10,8 @@
     },
     "closeApp": "আপনি কি এপ্লিকেশনটি বন্ধ করতে চান?",
     "close": "বন্ধ",
-    "cancel": "বাতিল"
+    "cancel": "বাতিল",
+    "logout": "লগআউট করতে চান?"
   },
   "menu": {
     "eventCalendar": "ইভেন্ট ক্যালেন্ডার",
@@ -285,6 +286,7 @@
     }
   },
   "helpRequest": {
+    "view": "দেখুন",
     "title": "সাহায্যের অনুরোধ",
     "modalTitle": "নতুন সাহায্যের অনুরোধ",
     "category": "বিভাগ",
@@ -304,6 +306,7 @@
       "inProgress": "চলমান",
       "resolved": "সমাধান হয়েছে"
     },
+    "update": "আপডেট",
     "descriptions": {
       "visaDocumentation": "ভিসা নথির জন্য সাহায্য প্রয়োজন",
       "itJobOpportunities": "আইটি চাকরির সুযোগ খুঁজছি",
@@ -577,24 +580,57 @@
     "category": "বিভাগ",
     "noData": "কোনো পরিষেবা অনুরোধ পাওয়া যায়নি।"
   },
-  "helpRequest": {
-    "modalTitle": "নতুন সাহায্য আবেদন",
-    "category": "বিভাগ",
+  "categoryHelp": {
+    "header": "{category} সহায়তা অনুরোধ",
+    "categoryName": "বিভাগ: {category}",
+    "emptyText": "এই বিভাগের জন্য কোনও সহায়তা অনুরোধ পাওয়া যায়নি।",
+    "requestTitle": "সহায়তা অনুরোধের বিবরণ",
+    "requestedBy": "অনুরোধকারী",
+    "requestedOn": "অনুরোধের তারিখ",
+    "status": "অবস্থা",
     "description": "বিবরণ",
-    "placeholder": "আপনার সমস্যাটি বিস্তারিতভাবে বর্ণনা করুন...",
-    "submit": "আবেদন জমা দিন",
+    "noUser": "কোনও ব্যবহারকারী নেই",
+    "noDate": "কোনও তারিখ নেই",
+    "noDescription": "কোনও বিবরণ নেই",
+    "noStatus": "কোনও অবস্থা নেই",
+    "statusChangeLabel": "আপডেট করুন",
+    "changeStatus": "অবস্থা পরিবর্তন করুন",
+    "cancel": "বাতিল করুন",
+    "ok": "ঠিক আছে",
     "error": {
-      "title": "ত্রুটি",
-      "description": "অনুগ্রহ করে আপনার সমস্যার বিবরণ দিন।"
+      "loading": "সহায়তা অনুরোধ লোড করতে ব্যর্থ। আবার চেষ্টা করুন।",
+      "statusOptions": "অবস্থা বিকল্পগুলি লোড করতে ব্যর্থ",
+      "noStatusOptions": "কোনও অবস্থা বিকল্প উপলব্ধ নেই",
+      "selectStatus": "অনুগ্রহ করে একটি অবস্থা নির্বাচন করুন",
+      "updateStatus": "অবস্থা আপডেট করতে ব্যর্থ",
+      "permissionDenied": "শুধুমাত্র প্রশাসক বা কর্মীরা অবস্থা পরিবর্তন করতে পারেন।"
     },
     "success": {
-      "title": "সাফল্য",
-      "message": "আপনার সাহায্য আবেদন সফলভাবে জমা হয়েছে!"
+      "updateStatus": "সহায়তা অনুরোধের অবস্থা সফলভাবে আপডেট করা হয়েছে।"
     },
-    "helpRequestsTitle": "{category} সাহায্য আবেদন",
-    "noRequests": "এই বিভাগের জন্য কোনো সাহায্য আবেদন পাওয়া যায়নি।",
-    "helpRequestDetail": "সাহায্য আবেদনের বিবরণ",
-    "updateStatus": "আপডেট করুন",
-    "noStatus": "কোনো অবস্থা নেই"
+    "statusOptions": {
+      "open": "খোলা",
+      "inProgress": "চলমান",
+      "closed": "বন্ধ"
+    }
+  },
+  "changePassword": {
+    "changePassword": "পাসওয়ার্ড পরিবর্তন করুন",
+    "title": "পাসওয়ার্ড পরিবর্তন",
+    "oldPassword": "পুরান পাসওয়ার্ড",
+    "newPassword": "নতুন পাসওয়ার্ড",
+    "confirmPassword": "নতুন পাসওয়ার্ড নিশ্চিত করুন",
+    "oldPasswordPlaceholder": "পুরান পাসওয়ার্ড লিখুন",
+    "newPasswordPlaceholder": "নতুন পাসওয়ার্ড লিখুন",
+    "confirmPasswordPlaceholder": "নতুন পাসওয়ার্ড নিশ্চিত করুন",
+    "passwordMismatch": "নতুন পাসওয়ার্ড ও নিশ্চিত পাসওয়ার্ড মেল না",
+    "passwordChanged": "পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে",
+    "changeFailed": "পাসওয়ার্ড পরিবর্তন করতে ব্যর্থ",
+    "oldPasswordRequired": "পুরান পাসওয়ার্ড প্রয়োজনীয়",
+    "newPasswordRequired": "নতুন পাসওয়ার্ড প্রয়োজনীয়",
+    "confirmPasswordRequired": "নতুন পাসওয়ার্ড নিশ্চিত করুন",
+    "submit": "পরিবর্তন করুন",
+    "openModalLink": "পাসওয়ার্ড পরিবর্তন করুন",
+    "openModalLink1": "পাসওয়ার্ড পরিবর্তন করুন (খুলুন)"
   }
 }

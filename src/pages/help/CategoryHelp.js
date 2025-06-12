@@ -102,23 +102,25 @@ function CategoryHelp({ route, navigation }) {
     const renderRequestItem = ({ item }) => (
         <View style={styles.requestCard}>
             <View style={styles.cardHeader}>
-                <Text style={styles.requestTitle}>Help Request Detail</Text>
+                <Text style={styles.requestTitle}>{ languageTexts?.categoryHelp?.requestTitle || "Help Request Detail"}</Text>
                 {/* {console.log("item.status: help req >>>", item.status)} */}
                 {user.data.role.name === "Admin" || user.data.role.name === "Staff" && item.status !== 'CLOSED' &&
 
                     <TouchableOpacity style={styles.statusContainer} onPress={() => openStatusModal(item)}>
                         <Icon name="edit" size={18} color="#0db6a5" style={styles.editIcon} />
-                        <Text style={styles.statusChangeLabel}>{item.status ? 'Update' : 'No Status'}</Text>
+                        {console.log("item.status >>>>> : ////-", item.status)
+                        }
+                        <Text style={styles.statusChangeLabel}>{item.status === 'OPEN' || item.status === 'IN_PROGRESS' ? languageTexts?.helpRequest?.update || 'Update' : 'No Status'}</Text>
                     </TouchableOpacity>}
             </View>
             <View style={styles.cardContent}>
                 {user.data.role.name === "Admin" || user.data.role.name === "Staff" &&
                     <View style={styles.infoRow}>
-                        <Text style={styles.requestLabel}>Requested By </Text>
+                        <Text style={styles.requestLabel}>{ languageTexts?.categoryHelp?.requestedBy || "Requested By"} </Text>
                         <Text style={styles.requestValue}>: {item.user?.name || 'No User'}</Text>
                     </View>}
                 <View style={styles.infoRow}>
-                    <Text style={styles.requestLabel}>Requested On </Text>
+                    <Text style={styles.requestLabel}>{ languageTexts?.categoryHelp?.requestedOn || "Requested On"} </Text>
                     <Text style={styles.requestValue}>
                         : {item.created_at
                             ? `${new Date(item.created_at).toLocaleDateString()} ${new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`
@@ -126,7 +128,7 @@ function CategoryHelp({ route, navigation }) {
                     </Text>
                 </View>
                 <View style={styles.infoRow}>
-                    <Text style={styles.requestLabel}>Status </Text>
+                    <Text style={styles.requestLabel}>{ languageTexts?.categoryHelp?.status || "Status"} </Text>
                     <Text> :</Text>
                     <View
                         style={[
@@ -141,11 +143,15 @@ function CategoryHelp({ route, navigation }) {
                             },
                         ]}
                     >
-                        <Text style={styles.statusBadgeText}>{item.status || 'No Status'}</Text>
+                        <Text style={styles.statusBadgeText}>
+                            {item.status === 'OPEN' ? languageTexts?.helpRequest?.statuses?.pending || 'Pending' 
+                            : item.status === 'CLOSED' ? languageTexts?.helpRequest?.statuses?.resolved || 'Resolved' 
+                            : item.status === 'IN_PROGRESS' ? languageTexts?.helpRequest?.statuses?.inProgress || 'In Progress' 
+                            : item.status || 'No Status'}</Text>
                     </View>
                 </View>
                 <View style={styles.infoRow}>
-                    <Text style={styles.requestLabel}>Description </Text>
+                    <Text style={styles.requestLabel}>{ languageTexts?.services?.description || "Description"} </Text>
                     <Text style={styles.requestValue}>: {item.description || 'No Description'}</Text>
                 </View>
             </View>
@@ -181,7 +187,7 @@ function CategoryHelp({ route, navigation }) {
                 >
                     <Icon name="arrow-back-ios" size={24} color="#FFF" />
                 </TouchableOpacity>
-                <Text style={styles.header}>{category.name} Help Requests</Text>
+                <Text style={styles.header}>{category.name} { languageTexts?.categoryHelp?.helpRequests || "Help Requests"}</Text>
                 <TouchableOpacity
                     style={styles.addButton}
                     onPress={handleAddHelpRequest}
@@ -189,18 +195,18 @@ function CategoryHelp({ route, navigation }) {
                     <Icon name="add" size={24} color="#FFF" />
                 </TouchableOpacity>
             </View>
-            <Text style={styles.categoryNameText}>Category: {category.name}</Text>
+            <Text style={styles.categoryNameText}>{ languageTexts?.categoryHelp?.category || "Category"}: {category.name}</Text>
             <FlatList
                 data={requests}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={renderRequestItem}
                 contentContainerStyle={styles.listContent}
-                ListEmptyComponent={<Text style={styles.emptyText}>No help requests found for this category.</Text>}
+                ListEmptyComponent={<Text style={styles.emptyText}>{ "No help requests found for this category."}</Text>}
             />
             <Modal visible={statusModalVisible} transparent animationType="slide">
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Change Status</Text>
+                        <Text style={styles.modalTitle}>{ languageTexts?.categoryHelp?.changeStatus || "Change Status"}</Text>
                         {
                             statusOptions.length ?
                                 (
@@ -216,17 +222,17 @@ function CategoryHelp({ route, navigation }) {
                                             <Text style={styles.radioLabel}>{opt.label}</Text>
                                         </TouchableOpacity>
                                     ))) : (
-                                    <Text style={styles.errorText}>No status options available</Text>
+                                    <Text style={styles.errorText}>{ "No status options available"}</Text>
                                 )}
                         <View style={styles.modalButtonContainer}>
                             <TouchableOpacity
                                 style={[styles.modalButton, styles.cancelButton]}
                                 onPress={() => setStatusModalVisible(false)}
                             >
-                                <Text style={styles.buttonText}>Cancel</Text>
+                                <Text style={styles.buttonText}>{ languageTexts?.services?.cancel || "Cancel"}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.modalButton} onPress={handleStatusSubmit}>
-                                <Text style={styles.buttonText}>OK</Text>
+                                <Text style={styles.buttonText}>{ languageTexts?.categoryHelp?.ok || "OK"}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -294,12 +300,15 @@ const styles = StyleSheet.create({
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         marginBottom: 8,
     },
     requestTitle: {
         fontSize: 18,
         fontWeight: 'bold',
         color: '#2753b2',
+        flex: 1,               // Allow title to take available space
+        marginRight: 8,
     },
     statusContainer: {
         flexDirection: 'row',

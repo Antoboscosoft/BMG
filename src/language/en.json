@@ -10,7 +10,8 @@
     },
     "closeApp": "Are you sure you want to close the app?",
     "close": "Close",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "logout": "Are you sure you want to logout?"
   },
   "menu": {
     "eventCalendar": "Events",
@@ -263,6 +264,7 @@
     }
   },
   "helpRequest": {
+    "view": "View",
     "title": "Help Requests",
     "modalTitle": "New Help Request",
     "category": "Category",
@@ -282,6 +284,7 @@
       "inProgress": "In Progress",
       "resolved": "Resolved"
     },
+    "update": "Update",
     "descriptions": {
       "visaDocumentation": "Need help with visa documentation",
       "itJobOpportunities": "Looking for IT job opportunities",
@@ -569,24 +572,57 @@
     "category": "Category",
     "noData": "No service requests found."
   },
-  "helpRequest": {
-    "modalTitle": "New Help Request",
-    "category": "Category",
+  "categoryHelp": {
+    "header": "{category} Help Requests",
+    "categoryName": "Category: {category}",
+    "emptyText": "No help requests found for this category.",
+    "requestTitle": "Help Request Detail",
+    "requestedBy": "Requested By",
+    "requestedOn": "Requested On",
+    "status": "Status",
     "description": "Description",
-    "placeholder": "Describe your issue in detail...",
-    "submit": "Submit Request",
+    "noUser": "No User",
+    "noDate": "No Date",
+    "noDescription": "No Description",
+    "noStatus": "No Status",
+    "statusChangeLabel": "Update",
+    "changeStatus": "Change Status",
+    "cancel": "Cancel",
+    "ok": "OK",
     "error": {
-      "title": "Error",
-      "description": "Please provide a description of your issue."
+      "loading": "Failed to load help requests. Please try again.",
+      "statusOptions": "Failed to load status options",
+      "noStatusOptions": "No status options available",
+      "selectStatus": "Please select a status",
+      "updateStatus": "Failed to update status",
+      "permissionDenied": "Only admins or staff can change the status."
     },
     "success": {
-      "title": "Success",
-      "message": "Your help request has been submitted successfully!"
+      "updateStatus": "Help request status updated successfully."
     },
-    "helpRequestsTitle": "{category} Help Requests",
-    "noRequests": "No help requests found for this category.",
-    "helpRequestDetail": "Help Request Detail",
-    "updateStatus": "Update",
-    "noStatus": "No Status"
+    "statusOptions": {
+      "open": "Open",
+      "inProgress": "In Progress",
+      "closed": "Closed"
+    }
+  },
+  "changePassword": {
+    "changePassword": "Change Password",
+    "title": "Change Password",
+    "oldPassword": "Old Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "oldPasswordPlaceholder": "Enter old password",
+    "newPasswordPlaceholder": "Enter new password",
+    "confirmPasswordPlaceholder": "Confirm new password",
+    "passwordMismatch": "New passwords do not match",
+    "passwordChanged": "Password changed successfully",
+    "changeFailed": "Failed to change password",
+    "oldPasswordRequired": "Old password is required",
+    "newPasswordRequired": "New password is required",
+    "confirmPasswordRequired": "Confirm your new password",
+    "submit": "Submit",
+    "openModalLink": "Change Password",
+    "openModalLink1": "Change Password (Click to open)"
   }
 }

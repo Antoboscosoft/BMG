@@ -113,7 +113,7 @@ function HelpRequestPage({ navigation }) {
                     onPress={() => handleViewCategory(item)}
                 >
                     <Icon name="visibility" size={20} color="#FFF" />
-                    <Text style={styles.viewButtonText}>View</Text>
+                    <Text style={styles.viewButtonText}>{ languageTexts?.helpRequest?.view || "View"}</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -121,9 +121,10 @@ function HelpRequestPage({ navigation }) {
 
     if (loading) {
         return (
-            <View style={styles.centered}>
-                <ActivityIndicator size="large" color="#944D00" />
-            </View>
+            <LinearGradient colors={['#2753b2', '#e6e9f0']} style={[styles.container, styles.loadingContainer]}>
+                            <ActivityIndicator size="large" color="#FFF" />
+                            <Text style={styles.loadingText}>{languageTexts?.servicesDirectory?.loading || 'Loading services...'}</Text>
+                        </LinearGradient>
         );
     }
 
@@ -227,6 +228,10 @@ function HelpRequestPage({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    loadingContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     innerContainer: {
         flex: 1,

@@ -10,7 +10,8 @@
     },
     "closeApp": "ஐப் கோப்பை முடிக்க விரும்புகிறீர்கள்?",
     "close": "மூடு",
-    "cancel": "ரத்து"
+    "cancel": "ரத்து",
+    "logout": "வெளியேறு விரும்புகிறீர்கள்?"
   },
   "menu": {
     "eventCalendar": "நிகழ்வு காலண்டர்",
@@ -263,6 +264,7 @@
     }
   },
   "helpRequest": {
+    "view": "காண்க",
     "title": "உதவி கோரிக்கைகள்",
     "modalTitle": "புதிய உதவி கோரிக்கை",
     "category": "வகை",
@@ -282,6 +284,7 @@
       "inProgress": "நடந்து கொண்டிருக்கிறது",
       "resolved": "தீர்க்கப்பட்டது"
     },
+    "update": "புதுப்பிப்பு",
     "descriptions": {
       "visaDocumentation": "விசா ஆவணங்களுக்கு உதவி தேவை",
       "itJobOpportunities": "ஐடி வேலை வாய்ப்புகளைத் தேடுகிறேன்",
@@ -554,24 +557,59 @@
     "category": "வகை",
     "noData": "சேவை கோரிக்கைகள் இல்லை."
   },
-  "helpRequest": {
-    "modalTitle": "புதிய உதவி விண்ணப்பம்",
+  "categoryHelp": {
+    "header": "{category} உதவி கோரிக்கைகள்",
     "category": "வகை",
+    "categoryName": "வகை: {category}",
+    "emptyText": "இந்த வகைக்கு உதவி கோரிக்கைகள் எதுவும் இல்லை.",
+    "requestTitle": "உதவி கோரிக்கை விவரம்",
+    "requestedBy": "கோரியவர்",
+    "requestedOn": "கோரப்பட்ட தேதி",
+    "status": "நிலை",
     "description": "விவரம்",
-    "placeholder": "உங்கள் பிரச்சனையை விரிவாக விவரிக்கவும்...",
-    "submit": "விண்ணப்பத்தை சமர்ப்பிக்கவும்",
+    "noUser": "பயனர் இல்லை",
+    "noDate": "தேதி இல்லை",
+    "noDescription": "விவரம் இல்லை",
+    "noStatus": "நிலை இல்லை",
+    "statusChangeLabel": "புதுப்பிக்கவும்",
+    "changeStatus": "நிலையை மாற்றவும்",
+    "cancel": "ரத்து செய்",
+    "ok": "சரி",
     "error": {
-      "title": "பிழை",
-      "description": "உங்கள் பிரச்சனையின் விவரத்தை வழங்கவும்."
+      "loading": "உதவி கோரிக்கைகளை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+      "statusOptions": "நிலை விருப்பங்களை ஏற்ற முடியவில்லை",
+      "noStatusOptions": "நிலை விருப்பங்கள் எதுவும் இல்லை",
+      "selectStatus": "ஒரு நிலையை தேர்ந்தெடுக்கவும்",
+      "updateStatus": "நிலையை புதுப்பிக்க முடியவில்லை",
+      "permissionDenied": "நிர்வாகிகள் அல்லது பணியாளர்கள் மட்டுமே நிலையை மாற்ற முடியும்."
     },
+    "update": "புதுப்பிக்கும்",
     "success": {
-      "title": "வெற்றி",
-      "message": "உங்கள் உதவி விண்ணப்பம் வெற்றிகரமாக சமர்ப்பிக்கப்பட்டது!"
+      "updateStatus": "உதவி கோரிக்கையின் நிலை வெற்றிகரமாக புதுப்பிக்கப்பட்டது."
     },
-    "helpRequestsTitle": "{category} உதவி விண்ணப்பங்கள்",
-    "noRequests": "இந்த வகைக்கு உதவி விண்ணப்பங்கள் எதுவும் இல்லை.",
-    "helpRequestDetail": "உதவி விண்ணப்ப விவரம்",
-    "updateStatus": "புதுப்பிக்கவும்",
-    "noStatus": "நிலை இல்லை"
+    "statusOptions": {
+      "open": "திறந்த",
+      "inProgress": "நடந்து கொண்டிருக்கிறது",
+      "closed": "மூடப்பட்டது"
+    }
+  },
+  "changePassword": {
+    "changePassword": "கடவுச்சொல்லை மாற்று",
+    "title": "கடவுச்சொல்லை மாற்றவும்",
+    "oldPassword": "பழைய கடவுச்சொல்",
+    "newPassword": "புதிய கடவுச்சொல்",
+    "confirmPassword": "கடவுச்சொல்லை உறுதிப்படுத்தவும்",
+    "oldPasswordPlaceholder": "பழைய கடவுச்சொல்லை உள்ளிடவும்",
+    "newPasswordPlaceholder": "புதிய கடவுச்சொல்லை உள்ளிடவும்",
+    "confirmPasswordPlaceholder": "புதிய கடவுச்சொல்லை மீண்டும் உள்ளிடவும்",
+    "passwordMismatch": "புதிய கடவுச்சொற்கள் பொருந்தவில்லை",
+    "passwordChanged": "கடவுச்சொல் வெற்றிகரமாக மாற்றப்பட்டது",
+    "changeFailed": "கடவுச்சொல்லை மாற்ற முடியவில்லை",
+    "oldPasswordRequired": "பழைய கடவுச்சொல் தேவை",
+    "newPasswordRequired": "புதிய கடவுச்சொல் தேவை",
+    "confirmPasswordRequired": "புதிய கடவுச்சொல்லை உறுதிப்படுத்தவும்",
+    "submit": "சமர்ப்பிக்கவும்",
+    "openModalLink": "கடவுச்சொல்லை மாற்று",   
+    "openModalLink1": "கடவுச்சொல்லை மாற்று (திறந்தது)"   
   }
 }

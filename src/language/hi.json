@@ -10,7 +10,8 @@
     },
     "closeApp": "ऐप को बंद करना चाहते हैं?",
     "close": "बंद करें",
-    "cancel": "रद्द करें"
+    "cancel": "रद्द करें",
+    "logout": "लॉगआउट करना चाहते हैं?"
   },
   "menu": {
     "eventCalendar": "कार्यक्रम कैलेंडर",
@@ -261,6 +262,7 @@
     }
   },
   "helpRequest": {
+    "view": "देखें",
     "title": "सहायता अनुरोध",
     "modalTitle": "नया सहायता अनुरोध",
     "category": "श्रेणी",
@@ -280,6 +282,7 @@
       "inProgress": "प्रगति में",
       "resolved": "समाधान हो गया"
     },
+    "update": "अपडेट",
     "descriptions": {
       "visaDocumentation": "वीजा दस्तावेजों में मदद चाहिए",
       "itJobOpportunities": "आईटी नौकरी के अवसरों की तलाश में",
@@ -552,24 +555,57 @@
     "category": "श्रेणी",
     "noData": "कोई सेवा अनुरोध नहीं मिला।"
   },
-  "helpRequest": {
-    "modalTitle": "नया सहायता अनुरोध",
-    "category": "श्रेणी",
+  "categoryHelp": {
+    "header": "{category} सहायता अनुरोध",
+    "categoryName": "श्रेणी: {category}",
+    "emptyText": "इस श्रेणी के लिए कोई सहायता अनुरोध नहीं मिला।",
+    "requestTitle": "सहायता अनुरोध विवरण",
+    "requestedBy": "द्वारा अनुरोधित",
+    "requestedOn": "अनुरोध की तारीख",
+    "status": "स्थिति",
     "description": "विवरण",
-    "placeholder": "अपनी समस्या का विस्तार से वर्णन करें...",
-    "submit": "अनुरोध सबमिट करें",
+    "noUser": "कोई उपयोगकर्ता नहीं",
+    "noDate": "कोई तारीख नहीं",
+    "noDescription": "कोई विवरण नहीं",
+    "noStatus": "कोई स्थिति नहीं",
+    "statusChangeLabel": "अपडेट करें",
+    "changeStatus": "स्थिति बदलें",
+    "cancel": "रद्द करें",
+    "ok": "ठीक है",
     "error": {
-      "title": "त्रुटि",
-      "description": "कृपया अपनी समस्या का विवरण प्रदान करें।"
+      "loading": "सहायता अनुरोध लोड करने में विफल। कृपया फिर से प्रयास करें।",
+      "statusOptions": "स्थिति विकल्प लोड करने में विफल",
+      "noStatusOptions": "कोई स्थिति विकल्प उपलब्ध नहीं",
+      "selectStatus": "कृपया एक स्थिति चुनें",
+      "updateStatus": "स्थिति अपडेट करने में विफल",
+      "permissionDenied": "केवल प्रशासक या कर्मचारी ही स्थिति बदल सकते हैं।"
     },
     "success": {
-      "title": "सफलता",
-      "message": "आपका सहायता अनुरोध सफलतापूर्वक सबमिट हो गया है!"
+      "updateStatus": "सहायता अनुरोध की स्थिति सफलतापूर्वक अपडेट की गई।"
     },
-    "helpRequestsTitle": "{category} सहायता अनुरोध",
-    "noRequests": "इस श्रेणी के लिए कोई सहायता अनुरोध नहीं मिला।",
-    "helpRequestDetail": "सहायता अनुरोध विवरण",
-    "updateStatus": "अपडेट करें",
-    "noStatus": "कोई स्थिति नहीं"
+    "statusOptions": {
+      "open": "खुला",
+      "inProgress": "प्रगति में",
+      "closed": "बंद"
+    }
+  },
+  "changePassword": {
+    "changePassword": "पासवर्ड बदलें",
+    "title": "पासवर्ड बदलें",
+    "oldPassword": " पुराना पासवर्ड",
+    "newPassword": "नया पासवर्ड",
+    "confirmPassword": "पासवर्ड की पुष्टि करें",
+    "oldPasswordPlaceholder": "पुराना पासवर्ड दर्ज करें",
+    "newPasswordPlaceholder": "नया पासवर्ड दर्ज करें",
+    "confirmPasswordPlaceholder": " ",
+    "passwordMismatch": "नया पासवर्ड और पुष्टि पासवर्ड मेल नहीं हैं",
+    "passwordChanged": "पासवर्ड सफलतापूर्वक बदला गया है",
+    "changeFailed": " पासवर्ड बदलने में विफल",
+    "oldPasswordRequired": " पुराना पासवर्ड आवश्यक है",
+    "newPasswordRequired": " नया पासवर्ड आवश्यक है",
+    "confirmPasswordRequired": " पुष्टि पासवर्ड आवश्यक है",
+    "submit": "जमा करें",
+    "openModalLink": "पासवर्ड बदलें",
+    "openModalLink1": "पासवर्ड बदलें (ओपन करें)"
   }
 }

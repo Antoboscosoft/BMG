@@ -151,6 +151,30 @@ export const registerUser = async (userData) => {
     }
 };
 
+// change password
+export const changePassword0 = async (userData) => {
+    console.log("changePassword called with userData:", userData);
+    try {
+        const response = await axiosInstance.put('user/change_password', userData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Change Password Error:", error);
+        throw error.response?.data || { message: "Change Password failed", code: error.code, isNetworkError: !error.response };
+    }
+};
+
+
+export const changePassword = async (data) => {
+    try {
+        const response = await axiosInstance.put('user/change_password', data);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data?.message || error.message;
+    }
+};
+
 // Updated Function to get user data using axiosInstance
 export const getUserData = async (token) => {
     try {

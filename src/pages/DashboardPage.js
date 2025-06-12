@@ -506,7 +506,7 @@ function DashboardPage({ navigation, route }) {
                 <View style={styles.modalOverlay}>
                     <Pressable onPress={() => setShowLogoutModal(false)}>
                         <View style={styles.modalContainer}>
-                            <Text style={styles.modalTitle}>Are you sure you want to logout?</Text>
+                            <Text style={styles.modalTitle}>{ languageTexts?.dashboard?.logout || "Are you sure you want to logout?"}</Text>
                             <View style={styles.modalButtonRow}>
                                 <TouchableOpacity style={styles.modalButton} onPress={() => setShowLogoutModal(false)}>
                                     <Text style={styles.modalButtonText}>Cancel</Text>
