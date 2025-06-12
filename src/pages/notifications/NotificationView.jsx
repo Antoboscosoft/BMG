@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView, Image, Dimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import BackIcon from 'react-native-vector-icons/MaterialIcons';
 import { useLanguage } from '../../language/commondir';
 import { dateFormat, Loader } from '../../context/utils';
 import { getNotificationByIdAPI, markAsRead } from '../../api/auth';
+import HTML from 'react-native-render-html';
 
 function NotificationsView({ navigation, route }) {
     const { languageTexts } = useLanguage();
     const [notification, setNotification] = useState({});
     const [loading, setLoading] = useState(false);
     const fadeAnim = useState(new Animated.Value(0))[0]; // Animation for fade-in effect
+    const { width } = Dimensions.get('window'); // Get screen width for responsive HTML rendering
 
     const getNotification = () => {
         setLoading(true);
@@ -19,7 +21,8 @@ function NotificationsView({ navigation, route }) {
         getNotificationByIdAPI(route?.params?.notification_id).then((res) => {
             if (res?.status) {
                 setNotification(res?.data || {});
-                markAsRead(route?.params?.notification_id).then((res) => { console.log("res", res);
+                markAsRead(route?.params?.notification_id).then((res) => {
+                    console.log("res", res);
                 }).catch((err) => { console.log(err); });
             }
             else
@@ -70,14 +73,20 @@ function NotificationsView({ navigation, route }) {
                     <View style={styles.notificationItem}>
                         <Text style={styles.notificationTitle}>{notification.title}</Text>
 
-                        <Text style={styles.notificationDescription}> {notification?.message || '-'} </Text>
+                        {/* <Text style={styles.notificationDescription}> {notification?.message || '-'} </Text> */}
+                        <View style={styles.notificationDescription}>
+                            <HTML
+                                source={{ html: notification?.message || '<p>No description available</p>' }}
+                                contentWidth={width - 60}
+                            />
+                        </View>
 
                         {notification.notification_image &&
                             <View style={styles.notificationImageContainer}>
                                 <Image source={{ uri: notification.notification_image }} style={styles.notificationImage} resizeMode="contain" />
                             </View>
                         }
-                        <Text style={styles.notificationDate}>{dateFormat(new Date(notification?.sent_at),true)} </Text>
+                        <Text style={styles.notificationDate}>{dateFormat(new Date(notification?.sent_at), true)} </Text>
                     </View>
                 </ScrollView>
             </Animated.View>

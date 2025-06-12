@@ -1,26 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView, Dimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BackIcon from 'react-native-vector-icons/MaterialIcons';
 import { useLanguage } from '../../language/commondir';
 import { getMyNotificationsAPI } from '../../api/auth';
 import { dateFormat, handleReachEnd, Loader, page_limit, removeDuplicates, ScrollLoader } from '../../context/utils';
-import { set } from 'react-hook-form';
+import HTML from 'react-native-render-html';
 
 function NotificationsPage({ navigation, route }) {
     const { languageTexts } = useLanguage();
     const [notificationList, setNotificationList] = useState([]);
     const [skip, setSkip] = useState(0);
-    const [limit, setLimit] = useState(7);
+    const [limit, setLimit] = useState(page_limit);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
-    const fadeAnim = useState(new Animated.Value(0))[0]; // Animation for fade-in effect
+    const fadeAnim = useState(new Animated.Value(0))[0];
+
+    const { width } = Dimensions.get('window'); // Get screen width for responsive HTML rendering
 
     const getNotifications = () => {
         getMyNotificationsAPI(skip, limit).then((res) => {
             if (res?.status) {
-                setTotal(res?.total_count || 0);                
+                setTotal(res?.total_count || 0);
                 let listArr = notificationList.length > 0 ? removeDuplicates([...notificationList, ...res?.data], 'id') : [...res?.data];
                 setNotificationList(listArr);
             } else {
@@ -58,8 +60,7 @@ function NotificationsPage({ navigation, route }) {
 
     return (
         <LinearGradient
-            colors={['#2753b2', '#e6e9f0']} // Gradient from blue to light gray
-            //   colors={['#5e3b15', '#b06a2c']}
+            colors={['#2753b2', '#e6e9f0']}
             style={styles.container}
         >
             <Animated.View style={[styles.innerContainer, { opacity: fadeAnim }]}>
@@ -69,7 +70,6 @@ function NotificationsPage({ navigation, route }) {
                         style={styles.backButton}
                         onPress={() => navigation.navigate('Dashboard')}
                     >
-                        {/* <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text> */}
                         <BackIcon name="arrow-back-ios" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <Text style={styles.titleText}>{languageTexts?.notifications?.title || 'Notifications'}</Text>
@@ -84,7 +84,7 @@ function NotificationsPage({ navigation, route }) {
                         {notificationList?.length > 0 ? (
                             [...notificationList, { loader: true }]?.map((notification, index) => (
                                 notification.loader ?
-                                    <ScrollLoader loading={total > limit*skip} key={`loader-${index}`} />
+                                    <ScrollLoader loading={total > limit * skip && total !== notificationList?.length} key={`loader-${index}`} />
                                     :
                                     <TouchableOpacity
                                         key={notification.id}
@@ -110,7 +110,13 @@ function NotificationsPage({ navigation, route }) {
                                                 {notification.timestamp}
                                             </Text> */}
                                             </View>
-                                            <Text style={styles.notificationDescription} numberOfLines={2}>{notification?.message || '-'} </Text>
+                                            {/* <Text style={styles.notificationDescription} numberOfLines={2}>{notification?.message || '-'} </Text> */}
+                                            <View style={styles.notificationDescription}>
+                                                <HTML
+                                                    source={{ html: notification?.message || '<p>No description available</p>' }}
+                                                    contentWidth={width - 60}
+                                                />
+                                            </View>
                                             <View style={styles.dateContainer}>
                                                 <Text style={styles.notificationDate}>
                                                     {dateFormat(new Date(notification?.sent_at))}
@@ -215,6 +221,8 @@ const styles = StyleSheet.create({
         color: '#666',
         marginBottom: 5,
         paddingLeft: 34,
+        maxHeight: 20,
+        overflow: 'hidden'
     },
     notificationTimestamp: {
         fontSize: 12,
