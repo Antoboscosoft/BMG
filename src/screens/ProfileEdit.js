@@ -42,6 +42,8 @@ function formatDate(date) {
 
 function ProfileEdit({ navigation, route }) {
     const { userData } = route.params;
+    console.log("route.params >> ! ",route.params.from === 'MigrantsList' ? 'MigrantsList' : 'Profile');
+    
     const { languageTexts } = useLanguage();
     const [showDOBPicker, setShowDOBPicker] = useState(false);
     const [imageUri, setImageUri] = useState(userData?.photo || null);
@@ -340,7 +342,7 @@ console.log("nativeStates",nativeStates);
                         {
                             text: languageTexts?.common?.ok || 'OK',
                             onPress: () => {
-                                if (updatedUser.isSuperAdmin) {
+                                if (route.params.from === 'MigrantsList') {
                                     navigation.navigate('MigrantsList', {
                                         updatedUserData: updatedUser,
                                         updateTimestamp: Date.now()
@@ -655,7 +657,7 @@ console.log("nativeStates",nativeStates);
                 <ScrollView contentContainerStyle={styles.scrollContainer}>
                     <View style={styles.headerContainer}>
                         <TouchableOpacity style={styles.backButton} onPress={() => goBack()}>
-                            <Icon name="arrow-back-ios" size={24} color="#FFF" />
+                            <Icon name="arrow-back" size={24} color="#FFF" />
                         </TouchableOpacity>
                         <Text style={styles.headerTitle}>
                             {languageTexts?.profile?.edit?.title || 'Edit Profile'}

@@ -335,6 +335,8 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 50,
         fontSize: 16,
+        backgroundColor: 'rgba(218, 214, 214, 0.5)',
+        padding: 10,
     },
     newsActions: {
         position: 'absolute',

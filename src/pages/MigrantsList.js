@@ -8,6 +8,7 @@ import {
     ActivityIndicator,
     Dimensions,
     Image,
+    Modal,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -15,7 +16,7 @@ import { getMigrantsList } from "../api/auth";
 import Toast from "react-native-toast-message";
 import { useLanguage } from "../language/commondir";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 function MigrantsList({ navigation, route }) {
     const { languageTexts } = useLanguage();
@@ -23,13 +24,14 @@ function MigrantsList({ navigation, route }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isFocused, setIsFocused] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false); // State for modal visibility
+    const [selectedImage, setSelectedImage] = useState(null); // State for selected image
 
     useEffect(() => {
         const fetchMigrants = async () => {
             try {
                 setLoading(true);
                 const response = await getMigrantsList();
-                // console.log("Migrants List Response:", response?.data);
                 setMigrants(response.data || []);
             } catch (error) {
                 console.error("Failed to fetch migrants:", error);
@@ -64,19 +66,11 @@ function MigrantsList({ navigation, route }) {
     }, [navigation]);
 
     const handleBackPress = () => {
-        // console.log(" route.params:", route.name);
-        if (route?.name == 'MigrantsList') {
+        if (route?.name === 'MigrantsList') {
             navigation.navigate("Dashboard");
         } else {
             navigation.goBack();
         }
-        // If coming from ProfileView, navigate back to ProfileView
-        // if (route.params?.from === "ProfileView") {
-        //     navigation.navigate("ProfileView");
-        // } else {
-        //     navigation.goBack();
-        // }
-        // navigation.goBack();
     };
 
     const handleCreateUser = () => {
@@ -87,21 +81,31 @@ function MigrantsList({ navigation, route }) {
         navigation.navigate("Profile", { userData: user, from: "MigrantsList" });
     };
 
+    const openImageModal = (imageUri) => {
+        setSelectedImage(imageUri);
+        setModalVisible(true);
+    };
+
+    const closeImageModal = () => {
+        setModalVisible(false);
+        setSelectedImage(null);
+    };
+
     const renderMigrantItem = ({ item }) => (
         <View style={styles.listItem}>
-            <View style={styles.userIconContainer}>
-                {item.photo ?
+            <TouchableOpacity
+                style={styles.userIconContainer}
+                onPress={() => item.photo && openImageModal(item.photo)}
+                disabled={!item.photo} // Disable press if no photo
+            >
+                {item.photo ? (
                     <Image source={{ uri: item.photo }} style={styles.userIcon} />
-
-                    : <Icon name="account" size={75} color="#FFF" />}
-            </View>
-            {
-                // console.log("Rendering migrant item:", item)
-
-            }
+                ) : (
+                    <Icon name="account" size={75} color="#FFF" />
+                )}
+            </TouchableOpacity>
             <View style={styles.userInfo}>
                 <View style={styles.userInfoRow}>
-                    {/* <Icon name="person" size={20} color="#666" /> */}
                     <Text style={styles.userInfoName}>
                         {item.name || "Unknown User"}
                     </Text>
@@ -191,6 +195,37 @@ function MigrantsList({ navigation, route }) {
             <TouchableOpacity style={styles.fab} onPress={handleCreateUser}>
                 <Icon name="plus" size={30} color="#FFF" />
             </TouchableOpacity>
+
+            {/* Modal for Image View */}
+            <Modal
+                visible={modalVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={closeImageModal}
+            >
+                <TouchableOpacity
+                    style={styles.modalContainer}
+                    activeOpacity={1}
+                    onPress={closeImageModal} // Close modal when clicking outside
+                >
+                    <View style={styles.modalContent}>
+                        {selectedImage && (
+                            <Image
+                                source={{ uri: selectedImage }}
+                                style={styles.modalImage}
+                                resizeMode="contain"
+                            />
+                        )}
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={closeImageModal}
+                        >
+                            <Icon name="close" size={30} color="#FFF" />
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+
             <Toast />
         </LinearGradient>
     );
@@ -234,9 +269,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     userIconContainer: {
-        // backgroundColor: "#c5894a",// prev color
-        // backgroundColor: "#b06a2c", //ok
-        // backgroundColor: "#dd7d17", //current
         borderRadius: 20,
         padding: 10,
         marginRight: 15,
@@ -257,20 +289,6 @@ const styles = StyleSheet.create({
         color: "#FFF",
         fontSize: 14,
         marginLeft: 5,
-    },
-
-    userName: {
-        color: "#FFF",
-        fontSize: 16,
-        fontWeight: "600",
-    },
-    userEmail: {
-        color: "#dad0c3",
-        fontSize: 14,
-    },
-    userPhone: {
-        color: "#d5d0cb",
-        fontSize: 14,
     },
     actionButton: {
         padding: 10,
@@ -309,6 +327,7 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         marginTop: 20,
+        alignItems: "center",
         color: "#FFF",
         fontSize: 18,
         fontWeight: "600",
@@ -333,11 +352,36 @@ const styles = StyleSheet.create({
         fontSize: 16,
         textAlign: "center",
     },
-
     userIcon: {
         width: 75,
         height: 75,
         borderRadius: 40,
+    },
+    // Modal Styles
+    modalContainer: {
+        flex: 1,
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    modalContent: {
+        position: "relative",
+        width: width * 0.9,
+        height: height * 0.6,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    modalImage: {
+        width: "100%",
+        height: "100%",
+    },
+    closeButton: {
+        position: "absolute",
+        top: 10,
+        right: 10,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        borderRadius: 20,
+        padding: 5,
     },
 });
 

@@ -15,6 +15,45 @@ export const getLoginOtp = async (mobile_code, mobile_no) => {
     }
 };
 
+// Function to fetch supported languages
+export const getSupportedLanguages = async () => {
+    try {
+        const response = await axiosInstance.get("options/language");
+        console.log("Supported Languages Response:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Get Supported Languages Error:", error);
+        throw error.response?.data || { message: "Failed to fetch supported languages" };
+    }
+};
+
+// Function to update user language
+export const updateUserLanguage1 = async (languageCode) => {
+    console.log("updateUserLanguage called with languageCode:", languageCode);
+    try {
+        const response = await axiosInstance.put("user/language", {
+            language: languageCode,
+        });
+        console.log("Update User Language Response:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Update User Language Error:", error);
+        throw error.response?.data || { message: "Failed to update language" };
+    }
+};
+
+// Function to update user language
+export const updateUserLanguage = async (languageValue) => {
+    try {
+        const response = await axiosInstance.put(`user/language?language=${languageValue}`);
+        console.log("Update User Language Response:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Update User Language Error:", error);
+        throw error.response?.data || { message: "Failed to update language" };
+    }
+};
+
 // Function to verify OTP
 export const verifyOtp = async (mobile_code, mobile_no, otp) => {
     console.log("verifyOtp called with params:", mobile_code, mobile_no, otp, {

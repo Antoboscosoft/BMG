@@ -64,7 +64,7 @@ function NotificationsView({ navigation, route }) {
                 <Loader loading={loading} />
                 <View style={styles.headerRow}>
                     <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Notifications')} >
-                        <BackIcon name="arrow-back-ios" size={24} color="#FFF" />
+                        <BackIcon name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <Text style={styles.titleText}>{languageTexts?.notifications?.title || 'Notifications'}</Text>
                     <View style={{ width: 60 }} />

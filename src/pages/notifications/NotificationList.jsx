@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BackIcon from 'react-native-vector-icons/MaterialIcons';
@@ -56,6 +56,14 @@ function NotificationsPage({ navigation, route }) {
         getNotifications();
     }, [skip, limit]);
 
+    if (loading) {
+            return (
+                <LinearGradient colors={['#2753b2', '#e6e9f0']} style={[styles.container, styles.loadingContainer]}>
+                    <ActivityIndicator size="large" color="#FFF" />
+                    <Text style={styles.loadingText}>{languageTexts?.servicesDirectory?.loading || 'Loading services...'}</Text>
+                </LinearGradient>
+            );
+        }
 
 
     return (
@@ -64,13 +72,13 @@ function NotificationsPage({ navigation, route }) {
             style={styles.container}
         >
             <Animated.View style={[styles.innerContainer, { opacity: fadeAnim }]}>
-                <Loader loading={loading} />
+                {/* <Loader loading={loading} /> */}
                 <View style={styles.headerRow}>
                     <TouchableOpacity
                         style={styles.backButton}
                         onPress={() => navigation.navigate('Dashboard')}
                     >
-                        <BackIcon name="arrow-back-ios" size={24} color="#FFF" />
+                        <BackIcon name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <Text style={styles.titleText}>{languageTexts?.notifications?.title || 'Notifications'}</Text>
                     <View style={{ width: 60 }} />
@@ -143,6 +151,15 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    loadingContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        fontSize: 16,
+        color: '#FFF',
+        marginTop: 10,
+    },
     innerContainer: {
         flex: 1,
     },
@@ -150,7 +167,7 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         paddingHorizontal: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 8,
+        borderRadius: 80,
         zIndex: 1,
     },
     headerRow: {
@@ -237,6 +254,8 @@ const styles = StyleSheet.create({
         textShadowColor: 'rgba(0, 0, 0, 0.5)',
         textShadowOffset: { width: 1, height: 1 },
         textShadowRadius: 3,
+        backgroundColor: 'rgba(202, 195, 195, 0.3)',
+        padding: 10,
     },
     dateContainer: {
         flexDirection: 'row',

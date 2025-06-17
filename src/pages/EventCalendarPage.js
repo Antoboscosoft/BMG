@@ -245,7 +245,7 @@ function EventCalendarPage({ navigation }) {
                         style={styles.backButton}
                         onPress={() => navigation.navigate('Dashboard')}
                     >
-                        <Icon name="arrow-back-ios" size={24} color="#ffffff" />
+                        <Icon name="arrow-back" size={24} color="#ffffff" />
                     </TouchableOpacity>
                     <Text style={styles.titleText}>
                         {languageTexts?.menu?.eventCalendar || 'Event Calendar'}

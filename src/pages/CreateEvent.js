@@ -181,8 +181,8 @@ function CreateEvent({ navigation, route }) {
                 <View style={styles.header}>
                     <Text style={styles.headerText}>
                         {isUpdate
-                            ? languageTexts?.createEvent?.title?.updateEvent || 'Update Event'
-                            : languageTexts?.createEvent?.title?.createEvent || 'Create Event'}
+                            ? languageTexts?.createEvent?.updateEvent || 'Update Event'
+                            : languageTexts?.createEvent?.createEvent || 'Create Event'}
                     </Text>
                 </View>
 

@@ -311,6 +311,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    loadingText: {
+        color: '#FFF',
+        fontSize: 16,
+        marginTop: 10,
+    },
     errorContainer: {
         justifyContent: 'center',
         alignItems: 'center',

@@ -1,53 +1,147 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView, ActivityIndicator } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useLanguage } from '../language/commondir';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import Toast from 'react-native-toast-message';
+import { getSupportedLanguages, updateUserLanguage } from '../api/auth';
 
 function MultilingualSupportPage({ navigation }) {
     const { language, changeLanguage, languageTexts } = useLanguage();
     const [fadeAnim] = useState(new Animated.Value(0));
+    const [languages, setLanguages] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [updating, setUpdating] = useState(false);
 
-    // Map English names to language codes
-    const languageMap = {
-        'English': 'EN',
-        'Hindi': 'HI',
-        'Tamil': 'TA',
-        'Bengali': 'BN',
+    // Map API values to language codes and native names
+    const languageMapping = {
+        'ENGLISH': { code: 'EN', nativeName: 'English' },
+        'HINDI': { code: 'HI', nativeName: 'हिन्दी' },
+        'TAMIL': { code: 'TA', nativeName: 'தமிழ்' },
     };
 
-    // Map language codes to native names for display
-    const languages = [
-        { englishName: 'English', nativeName: 'English', code: 'EN' },
-        { englishName: 'Hindi', nativeName: 'हिन्दी', code: 'HI' },
-        { englishName: 'Tamil', nativeName: 'தமிழ்', code: 'TA' },
-        // { englishName: 'Bengali', nativeName: 'বাংলা', code: 'BN' },
-    ];
+    // Map language codes to English names for selection
+    const languageCodeToEnglishName = {
+        'EN': 'English',
+        'HI': 'Hindi',
+        'TA': 'Tamil',
+    };
 
     // Set initial selected language based on current language
     const [selectedLanguage, setSelectedLanguage] = useState(
-        Object.keys(languageMap).find(key => languageMap[key] === language) || 'English'
+        languageCodeToEnglishName[language] || 'English'
     );
 
     useEffect(() => {
+        const fetchLanguages = async () => {
+            try {
+                setLoading(true);
+                const response = await getSupportedLanguages();
+                const formattedLanguages = response.data.map(lang => ({
+                    englishName: lang.label,
+                    nativeName: languageMapping[lang.value]?.nativeName || lang.label,
+                    code: languageMapping[lang.value]?.code || lang.value,
+                    value: lang.value, // Store the original API value
+                }));
+                setLanguages(formattedLanguages);
+            } catch (err) {
+                setError(err.message || 'Failed to load languages');
+                Toast.show({
+                    type: 'error',
+                    text1: languageTexts?.common?.error || 'Error',
+                    text2: err.message || (languageTexts?.multilingual?.error?.load || 'Failed to load languages'),
+                });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchLanguages();
+
         Animated.timing(fadeAnim, {
             toValue: 1,
             duration: 1500,
             useNativeDriver: true,
         }).start();
-    }, [fadeAnim]);
+    }, [fadeAnim, languageTexts]);
 
-    const handleLanguageSelect = (language) => {
-        setSelectedLanguage(language.englishName);
-        const langCode = languageMap[language.englishName];
-        if (langCode) {
-            changeLanguage(langCode);
+    const handleLanguageSelect = async (language) => {
+        setUpdating(true);
+        try {
+            setSelectedLanguage(language.englishName);
+            const langCode = language.code; // Standard code (e.g., 'EN') for local context
+            const langValue = language.value; // Original API value (e.g., 'ENGLISH') for API call
+            if (langCode && langValue) {
+                // Update language on the server using the original API value
+                const response = await updateUserLanguage(langValue);
+                if (response.status) {
+                    // Successfully updated language on the server
+                    Toast.show({
+                        type: 'success',
+                        text1: languageTexts?.common?.success || 'Success',
+                        text2: languageTexts?.multilingual?.languageUpdated || 'Language updated successfully',
+                    });
+                } else {
+                    throw new Error(response.message || 'Failed to update language on server');
+                }
+                // Update local language context using the standard code
+                changeLanguage(langCode);
+                Toast.show({
+                    type: 'success',
+                    text1: languageTexts?.common?.success || 'Success',
+                    text2: languageTexts?.multilingual?.languageUpdated || 'Language updated successfully',
+                });
+            }
+        } catch (err) {
+            setSelectedLanguage(languageCodeToEnglishName[language] || 'English');
+            Toast.show({
+                type: 'error',
+                text1: languageTexts?.common?.error || 'Error',
+                text2: err.message || (languageTexts?.multilingual?.error?.update || 'Failed to update language'),
+            });
+        } finally {
+            setUpdating(false);
         }
     };
 
     const handleContinue = () => {
         navigation.navigate('Dashboard');
     };
+
+    if (loading) {
+        return (
+            <LinearGradient colors={['#2753b2', '#e6e9f0']} style={styles.container}>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#FFF" />
+                    <Text style={styles.loadingText}>
+                        {languageTexts?.multilingual?.loading || 'Loading languages...'}
+                    </Text>
+                </View>
+            </LinearGradient>
+        );
+    }
+
+    if (error) {
+        return (
+            <LinearGradient colors={['#2753b2', '#e6e9f0']} style={styles.container}>
+                <View style={styles.errorContainer}>
+                    <Text style={styles.errorText}>
+                        {languageTexts?.multilingual?.error?.load || 'Failed to load languages'}
+                    </Text>
+                    <TouchableOpacity style={styles.retryButton} onPress={() => {
+                        setError(null);
+                        setLoading(true);
+                        fetchLanguages();
+                    }}>
+                        <Text style={styles.retryButtonText}>
+                            {languageTexts?.common?.retry || 'Retry'}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </LinearGradient>
+        );
+    }
 
     return (
         <LinearGradient
@@ -60,7 +154,6 @@ function MultilingualSupportPage({ navigation }) {
                         style={styles.backButton}
                         onPress={() => navigation.goBack()}
                     >
-                        {/* <Text style={styles.backButtonText}>{'< Back'}</Text> */}
                         <Icon name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <Text style={styles.titleText}>
@@ -78,27 +171,34 @@ function MultilingualSupportPage({ navigation }) {
                     <View style={styles.languageList}>
                         {languages.map((language) => (
                             <TouchableOpacity
-                                key={language.englishName}
+                                key={language.code}
                                 style={[
                                     styles.languageOption,
                                     selectedLanguage === language.englishName && styles.selectedLanguageOption,
+                                    updating && styles.disabledOption,
                                 ]}
-                                onPress={() => handleLanguageSelect(language)}
+                                onPress={() => !updating && handleLanguageSelect(language)}
+                                disabled={updating}
                             >
-                                <Text
-                                    style={[
-                                        styles.languageText,
-                                        selectedLanguage === language.englishName && styles.selectedLanguageText,
-                                    ]}
-                                >
-                                    {language.nativeName}
-                                </Text>
+                                {updating && selectedLanguage === language.englishName ? (
+                                    <ActivityIndicator size="small" color="#FFF" />
+                                ) : (
+                                    <Text
+                                        style={[
+                                            styles.languageText,
+                                            selectedLanguage === language.englishName && styles.selectedLanguageText,
+                                        ]}
+                                    >
+                                        {language.nativeName}
+                                    </Text>
+                                )}
                             </TouchableOpacity>
                         ))}
                     </View>
                     <TouchableOpacity
-                        style={styles.button}
+                        style={[styles.button, updating && styles.disabledButton]}
                         onPress={handleContinue}
+                        disabled={updating}
                     >
                         <Text style={styles.buttonText}>
                             {languageTexts?.multilingual?.continue || 'Continue'}
@@ -176,6 +276,9 @@ const styles = StyleSheet.create({
     selectedLanguageOption: {
         backgroundColor: '#2753b2',
     },
+    disabledOption: {
+        opacity: 0.6,
+    },
     languageText: {
         fontSize: 16,
         color: '#333',
@@ -196,11 +299,48 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 4,
     },
+    disabledButton: {
+        opacity: 0.6,
+    },
     buttonText: {
         color: '#FFF',
         fontSize: 18,
         fontWeight: '600',
         textAlign: 'center',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: '#FFF',
+        fontWeight: '500',
+    },
+    errorContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+    },
+    errorText: {
+        fontSize: 16,
+        color: '#FFF',
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+    retryButton: {
+        paddingHorizontal: 30,
+        paddingVertical: 10,
+        backgroundColor: '#FFF',
+        borderRadius: 8,
+    },
+    retryButtonText: {
+        fontSize: 16,
+        color: '#2753b2',
+        fontWeight: '600',
     },
 });
 

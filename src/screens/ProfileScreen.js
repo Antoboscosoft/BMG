@@ -50,6 +50,7 @@ function ProfileScreen({ navigation, route }) {
     const [countryCode, setCountryCode] = useState('IN');
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
     const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
+    const [isImageModalVisible, setIsImageModalVisible] = useState(false);
     const [showPassword, setShowPassword] = useState({
         oldPassword: false,
         newPassword: false,
@@ -79,6 +80,7 @@ function ProfileScreen({ navigation, route }) {
             [field]: !showPassword[field]
         });
     };
+// console.log("updatedUserData: >>> ", route.params.from === 'MigrantsList');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -161,7 +163,11 @@ function ProfileScreen({ navigation, route }) {
     }
 
     const goback = () => {
+        console.log("route.params.from: >>> ", route.params);
+        
         if (navigation.canGoBack()) {
+            route.params.from === 'MigrantsList' ? 
+            navigation.navigate('MigrantsList') :
             navigation.navigate('Dashboard');
         }
     };
@@ -176,7 +182,7 @@ function ProfileScreen({ navigation, route }) {
                 <ScrollView contentContainerStyle={styles.scrollContainer}>
                     <View style={styles.headerContainer}>
                         <TouchableOpacity style={styles.backButton} onPress={() => goback()}>
-                            <Icon name="arrow-back-ios" size={24} color="#FFF" />
+                            <Icon name="arrow-back" size={24} color="#FFF" />
                         </TouchableOpacity>
                         <Text style={styles.headerTitle}>{languageTexts?.profile?.screen?.title || 'Your Profile'}</Text>
                         <View style={{ width: 60 }} />
@@ -184,14 +190,16 @@ function ProfileScreen({ navigation, route }) {
 
                     <View style={styles.contentContainer}>
                         <View style={styles.avatarContainer}>
-                            <Image
-                                source={
-                                    imageUri
-                                        ? { uri: imageUri }
-                                        : require('../asserts/images/profile.png')
-                                }
-                                style={styles.avatar}
-                            />
+                            <TouchableOpacity onPress={() => setIsImageModalVisible(true)}>
+                                <Image
+                                    source={
+                                        imageUri
+                                            ? { uri: imageUri }
+                                            : require('../asserts/images/profile.png')
+                                    }
+                                    style={styles.avatar}
+                                />
+                            </TouchableOpacity>
                         </View>
 
                         {userData?.role?.name === 'Staff' && !isSuperAdmin &&
@@ -302,10 +310,11 @@ function ProfileScreen({ navigation, route }) {
                         </View>
                     </View>
                 </ScrollView>
+{/* {console.log("route.params.from: >>>1 ", route.params.from)}; */}
 
                 <TouchableOpacity
                     style={styles.floatingButton}
-                    onPress={() => navigation.navigate('ProfileEdit', { userData })}
+                    onPress={() => navigation.navigate('ProfileEdit', { userData, from: route.params?.from || 'Profile' })}
                 >
                     <Icon name="edit" size={24} color="#3D2A1A" />
                 </TouchableOpacity>
@@ -478,6 +487,34 @@ function ProfileScreen({ navigation, route }) {
                             </View>
                         </View>
                     </View>
+                </Modal>
+
+                {/* Image Modal */}
+                <Modal
+                    visible={isImageModalVisible}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={() => setIsImageModalVisible(false)}
+                >
+                    <TouchableOpacity
+                        style={styles.imageModalOverlay}
+                        activeOpacity={1}
+                        onPressOut={() => setIsImageModalVisible(false)}
+                    >
+                        <View style={styles.imageModalContent}>
+                            <Image
+                                source={imageUri ? { uri: imageUri } : require('../asserts/images/profile.png')}
+                                style={styles.imageModalImage}
+                                resizeMode="contain"
+                            />
+                            <TouchableOpacity
+                                style={styles.imageModalClose}
+                                onPress={() => setIsImageModalVisible(false)}
+                            >
+                                <Icon name="close" size={30} color="#fff" />
+                            </TouchableOpacity>
+                        </View>
+                    </TouchableOpacity>
                 </Modal>
             </LinearGradient>
         </KeyboardAvoidingView>
@@ -678,6 +715,32 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         borderRadius: 4,
         backgroundColor: 'rgba(255, 255, 255, 0.1)', // Slight background for emphasis
+    },
+    imageModalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    imageModalContent: {
+        position: 'relative',
+        width: '90%',
+        height: '60%',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    imageModalImage: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 10,
+    },
+    imageModalClose: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        borderRadius: 20,
+        padding: 5,
     },
 });
 

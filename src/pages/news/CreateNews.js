@@ -336,6 +336,13 @@ const styles = StyleSheet.create({
         paddingTop: 40, // Adjusted for status bar padding
         paddingBottom: 10, // Reduced bottom padding
     },
+    titleContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginLeft: 10,
+        marginRight: 10,
+    },
     titleText: {
         fontSize: 24,
         fontWeight: 'bold',

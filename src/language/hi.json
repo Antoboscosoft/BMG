@@ -206,10 +206,8 @@
       "ok": "ठीक है",
       "back": "< वापस"
     },
-    "title": {
       "createEvent": "इवेंट बनाएं",
-      "updateEvent": "इवेंट अपडेट करें"
-    },
+      "updateEvent": "इवेंट अपडेट करें",
     "placeholder": {
       "title": "इवेंट का शीर्षक दर्ज करें",
       "description": "इवेंट का विवरण दर्ज करें",

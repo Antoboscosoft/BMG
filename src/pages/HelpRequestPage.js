@@ -233,6 +233,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    loadingText: {
+        color: '#FFF',
+        fontSize: 16,
+        marginTop: 10,
+    },
     innerContainer: {
         flex: 1,
     },
@@ -262,6 +267,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     titleText: {
+        marginLeft: 10,
         fontSize: 22,
         fontWeight: 'bold',
         color: '#FFF',
@@ -312,6 +318,8 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         marginTop: 50,
+        backgroundColor: 'rgba(198, 186, 186, 0.5)',
+        padding: 10,
     },
     fab: {
         position: 'absolute',

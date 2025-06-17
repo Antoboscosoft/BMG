@@ -152,7 +152,8 @@ function DashboardPage({ navigation, route }) {
         if (name === 'Login') {
             setShowLogoutModal(true);
         } else {
-            navigation.navigate(name);
+            // navigation.navigate(name);
+            navigation.navigate(name, {from: name, params: screen.params});
             closeSidebar();
         }
     };

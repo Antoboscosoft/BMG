@@ -5,7 +5,6 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getHelpRequestsByCategory, getHelpRequestStatusOptions, updateHelpRequestStatus } from '../../api/auth';
 import { useLanguage } from '../../language/commondir';
 
-
 // Fallback status options if API fails
 const fallbackStatusOptions = [
     { label: 'Open', value: 'OPEN' },
@@ -19,17 +18,16 @@ function CategoryHelp({ route, navigation }) {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [statusModalVisible, setStatusModalVisible] = useState(false); // Modal visibility state
-    const [selectedRequest, setSelectedRequest] = useState(null); // Selected request for status update
-    const [selectedStatus, setSelectedStatus] = useState(''); // Selected status from modal
-    const [statusOptions, setStatusOptions] = useState([]); // Status options from API
+    const [statusModalVisible, setStatusModalVisible] = useState(false);
+    const [selectedRequest, setSelectedRequest] = useState(null);
+    const [selectedStatus, setSelectedStatus] = useState('');
+    const [statusOptions, setStatusOptions] = useState([]);
 
     // Fetch help requests
     const fetchRequests = async () => {
         setLoading(true);
         setError(null);
         try {
-            // Pass userId only if the role is MIGRANT
             const role = user?.data?.role?.name.toUpperCase();
             const idToPass = role === 'MIGRANT' ? userId : undefined;
             console.log("userId:", userId, "role:", role, "idToPass:", idToPass);
@@ -49,17 +47,14 @@ function CategoryHelp({ route, navigation }) {
         const fetchStatusOptions = async () => {
             try {
                 const options = await getHelpRequestStatusOptions();
-                // Assuming API returns an array like [{ value: 'OPEN', label: 'Open' }, ...]
-                // If API returns a different format, adjust mapping accordingly
                 const formattedOptions = options.map(opt => ({
-                    value: opt.value || opt, // Adjust based on API response structure
-                    label: opt.label || opt, // Adjust based on API response structure
+                    value: opt.value || opt,
+                    label: opt.label || opt,
                 }));
                 setStatusOptions(formattedOptions);
             } catch (err) {
-                // Alert.alert('Error', 'Failed to load status options');
-                console.error('Failed to load status options:', err); // Log error for debugging
-                setStatusOptions(fallbackStatusOptions); // Use fallback options
+                console.error('Failed to load status options:', err);
+                setStatusOptions(fallbackStatusOptions);
             }
         };
 
@@ -72,14 +67,13 @@ function CategoryHelp({ route, navigation }) {
     };
 
     const openStatusModal = (item) => {
-        // Only allow status change for admins or staff
         if (user?.data?.role?.name.toUpperCase() !== 'ADMIN' && user?.data?.role?.name.toUpperCase() !== 'STAFF') {
             Alert.alert('Permission Denied', 'Only admins or staff can change the status.');
             return;
         }
 
         setSelectedRequest(item);
-        setSelectedStatus(item.status); // Pre-select current status
+        setSelectedStatus(item.status);
         setStatusModalVisible(true);
     };
 
@@ -92,7 +86,7 @@ function CategoryHelp({ route, navigation }) {
         try {
             await updateHelpRequestStatus(selectedRequest.id, selectedStatus);
             setStatusModalVisible(false);
-            fetchRequests(); // Refresh list to show updated status
+            fetchRequests();
             Alert.alert('Success', 'Help request status updated successfully.');
         } catch (err) {
             Alert.alert('Error', err.message || 'Failed to update status');
@@ -102,25 +96,25 @@ function CategoryHelp({ route, navigation }) {
     const renderRequestItem = ({ item }) => (
         <View style={styles.requestCard}>
             <View style={styles.cardHeader}>
-                <Text style={styles.requestTitle}>{ languageTexts?.categoryHelp?.requestTitle || "Help Request Detail"}</Text>
-                {/* {console.log("item.status: help req >>>", item.status)} */}
-                {user.data.role.name === "Admin" || user.data.role.name === "Staff" && item.status !== 'CLOSED' &&
-
+                <Text style={styles.requestTitle}>{languageTexts?.categoryHelp?.requestTitle || "Help Request Detail"}</Text>
+                {(user.data.role.name === "Admin" || user.data.role.name === "Staff") && item.status !== 'CLOSED' && (
                     <TouchableOpacity style={styles.statusContainer} onPress={() => openStatusModal(item)}>
                         <Icon name="edit" size={18} color="#0db6a5" style={styles.editIcon} />
-                        {console.log("item.status >>>>> : ////-", item.status)
-                        }
-                        <Text style={styles.statusChangeLabel}>{item.status === 'OPEN' || item.status === 'IN_PROGRESS' ? languageTexts?.helpRequest?.update || 'Update' : 'No Status'}</Text>
-                    </TouchableOpacity>}
+                        <Text style={styles.statusChangeLabel}>
+                            {item.status === 'OPEN' || item.status === 'IN_PROGRESS' ? languageTexts?.helpRequest?.update || 'Update' : 'No Status'}
+                        </Text>
+                    </TouchableOpacity>
+                )}
             </View>
             <View style={styles.cardContent}>
-                {user.data.role.name === "Admin" || user.data.role.name === "Staff" &&
+                {(user.data.role.name === "Admin" || user.data.role.name === "Staff") && (
                     <View style={styles.infoRow}>
-                        <Text style={styles.requestLabel}>{ languageTexts?.categoryHelp?.requestedBy || "Requested By"} </Text>
+                        <Text style={styles.requestLabel}>{languageTexts?.categoryHelp?.requestedBy || "Requested By"}</Text>
                         <Text style={styles.requestValue}>: {item.user?.name || 'No User'}</Text>
-                    </View>}
+                    </View>
+                )}
                 <View style={styles.infoRow}>
-                    <Text style={styles.requestLabel}>{ languageTexts?.categoryHelp?.requestedOn || "Requested On"} </Text>
+                    <Text style={styles.requestLabel}>{languageTexts?.categoryHelp?.requestedOn || "Requested On"}</Text>
                     <Text style={styles.requestValue}>
                         : {item.created_at
                             ? `${new Date(item.created_at).toLocaleDateString()} ${new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`
@@ -128,30 +122,33 @@ function CategoryHelp({ route, navigation }) {
                     </Text>
                 </View>
                 <View style={styles.infoRow}>
-                    <Text style={styles.requestLabel}>{ languageTexts?.categoryHelp?.status || "Status"} </Text>
-                    <Text> :</Text>
-                    <View
-                        style={[
-                            styles.statusBadge,
-                            {
-                                backgroundColor:
-                                    item.status === 'Resolved' || item.status === 'CLOSED'
-                                        ? '#43A047' // Green
-                                        : item.status === 'In Progress' || item.status === 'IN_PROGRESS'
-                                            ? '#FFC107' // Orange
-                                            : '#35c5f9', // blue (Pending/OPEN)
-                            },
-                        ]}
-                    >
-                        <Text style={styles.statusBadgeText}>
-                            {item.status === 'OPEN' ? languageTexts?.helpRequest?.statuses?.pending || 'Pending' 
-                            : item.status === 'CLOSED' ? languageTexts?.helpRequest?.statuses?.resolved || 'Resolved' 
-                            : item.status === 'IN_PROGRESS' ? languageTexts?.helpRequest?.statuses?.inProgress || 'In Progress' 
-                            : item.status || 'No Status'}</Text>
+                    <Text style={styles.requestLabel}>{languageTexts?.categoryHelp?.status || "Status"}</Text>
+                    <Text style={styles.colon}>:</Text>
+                    <View style={styles.statusBadgeContainer}>
+                        <View
+                            style={[
+                                styles.statusBadge,
+                                {
+                                    backgroundColor:
+                                        item.status === 'Resolved' || item.status === 'CLOSED'
+                                            ? '#43A047' // Green
+                                            : item.status === 'In Progress' || item.status === 'IN_PROGRESS'
+                                                ? '#FFC107' // Yellow
+                                                : '#35c5f9', // Blue (Pending/OPEN)
+                                },
+                            ]}
+                        >
+                            <Text style={styles.statusBadgeText}>
+                                {item.status === 'OPEN' ? languageTexts?.helpRequest?.statuses?.pending || 'Pending'
+                                    : item.status === 'CLOSED' ? languageTexts?.helpRequest?.statuses?.resolved || 'Resolved'
+                                    : item.status === 'IN_PROGRESS' ? languageTexts?.helpRequest?.statuses?.inProgress || 'In Progress'
+                                    : item.status || 'No Status'}
+                            </Text>
+                        </View>
                     </View>
                 </View>
                 <View style={styles.infoRow}>
-                    <Text style={styles.requestLabel}>{ languageTexts?.services?.description || "Description"} </Text>
+                    <Text style={styles.requestLabel}>{languageTexts?.services?.description || "Description"}</Text>
                     <Text style={styles.requestValue}>: {item.description || 'No Description'}</Text>
                 </View>
             </View>
@@ -160,9 +157,6 @@ function CategoryHelp({ route, navigation }) {
 
     if (loading) {
         return (
-            // <View style={styles.centered}>
-            //     <ActivityIndicator size="large" color="#944D00" />
-            // </View>
             <LinearGradient colors={['#2753b2', '#e6e9f0']} style={[styles.container, styles.loadingContainer]}>
                 <ActivityIndicator size="large" color="#FFF" />
                 <Text style={styles.loadingText}>{languageTexts?.servicesDirectory?.loading || 'Loading services...'}</Text>
@@ -185,9 +179,9 @@ function CategoryHelp({ route, navigation }) {
                     style={styles.backButton}
                     onPress={() => navigation.navigate('HelpRequest', { userId })}
                 >
-                    <Icon name="arrow-back-ios" size={24} color="#FFF" />
+                    <Icon name="arrow-back" size={24} color="#FFF" />
                 </TouchableOpacity>
-                <Text style={styles.header}>{category.name} { languageTexts?.categoryHelp?.helpRequests || "Help Requests"}</Text>
+                <Text style={styles.header}>{category.name} {languageTexts?.categoryHelp?.helpRequests || "Help Requests"}</Text>
                 <TouchableOpacity
                     style={styles.addButton}
                     onPress={handleAddHelpRequest}
@@ -195,44 +189,43 @@ function CategoryHelp({ route, navigation }) {
                     <Icon name="add" size={24} color="#FFF" />
                 </TouchableOpacity>
             </View>
-            <Text style={styles.categoryNameText}>{ languageTexts?.categoryHelp?.category || "Category"}: {category.name}</Text>
+            <Text style={styles.categoryNameText}>{languageTexts?.categoryHelp?.category || "Category"}: {category.name}</Text>
             <FlatList
                 data={requests}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={renderRequestItem}
                 contentContainerStyle={styles.listContent}
-                ListEmptyComponent={<Text style={styles.emptyText}>{ "No help requests found for this category."}</Text>}
+                ListEmptyComponent={<Text style={styles.emptyText}>{"No help requests found for this category."}</Text>}
             />
             <Modal visible={statusModalVisible} transparent animationType="slide">
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>{ languageTexts?.categoryHelp?.changeStatus || "Change Status"}</Text>
-                        {
-                            statusOptions.length ?
-                                (
-                                    statusOptions.map(opt => (
-                                        <TouchableOpacity
-                                            key={opt.value}
-                                            onPress={() => setSelectedStatus(opt.value)}
-                                            style={styles.radioRow}
-                                        >
-                                            <View style={styles.radioCircle}>
-                                                {selectedStatus === opt.value && <View style={styles.radioDot} />}
-                                            </View>
-                                            <Text style={styles.radioLabel}>{opt.label}</Text>
-                                        </TouchableOpacity>
-                                    ))) : (
-                                    <Text style={styles.errorText}>{ "No status options available"}</Text>
-                                )}
+                        <Text style={styles.modalTitle}>{languageTexts?.categoryHelp?.changeStatus || "Change Status"}</Text>
+                        {statusOptions.length ? (
+                            statusOptions.map(opt => (
+                                <TouchableOpacity
+                                    key={opt.value}
+                                    onPress={() => setSelectedStatus(opt.value)}
+                                    style={styles.radioRow}
+                                >
+                                    <View style={styles.radioCircle}>
+                                        {selectedStatus === opt.value && <View style={styles.radioDot} />}
+                                    </View>
+                                    <Text style={styles.radioLabel}>{opt.label}</Text>
+                                </TouchableOpacity>
+                            ))
+                        ) : (
+                            <Text style={styles.errorText}>{"No status options available"}</Text>
+                        )}
                         <View style={styles.modalButtonContainer}>
                             <TouchableOpacity
                                 style={[styles.modalButton, styles.cancelButton]}
                                 onPress={() => setStatusModalVisible(false)}
                             >
-                                <Text style={styles.buttonText}>{ languageTexts?.services?.cancel || "Cancel"}</Text>
+                                <Text style={styles.buttonText}>{languageTexts?.services?.cancel || "Cancel"}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.modalButton} onPress={handleStatusSubmit}>
-                                <Text style={styles.buttonText}>{ languageTexts?.categoryHelp?.ok || "OK"}</Text>
+                                <Text style={styles.buttonText}>{languageTexts?.categoryHelp?.ok || "OK"}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -250,6 +243,11 @@ const styles = StyleSheet.create({
     loadingContainer: {
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    loadingText: {
+        color: '#FFF',
+        fontSize: 16,
+        marginTop: 10,
     },
     headerRow: {
         flexDirection: 'row',
@@ -307,7 +305,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: '#2753b2',
-        flex: 1,               // Allow title to take available space
+        flex: 1,
         marginRight: 8,
     },
     statusContainer: {
@@ -325,17 +323,13 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
         color: '#0db6a5',
-        // paddingVertical: 6,
-        // paddingHorizontal: 12,
-        // borderRadius: 12,
-        // backgroundColor: '#E0F7FA',
     },
     cardContent: {
         flexDirection: 'column',
     },
     infoRow: {
         flexDirection: 'row',
-        alignItems: 'flex-start',
+        alignItems: 'center', // Vertically center items in the row
         marginBottom: 8,
     },
     requestLabel: {
@@ -351,12 +345,20 @@ const styles = StyleSheet.create({
         flex: 1,
         textAlign: 'left',
     },
+    colon: {
+        fontSize: 15,
+        color: '#555',
+        marginRight: 4, // Space between colon and status badge
+    },
+    statusBadgeContainer: {
+        flex: 1, // Allow the badge container to take up remaining space
+        justifyContent: 'center', // Center badge vertically within its container
+    },
     statusBadge: {
         borderRadius: 12,
         paddingHorizontal: 12,
         paddingVertical: 4,
-        alignSelf: 'flex-start',
-        marginLeft: 4,
+        alignSelf: 'flex-start', // Align badge to the start of its container
     },
     statusBadgeText: {
         color: '#FFF',
@@ -364,12 +366,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     emptyText: {
-        // fontSize: 16,
-        // color: '#f35252',
-        // textAlign: 'center',
-        // marginTop: 50,
         width: '100%',
-        // flexDirection: 'row',
         backgroundColor: '#fff',
         borderRadius: 8,
         padding: 16,

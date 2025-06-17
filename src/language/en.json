@@ -208,10 +208,8 @@
       "ok": "OK",
       "back": "< Back"
     },
-    "title": {
       "createEvent": "Create Event",
-      "updateEvent": "Update Event"
-    },
+      "updateEvent": "Update Event",
     "placeholder": {
       "title": "Enter event title",
       "description": "Enter event description",

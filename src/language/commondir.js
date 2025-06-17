@@ -23,7 +23,7 @@ export const LanguageProvider = ({ children }) => {
       // Check if there's a saved language in AsyncStorage
       const userData = await getUserData();
       setUser(userData);
-      console.log("userData.data.language_pref", userData);
+      // console.log("userData.data.language_pref", userData);
       
       const prefLang = userData?.data?.language_pref?.toLowerCase();
       let langToLoad = await AsyncStorage.getItem('languageSelect');

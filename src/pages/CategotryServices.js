@@ -8,16 +8,16 @@ import { useForm } from 'react-hook-form';
 
 function CategoryServices({ navigation, route }) {
     const serviceData = route.params?.serviceData || {};
-    console.log("serviceData:", serviceData);
+    // console.log("serviceData:", serviceData);
     const categoryId = serviceData.category_id;
     const [categoryName, setCategoryName] = useState(serviceData.category_name || 'Unknown Category');
-    console.log("categoryId:", categoryId);
+    // console.log("categoryId:", categoryId);
     const { languageTexts, user } = useLanguage();
 
     const [loginUser, setLoginUser] = useState([]);
-    console.log("loginUser:", loginUser);
+    // console.log("loginUser:", loginUser);
 
-    console.log("user:", user.data.role.name, user.data.role.name == "ADMIN" || user.data.role.name == "STAFF");
+    // console.log("user:", user.data.role.name, user.data.role.name == "ADMIN" || user.data.role.name == "STAFF");
 
     useEffect(() => {
         // const staffAdmin = user.data.role.name == "ADMIN" || user.data.role.name == "STAFF";
@@ -27,7 +27,7 @@ function CategoryServices({ navigation, route }) {
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    console.log("services:", services);
+    // console.log("services:", services);
 
     const { control, handleSubmit } = useForm({
         defaultValues: {
@@ -41,14 +41,14 @@ function CategoryServices({ navigation, route }) {
             setLoading(true);
             setError(null);
             try {
-                console.log("loginUser: api :", loginUser);
+                // console.log("loginUser: api :", loginUser);
 
                 // const data = await getServiceMyRequest(categoryId);
                 const data = await getServiceRequests(user?.data?.role.name.toUpperCase(), categoryId, 0, 0);
 
                 // loginUser
 
-                console.log("data: ------------- ", data);
+                // console.log("data: ------------- ", data);
                 setServices(data?.data || []);
                 if (!serviceData.category_name && data?.data?.length > 0) {
                     setCategoryName(data.data[0].category.name || 'Unknown Category');
@@ -243,6 +243,11 @@ const styles = StyleSheet.create({
     loadingContainer: {
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    loadingText: {
+        fontSize: 16,
+        color: '#FFF',
+        marginTop: 10,
     },
     scrollContainer: {
         flexGrow: 1,
