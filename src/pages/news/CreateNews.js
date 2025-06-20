@@ -211,7 +211,7 @@ function CreateNews({ navigation, route }) {
                 </View>
                 <View style={styles.formContainer}>
                     <Text style={styles.label}>
-                        {languageTexts?.news?.form?.title || 'Title'}
+                        {languageTexts?.news?.form?.title || 'Title'} <Text style={[{ color: 'red' }]}>*</Text>
                     </Text>
                     <Controller
                         control={control}
@@ -243,7 +243,7 @@ function CreateNews({ navigation, route }) {
                     )}
 
                     <Text style={styles.label}>
-                        {languageTexts?.news?.form?.description || 'Description'}
+                        {languageTexts?.news?.form?.description || 'Description'} <Text style={[{ color: 'red' }]}>*</Text>
                     </Text>
                     <Controller
                         control={control}

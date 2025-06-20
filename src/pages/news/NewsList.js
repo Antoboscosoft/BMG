@@ -168,8 +168,80 @@ function NewsList({ navigation }) {
                                 ? <HTML
                                     source={{ html: item.description || '<p>No description available</p>' }}
                                     contentWidth={width - 60}
-                                    maxLines={3}
-                                    textSelectable={false}
+                                    tagsStyles={{
+                                        // Basic text styling
+                                        p: {
+                                            fontSize: 14,
+                                            color: '#555',
+                                            lineHeight: 20,
+                                            marginTop: 5,
+                                            marginBottom: 5,
+                                        },
+                                        // Headers
+                                        h1: { fontSize: 24, fontWeight: 'bold', marginVertical: 10 },
+                                        h2: { fontSize: 22, fontWeight: 'bold', marginVertical: 9 },
+                                        h3: { fontSize: 20, fontWeight: 'bold', marginVertical: 8 },
+                                        h4: { fontSize: 18, fontWeight: 'bold', marginVertical: 7 },
+                                        h5: { fontSize: 16, fontWeight: 'bold', marginVertical: 6 },
+                                        h6: { fontSize: 14, fontWeight: 'bold', marginVertical: 5 },
+
+                                        // Text formatting
+                                        strong: { fontWeight: 'bold' },
+                                        b: { fontWeight: 'bold' },
+                                        em: { fontStyle: 'italic' },
+                                        i: { fontStyle: 'italic' },
+                                        u: { textDecorationLine: 'underline' },
+
+                                        // Lists
+                                        ul: { marginVertical: 5 },
+                                        ol: { marginVertical: 5 },
+                                        li: { marginLeft: 15 },
+
+                                        // Links
+                                        a: { color: '#0033A0', textDecorationLine: 'underline' },
+
+                                        // Blockquotes
+                                        blockquote: {
+                                            backgroundColor: '#f9f9f9',
+                                            borderLeftWidth: 5,
+                                            borderLeftColor: '#ccc',
+                                            paddingLeft: 10,
+                                            marginVertical: 10,
+                                        },
+
+                                        // Code
+                                        code: {
+                                            fontFamily: 'Courier',
+                                            backgroundColor: '#f5f5f5',
+                                            padding: 2,
+                                        },
+                                        pre: {
+                                            fontFamily: 'Courier',
+                                            backgroundColor: '#f5f5f5',
+                                            padding: 10,
+                                            borderRadius: 3,
+                                        },
+                                    }}
+                                    // Enable these if you need to handle class-based styling
+                                    // classesStyles={{
+                                    //     'some-class-name': { color: 'red' }
+                                    // }}
+                                    // Enable if you need to handle IDs
+                                    // idsStyles={{
+                                    //     'some-id': { color: 'green' }
+                                    // }}
+                                    // Optional: Base style for all text
+                                    baseStyle={{
+                                        fontSize: 14,
+                                        color: '#555',
+                                        lineHeight: 20,
+                                    }}
+                                    // Limit the number of lines if needed
+                                    // numberOfLines={3}
+                                    // Allow text selection if needed
+                                    // textSelectable={true}
+                                    // maxLines={3}
+                                    // textSelectable={false}
                                 />
                                 : languageTexts?.news?.noDescription || 'No description available'
                             }

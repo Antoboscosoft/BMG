@@ -92,7 +92,7 @@ function CreateService({ navigation, route }) {
                     </View>
 
                     <Text style={styles.label}>
-                        {languageTexts?.createService?.description || 'Description:'}
+                        {languageTexts?.createService?.description || 'Description:'} <Text style={[{ color: 'red' }]}>*</Text>
                     </Text>
                     <TextInput
                         style={[styles.input, error ? styles.inputError : null, { height: 100 }]}

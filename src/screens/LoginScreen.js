@@ -241,7 +241,7 @@ function LoginScreen({ navigation }) {
         text2: `OTP has been sent to +${callingCode} ${mobile}`,
       });
       setError("");
-      setMobile(""); // Store mobile number for later use
+      // setMobile(""); // Store mobile number for later use
       // Toast.show({
       //   type: "info",
       //   text1: "Your OTP (for testing)",
