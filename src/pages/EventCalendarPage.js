@@ -237,6 +237,12 @@ function EventCalendarPage({ navigation }) {
         );
     };
 
+    const isCurrentOrFutureEvent = (event) => {
+        const now = moment();
+        const eventEndDate = moment(event.endDate);
+        return eventEndDate.isSameOrAfter(now, 'day');
+    };
+
     return (
         <LinearGradient colors={['#2753b2', '#e6e9f0']} style={styles.container}>
             <Animated.View style={[styles.innerContainer, { opacity: fadeAnim }]}>
@@ -352,27 +358,29 @@ function EventCalendarPage({ navigation }) {
                                                 />
                                             </View>
                                         </View>
-                                        <View style={styles.buttonContainer}>
-                                            {event.registered === null ? (
-                                                <TouchableOpacity
-                                                    style={styles.registerButton}
-                                                    onPress={() => handleRegister(event)}
-                                                >
-                                                    <Text style={styles.registerButtonText}>
-                                                        {languageTexts?.eventCalendar?.register || 'Register'}
-                                                    </Text>
-                                                </TouchableOpacity>
-                                            ) : (
-                                                <TouchableOpacity
-                                                    style={styles.registeredButton}
-                                                    onPress={() => handleRegistered(event)}
-                                                >
-                                                    <Text style={styles.registeredButtonText}>
-                                                        {languageTexts?.eventCalendar?.registered || 'Registered'}
-                                                    </Text>
-                                                </TouchableOpacity>
-                                            )}
-                                        </View>
+                                        {isCurrentOrFutureEvent(event) &&
+                                            <View style={styles.buttonContainer}>
+                                                {event.registered === null ? (
+                                                    <TouchableOpacity
+                                                        style={styles.registerButton}
+                                                        onPress={() => handleRegister(event)}
+                                                    >
+                                                        <Text style={styles.registerButtonText}>
+                                                            {languageTexts?.eventCalendar?.register || 'Register'}
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                ) : (
+                                                    <TouchableOpacity
+                                                        style={styles.registeredButton}
+                                                        onPress={() => handleRegistered(event)}
+                                                    >
+                                                        <Text style={styles.registeredButtonText}>
+                                                            {languageTexts?.eventCalendar?.registered || 'Registered'}
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                )}
+                                            </View>
+                                        }
                                     </View>
                                 </View>
                             ))
@@ -411,14 +419,14 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         paddingHorizontal: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 8,
+        borderRadius: 80,
         zIndex: 1,
     },
     createButton: {
         paddingVertical: 6,
         paddingHorizontal: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 8,
+        borderRadius: 80,
         zIndex: 1,
     },
     backButtonText: {

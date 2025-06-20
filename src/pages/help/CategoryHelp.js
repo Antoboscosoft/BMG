@@ -195,7 +195,7 @@ function CategoryHelp({ route, navigation }) {
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={renderRequestItem}
                 contentContainerStyle={styles.listContent}
-                ListEmptyComponent={<Text style={styles.emptyText}>{"No help requests found for this category."}</Text>}
+                ListEmptyComponent={<Text style={styles.emptyText}>{languageTexts?.categoryHelp?.emptyText ||"No help requests found for this category."}</Text>}
             />
             <Modal visible={statusModalVisible} transparent animationType="slide">
                 <View style={styles.modalContainer}>

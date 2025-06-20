@@ -651,10 +651,10 @@ console.log("nativeStates",nativeStates);
         <KeyboardAvoidingView
             style={{ flex: 1 }}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : -50}
         >
             <LinearGradient colors={['#5e3b15', '#b06a2c']} style={styles.background}>
-                <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
                     <View style={styles.headerContainer}>
                         <TouchableOpacity style={styles.backButton} onPress={() => goBack()}>
                             <Icon name="arrow-back" size={24} color="#FFF" />
@@ -1163,7 +1163,7 @@ console.log("nativeStates",nativeStates);
 
 const styles = StyleSheet.create({
     background: { flex: 1, width, height },
-    scrollContainer: { flexGrow: 1 },
+    scrollContainer: { flexGrow: 1, paddingBottom: 20 },
     headerContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -1176,7 +1176,7 @@ const styles = StyleSheet.create({
     backButton: {
         padding: 10,
         backgroundColor: 'rgba(255, 242, 224, 0.2)',
-        borderRadius: 8,
+        borderRadius: 80,
     },
     headerTitle: {
         fontSize: 20,

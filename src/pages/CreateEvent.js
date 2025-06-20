@@ -187,7 +187,7 @@ function CreateEvent({ navigation, route }) {
                 </View>
 
                 <View style={styles.contentContainer}>
-                    <Text style={styles.label}>{languageTexts?.createEvent?.title || 'Title'}</Text>
+                    <Text style={styles.label}>{languageTexts?.createEvent?.title || 'Title'} <Text style={{ color: 'red' }}>*</Text></Text>
                     <Controller
                         control={control}
                         name="title"
@@ -204,7 +204,7 @@ function CreateEvent({ navigation, route }) {
                     />
                     {errors.title && <Text style={styles.errorText}>{errors.title.message}</Text>}
 
-                    <Text style={styles.label}>{languageTexts?.createEvent?.description || 'Description'}</Text>
+                    <Text style={styles.label}>{languageTexts?.createEvent?.description || 'Description'} <Text style={{ color: 'red' }}>*</Text></Text>
                     <Controller
                         control={control}
                         name="description"
@@ -340,7 +340,7 @@ function CreateEvent({ navigation, route }) {
                         display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                     />
 
-                    <Text style={styles.label}>{languageTexts?.createEvent?.location || 'Location'}</Text>
+                    <Text style={styles.label}>{languageTexts?.createEvent?.location || 'Location'} <Text style={{ color: 'red' }}>*</Text></Text>
                     <Controller
                         control={control}
                         name="location"
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
         left: 20,
         padding: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 8,
+        borderRadius: 80,
         zIndex: 1,
     },
     backButtonText: {

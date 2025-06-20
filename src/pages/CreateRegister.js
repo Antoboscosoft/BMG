@@ -224,7 +224,8 @@ function CreateRegister({ navigation, route }) {
                     style={styles.backButton}
                     onPress={() => navigation.navigate('EventCalendar')}
                 >
-                    <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text>
+                    <Icon name="arrow-back" size={24} color="#FFF" />
+                    {/* <Text style={styles.backButtonText}>{languageTexts?.common?.back || '< Back'}</Text> */}
                 </TouchableOpacity>
 
                 <View style={styles.header}>
@@ -547,7 +548,7 @@ const styles = StyleSheet.create({
         left: 20,
         padding: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 8,
+        borderRadius: 80,
         zIndex: 1,
     },
     backButtonText: {

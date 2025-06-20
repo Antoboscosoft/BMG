@@ -241,6 +241,7 @@ function LoginScreen({ navigation }) {
         text2: `OTP has been sent to +${callingCode} ${mobile}`,
       });
       setError("");
+      setMobile(""); // Store mobile number for later use
       // Toast.show({
       //   type: "info",
       //   text1: "Your OTP (for testing)",
@@ -292,7 +293,7 @@ function LoginScreen({ navigation }) {
         await setAuthToken(response.access_token);
         Toast.show({
           type: "success",
-          position: "bottom",
+          position: "top",
           text1: "Login Successful",
           text2: "Welcome to the Dashboard!",
           visibilityTime: 5000,
@@ -351,7 +352,7 @@ function LoginScreen({ navigation }) {
         await setAuthToken(response.access_token);
         Toast.show({
           type: "success",
-          position: "bottom",
+          position: "top",
           text1: "Login Successful",
           text2: "Welcome Staff!",
           visibilityTime: 5000,
@@ -726,7 +727,8 @@ function LoginScreen({ navigation }) {
                 style={styles.backButton}
                 onPress={() => navigateGoBack()}
               >
-                <Text style={styles.backButtonText}>{"< Back"}</Text>
+                {/* <Icon name="arrow-left" size={24} color="#FFF2E0" /> */}
+                <Text style={styles.backButtonText}>{"Back"}</Text>
                 {/* <BackIcon name="arrow-back-ios" size={24} color="#ffffff" /> */}
               </TouchableOpacity>
               {/* <Text style={styles.title}>MIGRANT WORKERS</Text> */}

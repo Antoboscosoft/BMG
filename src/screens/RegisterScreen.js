@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, 
-    ImageBackground, ActivityIndicator, Alert, Image, PermissionsAndroid, Linking, Modal, FlatList } from 'react-native';
+import {
+    View, Text, TextInput, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity,
+    ImageBackground, ActivityIndicator, Alert, Image, PermissionsAndroid, Linking, Modal, FlatList,
+    Keyboard
+} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -110,14 +113,17 @@ const SearchableDropdown = ({
                                         item.id === selectedValue && styles.selectedItem,
                                     ]}
                                     onPress={() => {
+                                        Keyboard.dismiss();
+                                        setTimeout(() => { 
                                         onSelect(item.id);
                                         setModalVisible(false);
                                         setSearchQuery('');
                                         validateField(item.id);
+                                        }, 100);
                                     }}
                                     activeOpacity={0.7}
                                 >
-                                    <Text style={styles.modalItemText}>{item.name}</Text>
+                                    <Text style={[styles.modalItemText, item.id === selectedValue && styles.selectedItemText]}>{item.name}</Text>
                                     {item.id === selectedValue && (
                                         <Icon name="check" size={18} color="#007AFF" style={styles.tickIcon} />
                                     )}
@@ -315,6 +321,9 @@ const RegisterScreen = ({ navigation, route }) => {
     const [countries, setCountries] = useState([]);
     const [states, setStates] = useState([]);
     const [districts, setDistricts] = useState([]);
+    // Add new state variables for native address
+    const [nativeStates, setNativeStates] = useState([]);
+    const [nativeDistricts, setNativeDistricts] = useState([]);
     const [jobTypes, setJobTypes] = useState([]);
     const [skills, setSkills] = useState([]); // State for skills
 
@@ -539,15 +548,15 @@ const RegisterScreen = ({ navigation, route }) => {
 
             // Append profile photo (mandatory)
             // Ensure photo exists before appending
-        if (form.photo) {
-            fm.append("profile", {
-                uri: form.photo,
-                type: 'image/jpeg',
-                name: form.photo.split('/').pop() || 'profile.jpg',
-            })
-        } else {
-            throw new Error("Profile photo is required");
-        }
+            if (form.photo) {
+                fm.append("profile", {
+                    uri: form.photo,
+                    type: 'image/jpeg',
+                    name: form.photo.split('/').pop() || 'profile.jpg',
+                })
+            } else {
+                throw new Error("Profile photo is required");
+            }
             if (form.identity) {
                 fm.append("identity", {
                     uri: form.identity,
@@ -556,52 +565,52 @@ const RegisterScreen = ({ navigation, route }) => {
                 });
             }
 
-        // Add retry logic
-        let retryCount = 0;
-        const maxRetries = 2;
-        let lastError = null;
+            // Add retry logic
+            let retryCount = 0;
+            const maxRetries = 2;
+            let lastError = null;
             // return;
-        while (retryCount < maxRetries) {
-            try {
-                const response = await registerUser(fm);
-                if (response.status || response.success === true) {
-                    Toast.show('Account created successfully!', Toast.LONG);
-                    setTimeout(() => handleBack(), 1000);
-                    return; // Success - exit function
+            while (retryCount < maxRetries) {
+                try {
+                    const response = await registerUser(fm);
+                    if (response.status || response.success === true) {
+                        Toast.show('Account created successfully!', Toast.LONG);
+                        setTimeout(() => handleBack(), 1000);
+                        return; // Success - exit function
+                    }
+                    lastError = response.details || 'Registration failed';
+                } catch (error) {
+                    lastError = error;
+                    console.error(`Attempt ${retryCount + 1} failed:`, error);
+
+                    // If it's a network error, wait a bit before retrying
+                    if (error.isNetworkError) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    } else {
+                        break; // Non-network error, don't retry
+                    }
                 }
-                lastError = response.details || 'Registration failed';
-            } catch (error) {
-                lastError = error;
-                console.error(`Attempt ${retryCount + 1} failed:`, error);
-                
-                // If it's a network error, wait a bit before retrying
-                if (error.isNetworkError) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                } else {
-                    break; // Non-network error, don't retry
-                }
+                retryCount++;
             }
-            retryCount++;
-        }
 
-        // If we got here, all attempts failed
-        throw lastError;
+            // If we got here, all attempts failed
+            throw lastError;
 
-    } catch (error) {
-        console.error("Final Registration Error:", error);
-        let errorMsg = 'Registration failed. Please try again.';
-        
-        if (typeof error === 'string') {
-            errorMsg = error;
-        } else if (error.message) {
-            errorMsg = error.message;
+        } catch (error) {
+            console.error("Final Registration Error:", error);
+            let errorMsg = 'Registration failed. Please try again.';
+
+            if (typeof error === 'string') {
+                errorMsg = error;
+            } else if (error.message) {
+                errorMsg = error.message;
+            }
+
+            Toast.show(errorMsg, Toast.LONG);
+        } finally {
+            setLoading(false);
         }
-        
-        Toast.show(errorMsg, Toast.LONG);
-    } finally {
-        setLoading(false);
-    }
-};
+    };
 
     // Camera function for profile photo
     const takePhoto = async () => {
@@ -658,7 +667,7 @@ const RegisterScreen = ({ navigation, route }) => {
             try {
                 const response = await getCountries();
                 setCountries(response.data || []);
-                const countryId = response.data.find(name => name.name === 'India')?.id || '';  
+                const countryId = response.data.find(name => name.name === 'India')?.id || '';
                 setForm(prev => ({ ...prev, currentCountryId: countryId }));
             } catch (error) {
                 console.error("Error fetching countries:", error);
@@ -735,6 +744,60 @@ const RegisterScreen = ({ navigation, route }) => {
         };
         fetchDistricts();
     }, [form.currentStateId]);
+
+    // Fetch native states when native country changes
+    useEffect(() => {
+        const fetchNativeStates = async () => {
+            if (form.nativeCountryId) {
+                setLoadingStates(true); // Reuse loadingStates for simplicity
+                setForm(prev => ({ ...prev, nativeStateId: '', nativeDistrictId: '' }));
+                setNativeDistricts([]); // Clear districts when country changes
+                try {
+                    const response = await getStates(form.nativeCountryId);
+                    setNativeStates(response.data || []);
+                } catch (error) {
+                    console.error("Error fetching native states:", error);
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Error',
+                        text2: 'Failed to load native states',
+                    });
+                } finally {
+                    setLoadingStates(false);
+                }
+            } else {
+                setNativeStates([]);
+                setNativeDistricts([]);
+            }
+        };
+        fetchNativeStates();
+    }, [form.nativeCountryId]);
+
+    // Fetch native districts when native state changes
+    useEffect(() => {
+        const fetchNativeDistricts = async () => {
+            if (form.nativeStateId) {
+                setLoadingDistricts(true); // Reuse loadingDistricts for simplicity
+                setForm(prev => ({ ...prev, nativeDistrictId: '' }));
+                try {
+                    const response = await getDistricts(form.nativeStateId);
+                    setNativeDistricts(response.data || []);
+                } catch (error) {
+                    console.error("Error fetching native districts:", error);
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Error',
+                        text2: 'Failed to load native districts',
+                    });
+                } finally {
+                    setLoadingDistricts(false);
+                }
+            } else {
+                setNativeDistricts([]);
+            }
+        };
+        fetchNativeDistricts();
+    }, [form.nativeStateId]);
 
     // Fetch job types: 
     useEffect(() => {
@@ -1321,7 +1384,7 @@ const RegisterScreen = ({ navigation, route }) => {
                                 maximumDate={new Date()}
                             />
                         )}
-                        
+
                         {/* Aadhaar Number */}
                         <View style={styles.inputContainer}>
                             <Text style={styles.label}>Aadhaar Number (Eshram & Abha Card)</Text>
@@ -1432,7 +1495,7 @@ const RegisterScreen = ({ navigation, route }) => {
                         <SearchableDropdown
                             label="Native State"
                             placeholder={form.nativeCountryId ? 'Select Native State' : 'Select Native Country first'}
-                            data={states}
+                            data={nativeStates}
                             selectedValue={form.nativeStateId}
                             onSelect={(value) => handleChange('nativeStateId', value)}
                             error={touched.nativeStateId && errors.nativeStateId}
@@ -1446,7 +1509,7 @@ const RegisterScreen = ({ navigation, route }) => {
                         <SearchableDropdown
                             label="Native District"
                             placeholder={form.nativeStateId ? 'Select Native District' : 'Select Native State first'}
-                            data={districts}
+                            data={nativeDistricts}
                             selectedValue={form.nativeDistrictId}
                             onSelect={(value) => handleChange('nativeDistrictId', value)}
                             error={touched.nativeDistrictId && errors.nativeDistrictId}
@@ -1496,6 +1559,8 @@ const RegisterScreen = ({ navigation, route }) => {
                                     selectedValue={form.languagePref}
                                     onValueChange={(value) => handleChange('languagePref', value)}
                                     style={styles.picker}
+                                    itemStyle={{ color: form.languagePref === 'en' ? '#2753b2' : '#666', }}
+                                    mode="dropdown"
                                 >
                                     <Picker.Item label="English" value="en" />
                                     <Picker.Item label="Hindi" value="hi" />
@@ -1518,13 +1583,13 @@ const RegisterScreen = ({ navigation, route }) => {
                                 <Text style={styles.buttonText}>Register</Text>
                             )}
                         </TouchableOpacity>
-{ !showContent &&
-                        <Text style={styles.registerText}>
-                            Already have an account?{' '}
-                            <Text onPress={() => navigation.navigate('Login')} style={styles.registerBold}>
-                                Login
-                            </Text>
-                        </Text>}
+                        {!showContent &&
+                            <Text style={styles.registerText}>
+                                Already have an account?{' '}
+                                <Text onPress={() => navigation.navigate('Login')} style={styles.registerBold}>
+                                    Login
+                                </Text>
+                            </Text>}
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -1842,6 +1907,12 @@ const styles = StyleSheet.create({
     },
     selectedItem: {
         backgroundColor: '#E6F0FF',
+        borderLeftWidth: 3,
+        borderLeftColor: '#007AFF',
+    },
+    selectedItemText: {
+        color: '#007AFF',
+        fontWeight: '600',
     },
     modalItemText: {
         fontSize: 16,
