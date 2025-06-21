@@ -21,7 +21,7 @@ export const checkAppVersion = async (appUpdate, setAppUpdate) => {
   }
 };
 
-export const appVersion = 'V1.12'
+export const appVersion = 'V1.13';
 
 
 export const Loader = ({ loading }) => {
