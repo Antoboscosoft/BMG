@@ -396,7 +396,10 @@
     "empty": "No migrants found",
     "error": "Failed to load migrants list",
     "Nomatchingmigrantsfound": "No matching migrants found",
-    "searchMigrants": "Search Migrants"
+    "searchMigrants": "Search Migrants",
+    "searching": "Searching...",
+    "created_on": "Created On",
+    "created_by": "Created By"
   },
   "news": {
     "title": "Latest News",

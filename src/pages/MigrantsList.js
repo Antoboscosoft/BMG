@@ -36,6 +36,7 @@ function MigrantsList({ navigation, route }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [searchLoading, setSearchLoading] = useState(false); // New state for search loading
 
     // search input show:::
     const [showSearchInput, setShowSearchInput] = useState(false);
@@ -106,7 +107,7 @@ function MigrantsList({ navigation, route }) {
     }, [isFocused]);
 
     const handleLoadMore = () => {
-        if (!loadingMore && hasMore) {
+        if (!loadingMore && hasMore && !isSearching) {
             setLoadingMore(true);
             fetchMigrants();
         }
@@ -127,6 +128,7 @@ function MigrantsList({ navigation, route }) {
         setSearchQuery(query);
         if (query.length > 0) {
             setIsSearching(true);
+            setSearchLoading(true); // Set search loading state
             try {
                 const response = await getMigrantsList(0, limit, query); // Modify your API to accept search param
                 setSearchResults(response.data || []);
@@ -137,10 +139,14 @@ function MigrantsList({ navigation, route }) {
                     text1: "Search Error",
                     text2: "Failed to perform search",
                 });
+                setSearchResults([]);
+            } finally {
+                setSearchLoading(false); // Reset search loading state
             }
         } else {
             setIsSearching(false);
             setSearchResults([]);
+            setSearchLoading(false); // Reset search loading state
         }
     };
 
@@ -259,21 +265,20 @@ function MigrantsList({ navigation, route }) {
 
 
                 </View>
-                <View style={styles.userInfoRow}>
+                {/* <View style={styles.userInfoRow}>
                     <Icon name="calendar" size={20} color="#ffffff" />
                     <Text style={styles.userInfoText}>
-                        {/* {`Created on: ${new Date(item.created_on).toLocaleDateString()}` || */}
-                        {`${new Date(item.created_on).toLocaleDateString()}` ||
-                            "No date"}
+                        {`Created on: ${new Date(item.created_on).toLocaleDateString()}` ||  "No date"}
+                        {`${new Date(item.created_on).toLocaleDateString()}` || "No date"}
                     </Text>
-                </View>
-                {item.creator && <View style={styles.userInfoRow}>
+                </View> */}
+                {/* {item.creator && <View style={styles.userInfoRow}>
                     <Icon name="account-circle" size={20} color="#ffffff" />
                     <Text style={styles.userInfoText}>
-                        {/* {`By: ${item.creator?.name || "No creator"}`} */}
+                        {`By: ${item.creator?.name || "No creator"}`}
                         {`${item.creator?.name || "No creator"}`}
                     </Text>
-                </View>}
+                </View>} */}
             </View>
             <TouchableOpacity
                 style={styles.actionButton}
@@ -376,7 +381,17 @@ function MigrantsList({ navigation, route }) {
                 />
             )}
 
-            {displayData.length === 0 ? (
+            {searchLoading && (
+                <View style={styles.searchLoadingContainer}>
+                    <ActivityIndicator size="small" color="#FFF" />
+                    <Text style={styles.searchLoadingText}>
+                        {languageTexts?.migrantsList?.searching || "Searching..."}
+                    </Text>
+                </View>
+            )}
+
+
+            {!searchLoading && displayData.length === 0 ? (
                 <View style={styles.emptyContainer}>
                     <Text style={styles.emptyText}>
                         {isSearching
@@ -481,7 +496,16 @@ const styles = StyleSheet.create({
     //     color: '#FFF',
     //     fontSize: 16,
     // },
-
+ searchLoadingContainer: {
+        padding: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'row',
+    },
+    searchLoadingText: {
+        color: '#FFF',
+        marginLeft: 10,
+    },
     // design search:
     searchInputContainer: {
         flex: 1,

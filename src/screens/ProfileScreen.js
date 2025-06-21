@@ -57,7 +57,9 @@ function ProfileScreen({ navigation, route }) {
         confirmPassword: false
     });
     const [changePasswordError, setChangePasswordError] = useState('');
-
+console.log("route.params: >>> ", passedUserData, );
+    const createdOn = passedUserData.created_on;
+    const createdBy = passedUserData?.creator?.name || "-";
     const {
         control,
         handleSubmit,
@@ -308,6 +310,19 @@ function ProfileScreen({ navigation, route }) {
                                             userData?.language_pref === 'kn' ? 'Kannada' : '-'}
                             </Text>
                         </View>
+
+                        {/* created on */}
+                        <View style={styles.row}>   
+                            <Text style={styles.label}>{languageTexts?.migrantsList?.created_on || 'Created On'}</Text>
+                            <Text style={styles.value}>{formatDate(createdOn) || '-'}</Text>
+                        </View>
+
+                        {/* created by */}
+                        <View style={styles.row}>
+                            <Text style={styles.label}>{languageTexts?.migrantsList?.created_by || 'Created By'}</Text>
+                            <Text style={styles.value}>{createdBy || '-'}</Text>
+                        </View>
+                        
                     </View>
                 </ScrollView>
 {/* {console.log("route.params.from: >>>1 ", route.params.from)}; */}
