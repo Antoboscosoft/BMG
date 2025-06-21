@@ -179,9 +179,10 @@ export const staffLogin = async (username, password) => {
 // auth.js
 export const registerUser = async (userData) => {
     console.log("registerUser called with userData:", userData);
+    const token = await AsyncStorage.getItem('accessToken');
     try {
         const response = await axiosInstance.post('user/register', userData,
-            { headers: { "Content-Type": "multipart/form-data" } }
+            { headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` } }
         );
         return response.data;
     } catch (error) {
@@ -233,11 +234,11 @@ export const getUserData = async (token) => {
 };
 
 // Function to get list of migrant users
-export const getMigrantsList = async () => {
+export const getMigrantsList = async (skip=0, limit=25, search="") => {
     try {
         const token = await AsyncStorage.getItem("accessToken");
         console.log("Making request to /user with token:", token);
-        const response = await axiosInstance.get("user");
+        const response = await axiosInstance.get(`user?skip=${skip}&limit=${limit}&search=${search}`);
         console.log("Get Migrants List Response:", response.data);
         return response.data;
     } catch (error) {

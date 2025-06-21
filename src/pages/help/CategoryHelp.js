@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         paddingHorizontal: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 8,
+        borderRadius: 80,
         zIndex: 1,
     },
     header: {
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         paddingHorizontal: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 8,
+        borderRadius: 80,
         zIndex: 1,
     },
     categoryNameText: {

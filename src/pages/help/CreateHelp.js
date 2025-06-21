@@ -66,7 +66,7 @@ function CreateHelp({ route, navigation }) {
                     style={styles.backButton}
                     onPress={() => navigation.navigate('CategoryHelp', { category, userId })}
                 >
-                    <Icon name="arrow-back-ios" size={24} color="#FFF" />
+                    <Icon name="arrow-back" size={24} color="#FFF" />
                 </TouchableOpacity>
                 <Text style={styles.titleText}>
                     {languageTexts?.helpRequest?.modalTitle || 'New Help Request'}
@@ -82,7 +82,7 @@ function CreateHelp({ route, navigation }) {
                     <Text style={styles.categoryText}>{category?.name}</Text>
 
                     <Text style={styles.label}>
-                        {languageTexts?.helpRequest?.description || 'Description'}
+                        {languageTexts?.helpRequest?.description || 'Description'} <Text style={{ color: 'red' }}>*</Text>
                     </Text>
                     <TextInput
                         style={styles.multilineInput}
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         paddingHorizontal: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 8,
+        borderRadius: 80,
         zIndex: 1,
     },
     titleText: {

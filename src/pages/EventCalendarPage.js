@@ -58,16 +58,31 @@ function EventCalendarPage({ navigation }) {
         }).start();
     }, [fadeAnim]);
 
-    const markedDates = Object.keys(events).reduce((acc, date) => {
-        acc[date] = { marked: true, dotColor: '#2753b2' };
-        return acc;
-    }, {});
+    // Selected date alone:
+    // const markedDates = Object.keys(events).reduce((acc, date) => {
+    //     acc[date] = { marked: true, dotColor: '#2753b2' };
+    //     return acc;
+    // }, {});
+    // if (selectedDate) {
+    //     if (!markedDates[selectedDate]) {
+    //         markedDates[selectedDate] = {};
+    //     }
+    //     markedDates[selectedDate].selected = true;
+    //     markedDates[selectedDate].selectedColor = '#2753b2';
+    // }
+
+    // Selected date with all events:
+    const markedDates = {};
+    Object.keys(events).forEach(date => {
+        markedDates[date] = { marked: true, dotColor: '#2753b2' };
+    });
+
     if (selectedDate) {
-        if (!markedDates[selectedDate]) {
-            markedDates[selectedDate] = {};
-        }
-        markedDates[selectedDate].selected = true;
-        markedDates[selectedDate].selectedColor = '#2753b2';
+        markedDates[selectedDate] = {
+            ...markedDates[selectedDate],
+            selected: true,
+            selectedColor: '#2753b2'
+        };
     }
 
     useEffect(() => {
@@ -96,24 +111,43 @@ function EventCalendarPage({ navigation }) {
         try {
             const response = await getEvents();
             if (response.status && response.data) {
+                const eventsById = {}; // Store events by ID to avoid duplicates
                 const formattedEvents = {};
-                response.data.forEach(event => {
-                    const eventDate = event.start_datetime.split('T')[0];
-                    const formattedEvent = {
-                        id: event.id.toString(),
-                        title: event.title,
-                        description: event.description,
-                        location: event.location,
-                        startDate: event.start_datetime,
-                        endDate: event.end_datetime,
-                        registered: event.registered,
-                        eventData: event,
-                    };
+                const markedDates = {};
 
-                    if (!formattedEvents[eventDate]) {
-                        formattedEvents[eventDate] = [];
+                response.data.forEach(event => {
+                    if (eventsById[event.id]) return;
+                    eventsById[event.id] = true; // Mark as processed
+                    // const eventDate = event.start_datetime.split('T')[0];
+                    const startDate = moment(event.start_datetime);
+                    const endDate = moment(event.end_datetime);
+
+                    // Add the event to all dates in its range
+                    let currentDate = startDate.clone();
+                    while (currentDate.isSameOrBefore(endDate, 'day')) {
+                        const dateStr = currentDate.format('YYYY-MM-DD');
+
+                        const formattedEvent = {
+                            id: event.id.toString(),
+                            title: event.title,
+                            description: event.description,
+                            location: event.location,
+                            startDate: event.start_datetime,
+                            endDate: event.end_datetime,
+                            registered: event.registered,
+                            eventData: event,
+                        };
+
+                        if (!formattedEvents[dateStr]) {
+                            formattedEvents[dateStr] = [];
+                        }
+                        formattedEvents[dateStr].push(formattedEvent);
+
+                        // Mark the date in the calendar
+                        markedDates[dateStr] = { marked: true, dotColor: '#2753b2' };
+
+                        currentDate.add(1, 'day');
                     }
-                    formattedEvents[eventDate].push(formattedEvent);
                 });
 
                 setEvents(formattedEvents);
@@ -130,7 +164,29 @@ function EventCalendarPage({ navigation }) {
         fetchEvents();
     }, []);
 
-    const selectedEvents = events[selectedDate] || [];
+    // const selectedEvents = events[selectedDate] || [];
+
+    // const selectedEvents = Object.values(events)
+    // .flat()
+    // .filter(event => {
+    //     const eventStart = moment(event.startDate).startOf('day');
+    //     const eventEnd = moment(event.endDate).endOf('day');
+    //     const selected = moment(selectedDate);
+    //     return selected.isBetween(eventStart, eventEnd, null, '[]');
+    // });
+
+    const selectedEvents = Object.values(events)
+    .flat()
+    .filter((event, index, self) => 
+        index === self.findIndex(e => e.id === event.id) && 
+        moment(selectedDate).isBetween(
+            moment(event.startDate).startOf('day'), 
+            moment(event.endDate).endOf('day'), 
+            null, 
+            '[]'
+        )
+    );
+
 
     const formatDateRange = (start, end) => {
         const startMoment = moment(start);
@@ -138,6 +194,8 @@ function EventCalendarPage({ navigation }) {
 
         if (startMoment.isSame(endMoment, 'day')) {
             return `${startMoment.format('MMM D, YYYY')}, ${startMoment.format('h:mm A')} - ${endMoment.format('h:mm A')}`;
+        } else if (startMoment.isSame(endMoment, 'month')) {
+            return `${startMoment.format('MMM D')} - ${endMoment.format('D, YYYY')}`;
         } else {
             return `${startMoment.format('MMM D')} - ${endMoment.format('MMM D, YYYY')}`;
         }

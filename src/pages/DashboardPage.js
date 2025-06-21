@@ -510,10 +510,10 @@ function DashboardPage({ navigation, route }) {
                             <Text style={styles.modalTitle}>{ languageTexts?.dashboard?.logout || "Are you sure you want to logout?"}</Text>
                             <View style={styles.modalButtonRow}>
                                 <TouchableOpacity style={styles.modalButton} onPress={() => setShowLogoutModal(false)}>
-                                    <Text style={styles.modalButtonText}>Cancel</Text>
+                                    <Text style={styles.modalButtonText}>{languageTexts?.dashboard?.cancel || "Cancel"}</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity style={styles.modalButton1} onPress={handleLogout}>
-                                    <Text style={styles.modalButtonText}>Logout</Text>
+                                    <Text style={styles.modalButtonText}>{languageTexts?.menu?.logout || "Logout"}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
