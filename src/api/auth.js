@@ -205,6 +205,54 @@ export const changePassword0 = async (userData) => {
     }
 };
 
+// Add this helper function
+export const getAccessToken = async () => {
+  return await AsyncStorage.getItem('accessToken');
+};
+
+// send location data to backend
+export const sendUserLocation = async (locationData) => {
+  const token = await AsyncStorage.getItem('accessToken');
+    console.log('[📍 Sending Location]:', locationData, 'with token:', token);
+  const payload = {
+    latitude: String(locationData?.latitude),
+    longitude: String(locationData?.longitude),
+    date_time: locationData?.timestamp || new Date().toISOString(), // fallback
+  };
+
+  try {
+    const response = await axiosInstance.post('user/location', payload, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log('[📡 Location Sent]:', response?.data);
+    console.log("successfully sent location data to backend", response);
+    
+    return response?.data;
+  } catch (error) {
+    console.error('[❌ Location API Error]:', error);
+    throw error.response?.data || {
+      message: 'Location update failed',
+      code: error.code,
+      isNetworkError: !error.response,
+    };
+  }
+};
+
+// get user location history
+export const getLocationHistory = async (userId, skip = 0, limit = 25) => {
+    console.log('Fetching location history for user:', userId, 'skip:', skip, 'limit:', limit);
+    try {
+        const response = await axiosInstance.get(`user/location/${userId}?skip=${skip}&limit=${limit}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching location history:', error);
+        throw error;
+    }
+};
 
 export const changePassword = async (data) => {
     try {

@@ -388,6 +388,12 @@
         "image": "Failed to pick image"
       },
       "success": "Profile updated successfully!"
+    }, 
+    "locationView": {
+      "title": "Location History",
+      "ViewonGoogleMaps": "View on Google Maps",
+      "loading": "Loading location data...",
+      "noLocation": "No locations found"
     }
   },
   "migrantsList": {

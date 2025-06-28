@@ -2,7 +2,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SplashScreen from './src/screens/SplashScreen.js';
 import LoginScreen from './src/screens/LoginScreen.js';
-import React, { createContext, useState } from 'react'
+import React, { createContext, useEffect, useState } from 'react'
 import ProfileScreen from './src/screens/ProfileScreen.js';
 import DashboardPage from './src/pages/DashboardPage.js';
 import ServicesDirectory from './src/pages/ServicesDirectory.js';
@@ -20,7 +20,7 @@ import { LanguageProvider } from './src/language/commondir.js';
 import MigrantsList from './src/pages/MigrantsList.js';
 import ProfileView from './src/pages/UserProfileView.js';
 import NetworkStatus from './src/context/NetworkStatus.js';
-import { Text, View } from 'react-native';
+import { Alert, Linking, LogBox, Platform, Text, View } from 'react-native';
 import CreateEvent from './src/pages/CreateEvent.js';
 import NewsList from './src/pages/news/NewsList.js';
 import NewsDetail from './src/pages/news/NewsDetail.js';
@@ -37,6 +37,10 @@ import NotificationList from './src/pages/notifications/NotificationList.jsx';
 import NotificationView from './src/pages/notifications/NotificationView.jsx';
 import JobView from './src/pages/job/JobView.js';
 import ViewApplicants from './src/pages/job/ViewApplicants.js';
+import LocationViewScreen from './src/screens/LocationViewScreen.js';
+import LocationHistory from './src/screens/LocationHistory.js';
+import { checkIfLocationEnabled, getCurrentLocation, initBackgroundLocationTracking, requestLocationPermissions, requestLocationPermissions01 } from './src/services/LocationService.js';
+LogBox.ignoreAllLogs(); // just for testing crash
 
 
 // Custom Toast configuration
@@ -111,59 +115,159 @@ const toastConfig = {
   )
 };
 
+// React.useEffect(() => {
+//     initBackgroundLocationTracking();
+//   }, []);
+
 const Stack = createNativeStackNavigator();
 export const ContextProps = createContext(null);
 
 function App() {
   const [appUpdate, setAppUpdate] = useState(true);
+
+  // useEffect(() => {
+  //   const init = async () => {
+  //   const granted = await requestLocationPermissions();
+  //   if (granted) {
+  //     getCurrentLocation(); // fetch once
+  //     initBackgroundLocationTracking(); // enable background
+  //   }
+  // };
+  // init();
+  //   // initBackgroundLocationTracking();
+  // }, []);
+
+
+  useEffect(() => {
+    const init = async () => {
+      const granted = await requestLocationPermissions01();
+      console.log('[Location Permissions]', granted);
+
+      if (granted) {
+        const isLocationEnabled = await checkIfLocationEnabled();
+
+        if (!isLocationEnabled) {
+          Alert.alert(
+            'Turn On Location',
+            'Please enable location services to get your current location.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Open Settings',
+                onPress: () => {
+                  if (Platform.OS === 'android') {
+                    Linking.openSettings(); // or use IntentLauncher
+                  }
+                },
+              },
+            ]
+          );
+          return;
+        }
+        console.log('[✅ Permissions OK] Starting location tracking...');
+        await getCurrentLocation(); // fetch once
+        initBackgroundLocationTracking(); // enable background
+      }
+    };
+    init();
+  }, []);
+
+  // useEffect(() => {
+  //   const init = async () => {
+  //     const granted = await requestLocationPermissions();
+  //     if (granted) {
+  //       const isLocationEnabled = await checkIfLocationEnabled();
+  //       if (!isLocationEnabled) {
+  //         Alert.alert('Turn On Location', 'Please enable location services.');
+  //         return;
+  //       }
+  //       console.log('[✅ Permissions OK] Starting location tracking...');
+  //       await getCurrentLocation(); // One-time fetch
+  //       initBackgroundLocationTracking(); // Start background mode
+  //     }
+  //   };
+  //   init();
+  // }, []);
+
+  // useEffect(() => {
+  //   const setupLocation = async () => {
+  //     const granted = await requestLocationPermissions();
+  //     if (granted) {
+  //       initBackgroundLocationTracking();
+  //     }
+  //   };
+
+  //   setupLocation();
+  // }, []);
+
+
+  // Add a button for manual testing
+  const handleTriggerFetch = async () => {
+    try {
+      await triggerBackgroundFetch();
+      Toast.show({
+        type: 'success',
+        text1: 'Manual Fetch Triggered',
+        text2: 'Check logs or notifications for background task execution.',
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Manual Fetch Failed',
+        text2: error.message,
+      });
+    }
+  };
+
   return (
     <SafeAreaProvider>
-    <LanguageProvider>
-      <ContextProps.Provider value={{appUpdate, setAppUpdate}}>
-        <NavigationContainer ref={navigationRef}>
-          <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="Dashboard" component={DashboardPage} />
-            <Stack.Screen name="Splash" component={SplashScreen} />
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Register" component={RegisterScreen} />
-            <Stack.Screen name="Profile" component={ProfileScreen} />
-            <Stack.Screen name="ProfileEdit" component={ProfileEdit} />
-            <Stack.Screen name="ServicesDirectory" component={ServicesDirectory} />
-            <Stack.Screen name="CreateService" component={CreateService} />
-            <Stack.Screen name="CategoryServices" component={CategotryServices} />
+      <LanguageProvider>
+        <ContextProps.Provider value={{ appUpdate, setAppUpdate }}>
+          <NavigationContainer ref={navigationRef}>
+            <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="Dashboard" component={DashboardPage} />
+              <Stack.Screen name="Splash" component={SplashScreen} />
+              <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen name="Register" component={RegisterScreen} />
+              <Stack.Screen name="Profile" component={ProfileScreen} />
+              <Stack.Screen name="ProfileEdit" component={ProfileEdit} />
+              <Stack.Screen name="ServicesDirectory" component={ServicesDirectory} />
+              <Stack.Screen name="CreateService" component={CreateService} />
+              <Stack.Screen name="CategoryServices" component={CategotryServices} />
 
-            <Stack.Screen name="JobView" component={JobView} />
-            <Stack.Screen name="ViewApplicants" component={ViewApplicants} />
+              <Stack.Screen name="JobView" component={JobView} />
+              <Stack.Screen name="ViewApplicants" component={ViewApplicants} />
 
-            <Stack.Screen name="MultilingualSupport" component={MultilingualSupportPage} />
-            <Stack.Screen name="Notifications" component={NotificationList} />
-            <Stack.Screen name="NotificationView" component={NotificationView} />
+              <Stack.Screen name="MultilingualSupport" component={MultilingualSupportPage} />
+              <Stack.Screen name="Notifications" component={NotificationList} />
+              <Stack.Screen name="NotificationView" component={NotificationView} />
 
-            <Stack.Screen name="HelpRequest" component={HelpRequestPage} />
-            <Stack.Screen name="CategoryHelp" component={CategoryHelp} />
-            <Stack.Screen name="CreateHelp" component={CreateHelp} />
+              <Stack.Screen name="HelpRequest" component={HelpRequestPage} />
+              <Stack.Screen name="CategoryHelp" component={CategoryHelp} />
+              <Stack.Screen name="CreateHelp" component={CreateHelp} />
 
-            <Stack.Screen name="EventCalendar" component={EventCalendarPage} />
-            <Stack.Screen name="CreateRegister" component={CreateRegister} options={{ title: 'Create Register' }} />
+              <Stack.Screen name="EventCalendar" component={EventCalendarPage} />
+              <Stack.Screen name="CreateRegister" component={CreateRegister} options={{ title: 'Create Register' }} />
 
-            <Stack.Screen name="CreateEventPage" component={CreateEventPage} options={{ title: 'Create Event Page' }} />
+              <Stack.Screen name="CreateEventPage" component={CreateEventPage} options={{ title: 'Create Event Page' }} />
 
-            <Stack.Screen name="MigrantsList" component={MigrantsList} />
-            <Stack.Screen name="ProfileView" component={ProfileView} />
-            <Stack.Screen name="CreateEvent" component={CreateEvent} options={{ title: 'Create Event' }} />
-            <Stack.Screen name="NewsList" component={NewsList} options={{ title: 'News' }} />
-            <Stack.Screen name="NewsDetail" component={NewsDetail} options={{ title: 'News Detail' }} />
-            <Stack.Screen name="CreateNews" component={CreateNews} options={{ title: 'Create News' }} />
+              <Stack.Screen name="MigrantsList" component={MigrantsList} />
+              <Stack.Screen name="ProfileView" component={ProfileView} />
+              <Stack.Screen name="CreateEvent" component={CreateEvent} options={{ title: 'Create Event' }} />
+              <Stack.Screen name="NewsList" component={NewsList} options={{ title: 'News' }} />
+              <Stack.Screen name="NewsDetail" component={NewsDetail} options={{ title: 'News Detail' }} />
+              <Stack.Screen name="CreateNews" component={CreateNews} options={{ title: 'Create News' }} />
 
-            {/* <Stack.Screen name="WorkersList" component={WorkersScreen} options={{ title: 'Workers List' }} /> */}
-            <Stack.Screen name="ContactUs" component={ContactUs} options={{ title: 'Contact Us' }} />
+              {/* <Stack.Screen name="WorkersList" component={WorkersScreen} options={{ title: 'Workers List' }} /> */}
+              <Stack.Screen name="ContactUs" component={ContactUs} options={{ title: 'Contact Us' }} />
+              <Stack.Screen name="LocationHistory" component={LocationHistory} options={{ title: 'Location History' }} />
 
-          </Stack.Navigator>
-          {/* <Toast config={toastConfig} /> */}
-        </NavigationContainer>
-        <NetworkStatus />
-      </ContextProps.Provider>
-    </LanguageProvider>
+            </Stack.Navigator>
+            {/* <Toast config={toastConfig} /> */}
+          </NavigationContainer>
+          <NetworkStatus />
+        </ContextProps.Provider>
+      </LanguageProvider>
     </SafeAreaProvider>
   )
 }

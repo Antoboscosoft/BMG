@@ -114,6 +114,13 @@ android {
     }
 }
 
+repositories {
+    mavenLocal()
+    google()
+    mavenCentral()
+    maven { url "$rootDir/../node_modules/react-native-background-fetch/android/libs" }
+}
+
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
@@ -125,6 +132,7 @@ dependencies {
     }
      // Import the Firebase BoM
     implementation platform('com.google.firebase:firebase-bom:33.15.0')
+    implementation project(':react-native-geolocation-service')
 
 
     // TODO: Add the dependencies for Firebase products you want to use

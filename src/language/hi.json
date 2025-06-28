@@ -386,6 +386,12 @@
         "image": "छवि चुनने में विफल"
       },
       "success": "प्रोफाइल सफलतापूर्वक अपडेट हो गई!"
+    },
+    "locationView": {
+      "title": "स्थान इतिहास",
+      "ViewonGoogleMaps": "Google मानचित्र पर देखें",
+      "loading": "स्थान डेटा लोड हो रहा है...",
+      "noLocation": "कोई स्थान नहीं मिला"
     }
   },
   "migrantsList": {

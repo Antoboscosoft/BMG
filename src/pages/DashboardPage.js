@@ -20,7 +20,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getUserData, updateFirebaseToken } from '../api/auth';
+import { getAccessToken, getUserData, updateFirebaseToken } from '../api/auth';
 import { clearAuthToken } from '../api/axiosInstance';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
@@ -29,6 +29,7 @@ import { appVersion, checkAppVersion, getFirebaseToken, handleNotification } fro
 import { ContextProps } from '../../App';
 import notifee from '@notifee/react-native';
 import { messaging } from '../..';
+import { initBackgroundLocationTracking } from '../services/LocationService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -63,7 +64,7 @@ function DashboardPage({ navigation, route }) {
         try {
             let token = await getFirebaseToken();
             updateFirebaseToken(token).then((response) => {
-                console.log('Firebase token sent successfully:', response);
+                // console.log('Firebase token sent successfully:', response);
             }).catch((error) => {
                 console.error('Failed to send Firebase token:', error);
             })
@@ -153,7 +154,7 @@ function DashboardPage({ navigation, route }) {
             setShowLogoutModal(true);
         } else {
             // navigation.navigate(name);
-            navigation.navigate(name, {from: name, params: screen.params});
+            navigation.navigate(name, { from: name, params: screen.params });
             closeSidebar();
         }
     };
@@ -375,6 +376,50 @@ function DashboardPage({ navigation, route }) {
         }, 200);
     };
 
+
+    // Add this useEffect in your DashboardPage component
+    // useEffect(() => {
+    //     const setupLocationTracking = async () => {
+    //         try {
+    //             // const token = await AsyncStorage.getItem('accessToken');
+    //             const token = await getAccessToken();
+    //             if (token) {
+    //                 console.log('[Dashboard] Starting location tracking for user:', userData?.data?.id);
+    //                 await initBackgroundLocationTracking(token);
+    //             }
+    //         } catch (error) {
+    //             console.error('[Dashboard] Location tracking setup failed:', error);
+    //         }
+    //     };
+
+    //     if (userData) {
+    //         setupLocationTracking();
+    //     }
+
+    //     return () => {
+    //         // Cleanup if needed
+    //     };
+    // }, [userData]);
+
+
+    // Add this useEffect in your DashboardPage component
+    // useEffect(() => {
+    //     const setupLocationTracking = async () => {
+    //         try {
+    //             console.log('[Dashboard] Starting location tracking');
+    //             await initBackgroundLocationTracking();
+    //         } catch (error) {
+    //             console.error('[Dashboard] Location tracking setup failed:', error);
+    //         }
+    //     };
+
+    //     if (userData) {
+    //         setupLocationTracking();
+    //     }
+    // }, []);
+
+
+
     return (
         <View style={styles.wrapper} {...screenPanResponder.panHandlers}>
             <StatusBar
@@ -507,7 +552,7 @@ function DashboardPage({ navigation, route }) {
                 <View style={styles.modalOverlay}>
                     <Pressable onPress={() => setShowLogoutModal(false)}>
                         <View style={styles.modalContainer}>
-                            <Text style={styles.modalTitle}>{ languageTexts?.dashboard?.logout || "Are you sure you want to logout?"}</Text>
+                            <Text style={styles.modalTitle}>{languageTexts?.dashboard?.logout || "Are you sure you want to logout?"}</Text>
                             <View style={styles.modalButtonRow}>
                                 <TouchableOpacity style={styles.modalButton} onPress={() => setShowLogoutModal(false)}>
                                     <Text style={styles.modalButtonText}>{languageTexts?.dashboard?.cancel || "Cancel"}</Text>
@@ -533,7 +578,7 @@ function DashboardPage({ navigation, route }) {
                 >
                     <View style={[styles.modalOverlayExit, { padding: 24, borderRadius: 8, alignItems: 'center', minWidth: 280 }]}>
                         <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12, color: '#333' }}>
-                            { languageTexts?.dashboard?.closeApp || "Are you sure you want to close the app?"}
+                            {languageTexts?.dashboard?.closeApp || "Are you sure you want to close the app?"}
                         </Text>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
                             <TouchableOpacity
@@ -544,7 +589,7 @@ function DashboardPage({ navigation, route }) {
                                 }}
                                 onPress={() => setShowExitModal(false)}
                             >
-                                <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>{ languageTexts?.dashboard?.cancel || "Cancel"}</Text>
+                                <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>{languageTexts?.dashboard?.cancel || "Cancel"}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={{
@@ -554,7 +599,7 @@ function DashboardPage({ navigation, route }) {
                                 }}
                                 onPress={handleExitApp}
                             >
-                                <Text style={{ color: '#fff', fontWeight: 'bold' }}>{ languageTexts?.dashboard?.close || "Close App"}</Text>
+                                <Text style={{ color: '#fff', fontWeight: 'bold' }}>{languageTexts?.dashboard?.close || "Close App"}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

@@ -410,6 +410,12 @@
         "image": "ছবি নির্বাচন করতে ব্যর্থ"
       },
       "success": "প্রোফাইল সফলভাবে আপডেট হয়েছে!"
+    },
+    "locationView": {
+      "title": "অবস্থান ইতিহাস",
+      "ViewonGoogleMaps": "Google Maps এ দেখুন",
+      "loading": "অবস্থান ডেটা লোড হচ্ছে...",
+      "noLocation": "কোনও অবস্থান পাওয়া যায়নি"
     }
   },
   "migrantsList": {
