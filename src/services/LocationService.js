@@ -1,103 +1,432 @@
-// src/services/LocationService.js
-
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+// import Geolocation from 'react-native-geolocation-service';
+// import { PermissionsAndroid, Platform, Alert, Linking, NativeModules } from 'react-native';
 // import BackgroundFetch from 'react-native-background-fetch';
+// import NetInfo from '@react-native-community/netinfo';
+// import notifee, { AndroidImportance } from '@notifee/react-native';
+// import { sendUserLocation } from '../api/auth'; // Adjust path as needed
+
+// // Constants
+// const PENDING_LOCATIONS_KEY = 'pending_locations';
+// const LOCATION_STORAGE_KEY = 'last_location';
+// const FAILED_ATTEMPTS_KEY = 'fetch_failed_attempts';
+// const MIN_BACKEND_SAVE_INTERVAL = 10 * 60 * 1000; // 10 minutes
+// const BACKGROUND_FETCH_INTERVAL = 15; // 15 minutes
+// const LOCATION_TIMEOUT = 15000; // 15 seconds timeout
+
+// let isTrackingInitialized = false;
+// let netListener;
+
+// // Request Location Permissions
+// export const requestLocationPermissions = async () => {
+//   if (Platform.OS === 'android') {
+//     try {
+//       const permissions = [
+//         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+//         PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+//       ];
+//       if (Platform.Version >= 29) {
+//         permissions.push(PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION);
+//       }
+//       const granted = await PermissionsAndroid.requestMultiple(permissions);
+//       const allGranted =
+//         granted['android.permission.ACCESS_FINE_LOCATION'] === 'granted' &&
+//         granted['android.permission.ACCESS_COARSE_LOCATION'] === 'granted' &&
+//         (Platform.Version < 29 || granted['android.permission.ACCESS_BACKGROUND_LOCATION'] === 'granted');
+//       if (!allGranted) {
+//         console.warn('[📍] Some location permissions denied:', granted);
+//         Alert.alert(
+//           'Location Permission Denied',
+//           'Please enable all location permissions in Settings for background tracking to work.',
+//           [
+//             { text: 'Cancel', style: 'cancel' },
+//             { text: 'Open Settings', onPress: () => Linking.openSettings() },
+//           ]
+//         );
+//       }
+//       return allGranted;
+//     } catch (err) {
+//       console.error('[📍] Permission error:', err);
+//       return false;
+//     }
+//   }
+//   return true; // iOS permissions handled by Geolocation
+// };
+
+// // Check Battery Optimization (Android)
+// const checkBatteryOptimization = async () => {
+//   if (Platform.OS === 'android') {
+//     try {
+//       const PowerManager = NativeModules.PowerManager;
+//       if (PowerManager) {
+//         const isIgnoring = await PowerManager.isIgnoringBatteryOptimizations();
+//         if (!isIgnoring) {
+//           Alert.alert(
+//             'Battery Optimization',
+//             'For reliable background location tracking, please disable battery optimization for this app.',
+//             [
+//               { text: 'Later', style: 'cancel' },
+//               { text: 'Open Settings', onPress: () => PowerManager.openBatterySettings() },
+//             ]
+//           );
+//         }
+//       }
+//     } catch (error) {
+//       console.error('[📍] Battery optimization check error:', error);
+//     }
+//   }
+// };
+
+// // Start Foreground Service (Android)
+// const startForegroundService = async () => {
+//   if (Platform.OS === 'android') {
+//     try {
+//       await notifee.createChannel({
+//         id: 'location',
+//         name: 'Location Tracking',
+//         importance: AndroidImportance.HIGH,
+//       });
+//       await notifee.displayNotification({
+//         id: 'location-tracking',
+//         title: 'Location Tracking Active',
+//         body: 'App is tracking your location in the background.',
+//         android: {
+//           channelId: 'location',
+//           asForegroundService: true,
+//           ongoing: true,
+//           smallIcon: 'ic_launcher', // Ensure this exists in res/drawable
+//           pressAction: { id: 'default' },
+//         },
+//       });
+//     } catch (error) {
+//       console.error('[📍] Foreground service error:', error);
+//     }
+//   }
+// };
+
+// // Stop Foreground Service
+// const stopForegroundService = async () => {
+//   if (Platform.OS === 'android') {
+//     try {
+//       await notifee.stopForegroundService();
+//       await notifee.cancelNotification('location-tracking');
+//     } catch (error) {
+//       console.error('[📍] Stop foreground service error:', error);
+//     }
+//   }
+// };
+
+// // Get Current Location
+// export const getCurrentLocation = async (isBackground = false) => {
+//   return new Promise((resolve, reject) => {
+//     const timeout = isBackground ? 60000 : LOCATION_TIMEOUT;
+
+//     const watchId = Geolocation.getCurrentPosition(
+//       (position) => {
+//         const locationData = {
+//           latitude: position.coords.latitude,
+//           longitude: position.coords.longitude,
+//           timestamp: new Date().toISOString(),
+//         };
+//         console.log('[📍] Location captured:', locationData);
+//         Geolocation.clearWatch(watchId);
+//         resolve(locationData);
+//       },
+//       (error) => {
+//         console.error('[📍] Location error:', error);
+//         Geolocation.clearWatch(watchId);
+//         reject(error);
+//       },
+//       {
+//         enableHighAccuracy: true,
+//         timeout: timeout,
+//         maximumAge: 0,
+//         distanceFilter: 0,
+//         forceRequestLocation: Platform.OS === 'android',
+//         showLocationDialog: true,
+//       }
+//     );
+
+//     setTimeout(() => {
+//       Geolocation.clearWatch(watchId);
+//       reject(new Error('Location request timed out'));
+//     }, timeout + 1000);
+//   });
+// };
+
+// // Fetch with Retry
+// const fetchWithRetry = async (isBackground, retries = 3) => {
+//   for (let attempt = 1; attempt <= retries; attempt++) {
+//     try {
+//       return await getCurrentLocation(isBackground);
+//     } catch (error) {
+//       console.error(`[📍] Location fetch attempt ${attempt} failed:`, error);
+//       if (attempt === retries) throw error;
+//       await new Promise((resolve) => setTimeout(resolve, 2000));
+//     }
+//   }
+// };
+
+// // Store Pending Location
+// export const storePendingLocation = async (locationData) => {
+//   try {
+//     const existingLocations = await getPendingLocations();
+//     existingLocations.push(locationData);
+//     await AsyncStorage.setItem(PENDING_LOCATIONS_KEY, JSON.stringify(existingLocations));
+//     console.log('[📍] Stored pending location:', locationData);
+//     await storeLastLocation(locationData);
+//   } catch (error) {
+//     console.error('[📍] Store pending location error:', error);
+//   }
+// };
+
+// // Get Pending Locations
+// const getPendingLocations = async () => {
+//   try {
+//     const locations = await AsyncStorage.getItem(PENDING_LOCATIONS_KEY);
+//     return locations ? JSON.parse(locations) : [];
+//   } catch (error) {
+//     console.error('[📍] Get pending locations error:', error);
+//     return [];
+//   }
+// };
+
+// // Clear Pending Locations
+// const clearPendingLocations = async () => {
+//   try {
+//     await AsyncStorage.removeItem(PENDING_LOCATIONS_KEY);
+//     console.log('[📍] Cleared pending locations');
+//   } catch (error) {
+//     console.error('[📍] Clear pending locations error:', error);
+//   }
+// };
+
+// // Store Last Location
+// const storeLastLocation = async (locationData) => {
+//   try {
+//     await AsyncStorage.setItem(
+//       LOCATION_STORAGE_KEY,
+//       JSON.stringify({
+//         ...locationData,
+//         lastSentTimestamp: new Date().toISOString(),
+//       })
+//     );
+//     console.log('[📍] Stored last location:', locationData);
+//   } catch (error) {
+//     console.error('[📍] Store last location error:', error);
+//   }
+// };
+
+// // Get Last Location
+// export const getLastLocation = async () => {
+//   try {
+//     const location = await AsyncStorage.getItem(LOCATION_STORAGE_KEY);
+//     return location ? JSON.parse(location) : null;
+//   } catch (error) {
+//     console.error('[📍] Get last location error:', error);
+//     return null;
+//   }
+// };
+
+// // Sync Pending Locations with Backend
+// export const syncPendingLocations = async () => {
+//   try {
+//     const pendingLocations = await getPendingLocations();
+//     if (pendingLocations.length === 0) {
+//       console.log('[📍] No pending locations to sync');
+//       return;
+//     }
+
+//     const lastLocation = await getLastLocation();
+//     const lastSentTime = lastLocation?.lastSentTimestamp
+//       ? new Date(lastLocation.lastSentTimestamp).getTime()
+//       : 0;
+//     const now = Date.now();
+
+//     // Only send if enough time has passed since last sync
+//     if (now - lastSentTime < MIN_BACKEND_SAVE_INTERVAL) {
+//       console.log('[📍] Skipping sync: within minimum interval');
+//       return;
+//     }
+
+//     for (const location of pendingLocations) {
+//       try {
+//         await sendUserLocation(location); // Assumes this API call sends location to backend
+//         console.log('[📍] Synced location:', location);
+//       } catch (error) {
+//         console.error('[📍] Failed to sync location:', location, error);
+//         throw error; // Stop syncing to preserve failed locations
+//       }
+//     }
+
+//     // Clear pending locations after successful sync
+//     await clearPendingLocations();
+//     console.log('[📍] All pending locations synced successfully');
+//   } catch (error) {
+//     console.error('[📍] Sync pending locations error:', error);
+//     throw error;
+//   }
+// };
+
+// // Configure Background Fetch
+// const configureBackgroundFetch = async () => {
+//   try {
+//     await BackgroundFetch.configure(
+//       {
+//         minimumFetchInterval: BACKGROUND_FETCH_INTERVAL,
+//         stopOnTerminate: false,
+//         startOnBoot: true,
+//         enableHeadless: true,
+//         forceAlarmManager: true,
+//       },
+//       async (taskId) => {
+//         console.log('[📍] Background fetch triggered:', taskId);
+//         try {
+//           const location = await fetchWithRetry(true);
+//           if (location) {
+//             await storePendingLocation(location);
+//             const failedAttempts = parseInt(await AsyncStorage.getItem(FAILED_ATTEMPTS_KEY) || '0');
+//             try {
+//               const state = await NetInfo.fetch();
+//               if (state.isConnected) {
+//                 await syncPendingLocations();
+//                 await AsyncStorage.setItem(FAILED_ATTEMPTS_KEY, '0');
+//               }
+//             } catch (syncError) {
+//               const newAttempts = failedAttempts + 1;
+//               await AsyncStorage.setItem(FAILED_ATTEMPTS_KEY, newAttempts.toString());
+//               console.log(`[📍] Sync failed. Attempt ${newAttempts}.`);
+//             }
+//           }
+//         } catch (error) {
+//           console.error('[📍] Background fetch error:', error);
+//         } finally {
+//           BackgroundFetch.finish(taskId);
+//         }
+//       },
+//       async (taskId) => {
+//         console.log('[📍] Background fetch timeout:', taskId);
+//         const failedAttempts = parseInt(await AsyncStorage.getItem(FAILED_ATTEMPTS_KEY) || '0') + 1;
+//         await AsyncStorage.setItem(FAILED_ATTEMPTS_KEY, failedAttempts.toString());
+//         BackgroundFetch.finish(taskId);
+//       }
+//     );
+
+//     if (Platform.OS === 'android') {
+//       await BackgroundFetch.scheduleTask({
+//         taskId: 'com.boscosoft.dbms',
+//         delay: 10 * 60 * 1000, // 10 minutes
+//         periodic: true,
+//         forceAlarmManager: true,
+//         stopOnTerminate: false,
+//         enableHeadless: true,
+//       });
+//     }
+//     console.log('[📍] Background fetch configured');
+//   } catch (error) {
+//     console.error('[📍] Background fetch configuration error:', error);
+//   }
+// };
+
+// // Start Location Tracking
+// export const startLocationTracking = async () => {
+//   if (isTrackingInitialized) {
+//     console.log('[📍] Location tracking already initialized');
+//     return;
+//   }
+
+//   const hasPermission = await requestLocationPermissions();
+//   if (!hasPermission) {
+//     console.log('[📍] Location permissions not granted');
+//     return;
+//   }
+
+//   await checkBatteryOptimization();
+//   await startForegroundService();
+//   await configureBackgroundFetch();
+
+//   // Initial location fetch
+//   try {
+//     const location = await fetchWithRetry(false);
+//     if (location) {
+//       await storePendingLocation(location);
+//       const state = await NetInfo.fetch();
+//       if (state.isConnected) {
+//         await syncPendingLocations();
+//       }
+//     }
+//   } catch (error) {
+//     console.error('[📍] Initial location fetch error:', error);
+//   }
+
+//   // Monitor network state for syncing
+//   netListener = NetInfo.addEventListener((state) => {
+//     if (state.isConnected) {
+//       console.log('[📍] Network connected, syncing pending locations');
+//       syncPendingLocations().catch((error) =>
+//         console.error('[📍] Network sync error:', error)
+//       );
+//     }
+//   });
+
+//   isTrackingInitialized = true;
+//   console.log('[📍] Location tracking started');
+// };
+
+// // Stop Location Tracking
+// export const stopLocationTracking = async () => {
+//   if (!isTrackingInitialized) {
+//     console.log('[📍] Location tracking not initialized');
+//     return;
+//   }
+//   isTrackingInitialized = false;
+//   if (netListener) netListener();
+//   await stopForegroundService();
+//   console.log('[📍] Location tracking stopped');
+// };
+
+// // Handle App State Changes
+// export const handleAppStateChange = async (nextAppState) => {
+//   console.log('[📍] App state changed to:', nextAppState);
+//   if (nextAppState === 'active' && isTrackingInitialized) {
+//     try {
+//       const location = await fetchWithRetry(false);
+//       if (location) {
+//         await storePendingLocation(location);
+//         const state = await NetInfo.fetch();
+//         if (state.isConnected) {
+//           await syncPendingLocations();
+//         }
+//       }
+//     } catch (error) {
+//       console.error('[📍] Foreground location fetch error:', error);
+//     }
+//   }
+// };
+
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from 'react-native-geolocation-service';
-import { PermissionsAndroid, Platform, Alert, Linking } from 'react-native';
+import { PermissionsAndroid, Platform, Alert, Linking, NativeModules } from 'react-native';
 import BackgroundFetch from 'react-native-background-fetch';
-import { PERMISSIONS, request, RESULTS } from 'react-native-permissions';
-import notifee from '@notifee/react-native';
+import NetInfo from '@react-native-community/netinfo';
+import notifee, { AndroidImportance } from '@notifee/react-native';
 import { sendUserLocation } from '../api/auth';
 
+// Constants
+const PENDING_LOCATIONS_KEY = 'pending_locations';
+const LOCATION_STORAGE_KEY = 'last_location';
+const FAILED_ATTEMPTS_KEY = 'fetch_failed_attempts';
+const MIN_BACKEND_SAVE_INTERVAL = 10 * 60 * 1000; // 10 minutes
+const BACKGROUND_FETCH_INTERVAL = 15; // 15 minutes
+const LOCATION_TIMEOUT = 30000; // 30 seconds timeout for background
+const FOREGROUND_TIMEOUT = 15000; // 15 seconds for foreground
 
-// Optional - move this to a common utils file
-export const checkIfLocationEnabled = async () => {
-  return new Promise((resolve, reject) => {
-    Geolocation.getCurrentPosition(
-      () => resolve(true),
-      (error) => {
-        if (error.code === 2) {
-          // Location is disabled
-          resolve(false);
-        } else {
-          reject(error);
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 5 * 60 * 60 * 1000 , // 5 hours
-      }
-    );
-  });
-};
-let isConfigured = false;
+let isTrackingInitialized = false;
+let netListener;
+let backgroundTaskId = null;
 
-export const checkIfLocationEnabled01 = async () => {
-  const result = await check(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
-  return result === RESULTS.GRANTED;
-};
-
-export const requestLocationPermissions01 = async () => {
-  if (Platform.OS === 'android') {
-    try {
-      // Step 1: Request foreground location
-      const fineLocation = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: 'Location Permission',
-          message: 'App needs access to your location to function properly.',
-          buttonPositive: 'Allow',
-        }
-      );
-
-      if (fineLocation !== PermissionsAndroid.RESULTS.GRANTED) {
-        return false;
-      }
-      console.log("Platform.Version", Platform.Version);
-
-      // Step 2: Request background location separately (only Android 10+)
-      if (Platform.Version >= 29) {
-        const backgroundLocation = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
-          {
-            title: 'Background Location Permission',
-            message:
-              'App needs access to your location in the background for continuous tracking.',
-            buttonPositive: 'Allow',
-          }
-        );
-
-        return backgroundLocation === PermissionsAndroid.RESULTS.GRANTED;
-      }
-
-      return true;
-    } catch (err) {
-      console.warn('[Permission Error]', err);
-      return false;
-    }
-  }
-
-  // iOS - you’ll use Info.plist + request in App code
-  return true;
-};
-
-export const requestLocationPermissions01opensettign = async () => {
-  if (Platform.OS === 'android') {
-    const fine = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
-    const background =
-      Platform.Version >= 29
-        ? await request(PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION)
-        : RESULTS.GRANTED;
-
-    const granted = fine === RESULTS.GRANTED && background === RESULTS.GRANTED;
-    console.log('[📍 Permissions Granted]:', granted);
-    return granted;
-  }
-
-  return true;
-};
-
-
+// Request Location Permissions
 export const requestLocationPermissions = async () => {
   if (Platform.OS === 'android') {
     try {
@@ -105,428 +434,941 @@ export const requestLocationPermissions = async () => {
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
       ];
-
+      
       if (Platform.Version >= 29) {
         permissions.push(PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION);
       }
-
+      
       const granted = await PermissionsAndroid.requestMultiple(permissions);
-
-      // const fineGranted =
-      //   granted['android.permission.ACCESS_FINE_LOCATION'] === PermissionsAndroid.RESULTS.GRANTED;
-      // const backgroundGranted =
-      //   Platform.Version < 29 || granted['android.permission.ACCESS_BACKGROUND_LOCATION'] === PermissionsAndroid.RESULTS.GRANTED;
-
-      // return fineGranted && backgroundGranted;
-
-      const fineGranted = granted['android.permission.ACCESS_FINE_LOCATION'] === 'granted';
-      const coarseGranted = granted['android.permission.ACCESS_COARSE_LOCATION'] === 'granted';
-      const backgroundGranted =
-        Platform.Version < 29 || granted['android.permission.ACCESS_BACKGROUND_LOCATION'] === 'granted';
-
-      return fineGranted && coarseGranted && backgroundGranted;
-    } catch (err) {
-      console.warn('[Permission Error]', err);
-      return false;
-    }
-  }
-
-  return true;
-};
-
-
-// TEST MODE: Fires fetch events more frequently (only for dev/testing)
-// BackgroundFetch.start().then(status => {
-//   console.log('[✅ BackgroundFetch start() success]:', status);
-//   BackgroundFetch.scheduleTask({
-//     taskId: 'com.boscosoft.dbms', // Unique ID
-//     delay: 10000, // 10 seconds
-//     forceAlarmManager: true, // More reliable for testing
-//     periodic: true, // Set to true for recurring task
-//     stopOnTerminate: false,
-//     enableHeadless: true,
-//   });
-// }).catch(err => {
-//   console.warn('[❌ BackgroundFetch start() error]:', err);
-// });
-
-
-
-export const getCurrentLocation = async (isBackground = false) => {
-  const hasPermission = await requestLocationPermissions();
-  if (!hasPermission) {
-    Alert.alert(
-      'Location Permission Required',
-      'Please enable location permissions in Settings to continue using this app.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Open Settings',
-          onPress: () => Linking.openSettings(),
-        },
-      ]
-    );
-    return null;
-  }
-
-  return new Promise((resolve, reject) => {
-    Geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        const locationData = {
-          latitude,
-          longitude,
-          timestamp: new Date().toISOString(),
-        };
-        console.log('📍 [Foreground Location:]', locationData);
-        resolve(locationData);
-        // Save to backend/local if needed
-        // saveLocation(locationData);
-      },
-      (error) => {
-        console.log('[Location Error]', error.message);
-        // fallback to watchPosition in background
-        if (Platform.OS === 'android') {
-          const watchId = Geolocation.watchPosition(
-            (pos) => {
-              Geolocation.clearWatch(watchId);
-              const fallbackLocation = {
-                latitude: pos.coords.latitude,
-                longitude: pos.coords.longitude,
-                timestamp: new Date().toISOString(),
-              };
-              console.log('📍 [Watch Fallback Location]:', fallbackLocation);
-              resolve(fallbackLocation);
-            },
-            (watchErr) => {
-              console.log('[❌ Watch Fallback Error]', watchErr.message);
-              reject(watchErr);
-            },
-            {
-              enableHighAccuracy: true,
-              distanceFilter: 0,
-              interval: 10000,
-              fastestInterval: 5000,
-            }
-          );
-        } else {
-          reject(error);
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: isBackground ? 60000 : 15000,
-        maximumAge: 5 * 60 * 60 * 1000, // 5 hours
-        forceRequestLocation: true,
-      }
-    );
-  });
-};
-
-export const checkAndGetLocation = async () => {
-  Geolocation.getCurrentPosition(
-    (position) => {
-      const { latitude, longitude } = position.coords;
-      console.log('📍 Location:', latitude, longitude);
-    },
-    (error) => {
-      console.log('❌ Location Error:', error.message);
-
-      if (error.code === 2 || error.message.includes('provider')) {
+      const allGranted =
+        granted['android.permission.ACCESS_FINE_LOCATION'] === 'granted' &&
+        granted['android.permission.ACCESS_COARSE_LOCATION'] === 'granted' &&
+        (Platform.Version < 29 || granted['android.permission.ACCESS_BACKGROUND_LOCATION'] === 'granted');
+      
+      if (!allGranted) {
+        console.warn('[📍] Some location permissions denied:', granted);
         Alert.alert(
-          'Turn On Location',
-          'Please turn on location services (GPS) in your device settings.',
+          'Location Permission Required',
+          'Please enable all location permissions in Settings for background tracking to work properly.',
           [
             { text: 'Cancel', style: 'cancel' },
-            {
-              text: 'Open Settings',
-              onPress: () => {
-                if (Platform.OS === 'android') {
-                  Linking.openSettings(); // Opens system settings
-                }
-              },
-            },
+            { text: 'Open Settings', onPress: () => Linking.openSettings() },
           ]
         );
       }
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 15000,
-      maximumAge: 5 * 60 * 60 * 1000, // 5 hours
-      forceRequestLocation: true,
+      return allGranted;
+    } catch (err) {
+      console.error('[📍] Permission error:', err);
+      return false;
     }
-  );
+  }
+  return true;
 };
 
-let lastSentLocationTime = new Date(0);
-
-export const saveLocation = async (locationData) => {
-  const now = new Date();
-  const timeDiff = now.getTime() - lastSentLocationTime.getTime();
-  if (timeDiff > 5 * 60 * 60 * 1000) {
-    // TODO: Save to backend API or local DB
-    console.log('Saving Location: >>> ', locationData);
+// Check Battery Optimization (Android)
+export const checkBatteryOptimization = async () => {
+  if (Platform.OS === 'android') {
     try {
-      console.log('[Sending Location to Backend]:');
-      await sendUserLocation(locationData);
-      lastSentLocationTime = now;
-    } catch (err) {
-      console.log('[Failed to Send Location]', err);
+      const PowerManager = NativeModules.PowerManager;
+      if (PowerManager) {
+        const isIgnoring = await PowerManager.isIgnoringBatteryOptimizations();
+        if (!isIgnoring) {
+          Alert.alert(
+            'Battery Optimization',
+            'For reliable background location tracking, please disable battery optimization for this app.',
+            [
+              { text: 'Later', style: 'cancel' },
+              { text: 'Open Settings', onPress: () => PowerManager.openBatterySettings() },
+            ]
+          );
+        }
+        return isIgnoring;
+      }
+    } catch (error) {
+      console.error('[📍] Battery optimization check error:', error);
+    }
+  }
+  return true;
+};
+
+// Start Foreground Service (Android)
+const startForegroundService = async () => {
+  if (Platform.OS === 'android') {
+    try {
+      await notifee.createChannel({
+        id: 'location',
+        name: 'Location Tracking',
+        importance: AndroidImportance.HIGH,
+      });
+      
+      await notifee.displayNotification({
+        id: 'location-tracking',
+        title: 'Location Tracking Active',
+        body: 'App is tracking your location every 10 minutes.',
+        android: {
+          channelId: 'location',
+          asForegroundService: true,
+          ongoing: true,
+          smallIcon: 'ic_launcher',
+          pressAction: { id: 'default' },
+        },
+      });
+      console.log('[📍] Foreground service started');
+    } catch (error) {
+      console.error('[📍] Foreground service error:', error);
     }
   }
 };
 
+// Stop Foreground Service
+const stopForegroundService = async () => {
+  if (Platform.OS === 'android') {
+    try {
+      await notifee.stopForegroundService();
+      await notifee.cancelNotification('location-tracking');
+      console.log('[📍] Foreground service stopped');
+    } catch (error) {
+      console.error('[📍] Stop foreground service error:', error);
+    }
+  }
+};
 
+// Get Current Location with improved error handling
+export const getCurrentLocation = async (isBackground = false) => {
+  return new Promise((resolve, reject) => {
+    const timeout = isBackground ? LOCATION_TIMEOUT : FOREGROUND_TIMEOUT;
+    let timeoutId;
+    
+    const options = {
+      enableHighAccuracy: true,
+      timeout: timeout,
+      maximumAge: isBackground ? 5 * 60 * 1000 : 0, // 5 minutes for background
+      distanceFilter: 0,
+      forceRequestLocation: Platform.OS === 'android',
+      showLocationDialog: !isBackground,
+    };
 
-// export const initBackgroundLocationTracking01 = async () => {
-//   console.log('🔁 Initializing Background Location Tracking...', isConfigured);
-//   let lastFetchedTime = new Date();
+    const successCallback = (position) => {
+      if (timeoutId) clearTimeout(timeoutId);
+      
+      const locationData = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy,
+        timestamp: new Date().toISOString(),
+        source: isBackground ? 'background' : 'foreground',
+      };
+      
+      console.log('[📍] Location captured:', locationData);
+      resolve(locationData);
+    };
 
-//   if (isConfigured) {
-//     console.log('🔁 BackgroundFetch already configured. Skipping...');
-//     return;
-//   }
+    const errorCallback = (error) => {
+      if (timeoutId) clearTimeout(timeoutId);
+      console.error('[📍] Location error:', error);
+      reject(error);
+    };
 
-//   const hasPermission = await requestLocationPermissions();
-//   console.log('🔁 Location Permission:', hasPermission);
+    // Set manual timeout
+    timeoutId = setTimeout(() => {
+      reject(new Error('Location request timed out'));
+    }, timeout + 2000);
 
-//   if (!hasPermission) {
-//     Alert.alert(
-//       'Location Permission Required',
-//       'Please enable location permissions in Settings to continue using this app.',
-//       [
-//         { text: 'Cancel', style: 'cancel' },
-//         { text: 'Open Settings', onPress: () => Linking.openSettings() },
-//       ]
-//     );
-//     return;
-//   }
+    Geolocation.getCurrentPosition(successCallback, errorCallback, options);
+  });
+};
 
-//   // Create a notification channel for Android
-//   await notifee.createChannel({
-//     id: 'background-fetch',
-//     name: 'Background Fetch Notifications',
-//   });
+// Fetch with Retry Logic
+const fetchWithRetry = async (isBackground, retries = 3) => {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      console.log(`[📍] Location fetch attempt ${attempt}/${retries}`);
+      const location = await getCurrentLocation(isBackground);
+      return location;
+    } catch (error) {
+      console.error(`[📍] Location fetch attempt ${attempt} failed:`, error.message);
+      
+      if (attempt === retries) {
+        throw new Error(`Failed to get location after ${retries} attempts: ${error.message}`);
+      }
+      
+      // Wait before retry (exponential backoff)
+      const waitTime = Math.pow(2, attempt) * 1000;
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+    }
+  }
+};
 
-//   BackgroundFetch.configure(
-//     {
-//       minimumFetchInterval: 15, // 15 minutes is the minimum allowed by Android
-//       stopOnTerminate: false,
-//       startOnBoot: true,
-//       enableHeadless: true,
-//       requiredNetworkType: BackgroundFetch.NETWORK_TYPE_ANY,
-//     },
-//     async (taskId) => {
-//       console.log('[🔁 BackgroundFetch Fired]', { taskId, timestamp: lastFetchedTime.toISOString() });
+// Store Pending Location
+export const storePendingLocation = async (locationData) => {
+  try {
+    const existingLocations = await getPendingLocations();
+    const newLocation = {
+      ...locationData,
+      storedAt: new Date().toISOString(),
+    };
+    
+    existingLocations.push(newLocation);
+    await AsyncStorage.setItem(PENDING_LOCATIONS_KEY, JSON.stringify(existingLocations));
+    console.log('[📍] Stored pending location:', newLocation);
+    
+    // Also store as last location
+    await storeLastLocation(newLocation);
+  } catch (error) {
+    console.error('[📍] Store pending location error:', error);
+  }
+};
 
-//       // Display a notification to confirm the task is running
-//       await notifee.displayNotification({
-//         title: 'Background Fetch',
-//         body: `Task ${taskId} fired at ${new Date().toISOString()}`,
-//         android: {
-//           channelId: 'background-fetch',
-//         },
-//       });
+// Get Pending Locations
+const getPendingLocations = async () => {
+  try {
+    const locations = await AsyncStorage.getItem(PENDING_LOCATIONS_KEY);
+    return locations ? JSON.parse(locations) : [];
+  } catch (error) {
+    console.error('[📍] Get pending locations error:', error);
+    return [];
+  }
+};
 
-//       Geolocation.getCurrentPosition(
-//         (position) => {
-//           const { latitude, longitude } = position.coords;
-//           // saveLocation({
-//           //   latitude,
-//           //   longitude,
-//           //   timestamp: new Date().toISOString(),
-//           // });
-//           const locationData = {
-//             latitude,
-//             longitude,
-//             timestamp: new Date().toISOString(),
-//           };
+// Clear Pending Locations
+const clearPendingLocations = async () => {
+  try {
+    await AsyncStorage.removeItem(PENDING_LOCATIONS_KEY);
+    console.log('[📍] Cleared pending locations');
+  } catch (error) {
+    console.error('[📍] Clear pending locations error:', error);
+  }
+};
 
-//           console.log('📍 [Background Location]:', locationData);
-//           saveLocation(locationData); // optional
-//         },
-//         (error) => {
-//           console.log('[Location Error]', error.message);
-//           // Notify user of error
-//           notifee.displayNotification({
-//             title: 'Background Location Error',
-//             body: `Failed to get location: ${error.message}`,
-//             android: {
-//               channelId: 'background-fetch',
-//             },
-//           });
-//         },
-//         {
-//           enableHighAccuracy: true,
-//           timeout: 15000,
-//           maximumAge: 10000,
-//           forceRequestLocation: true,
-//         }
-//       );
-//       BackgroundFetch.finish(taskId);
-//     },
-//     (error) => {
-//       console.log('[BackgroundFetch] configure failed:', error);
-//       notifee.displayNotification({
-//         title: 'Background Fetch Error',
-//         body: `Configuration failed: ${error}`,
-//         android: {
-//           channelId: 'background-fetch',
-//         },
-//       });
-//       isConfigured = false; // Reset to allow retry
-//     }
-//   );
+// Store Last Location
+const storeLastLocation = async (locationData) => {
+  try {
+    await AsyncStorage.setItem(
+      LOCATION_STORAGE_KEY,
+      JSON.stringify({
+        ...locationData,
+        lastSentTimestamp: new Date().toISOString(),
+      })
+    );
+  } catch (error) {
+    console.error('[📍] Store last location error:', error);
+  }
+};
 
-//   // Log status periodically to confirm scheduling
-//   BackgroundFetch.status((status) => {
-//     console.log('[BackgroundFetch Status]', {
-//       status,
-//       timestamp: new Date().toISOString(),
-//     });
-//   });
+// Get Last Location
+export const getLastLocation = async () => {
+  try {
+    const location = await AsyncStorage.getItem(LOCATION_STORAGE_KEY);
+    return location ? JSON.parse(location) : null;
+  } catch (error) {
+    console.error('[📍] Get last location error:', error);
+    return null;
+  }
+};
 
-//   isConfigured = true;
+// Sync Pending Locations with Backend
+export const syncPendingLocations = async () => {
+  try {
+    const pendingLocations = await getPendingLocations();
+    if (pendingLocations.length === 0) {
+      console.log('[📍] No pending locations to sync');
+      return;
+    }
 
-//   // Schedule a recurring log to confirm the task is active (every minute)
-//   setInterval(() => {
-//     const now = new Date();
-//     const diffInMin = Math.floor((now - lastFetchedTime) / 60000); // Minutes
+    const lastLocation = await getLastLocation();
+    const lastSentTime = lastLocation?.lastSentTimestamp
+      ? new Date(lastLocation.lastSentTimestamp).getTime()
+      : 0;
+    const now = Date.now();
 
-//     console.log('[BackgroundFetch Heartbeat]', {
-//       isConfigured,
-//       elapsedMinutesSinceLastFetch: diffInMin,
-//       now: now.toISOString(),
+    // Check if enough time has passed
+    if (now - lastSentTime < MIN_BACKEND_SAVE_INTERVAL) {
+      console.log(`[📍] Skipping sync: only ${Math.round((now - lastSentTime) / 1000)}s since last sync`);
+      return;
+    }
 
-//       // timestamp: new Date().toISOString(),
-//     });
-//     BackgroundFetch.status((status) => {
-//       console.log('[BackgroundFetch Status Check]', {
-//         status,
-//         timestamp: new Date().toISOString(),
-//       });
-//     });
-//   }, 60 * 1000); // Every 1 minute
-// };
+    console.log(`[📍] Syncing ${pendingLocations.length} pending locations`);
+    
+    let syncedCount = 0;
+    for (const location of pendingLocations) {
+      try {
+        await sendUserLocation(location);
+        syncedCount++;
+        console.log('[📍] Synced location:', location);
+      } catch (error) {
+        console.error('[📍] Failed to sync location:', location, error.message);
+        // Don't break the loop, try to sync remaining locations
+      }
+    }
 
-// export const initBackgroundLocationTracking1 = () => {
-//   BackgroundFetch.configure(
-//     {
-//       minimumFetchInterval: 15, // <-- 15 minutes
-//       stopOnTerminate: false,
-//       enableHeadless: true,
-//       startOnBoot: true,
-//       requiredNetworkType: BackgroundFetch.NETWORK_TYPE_NONE,
-//       forceAlarmManager: true, // Use AlarmManager for more reliable scheduling
-//     },
-//     async (taskId) => {
-//       console.log('[BackgroundFetch] taskId:', taskId);
-//       try {
-//         const location = await getCurrentLocation(true);
-//         if (location) {
-//           console.log('[BackgroundFetch][Location]:', location);
-//           // TODO: Save location to DB here
-//         }
-//       } catch (e) {
-//         console.log('[BackgroundFetch][Location Error]:', e);
-//       }
-//       BackgroundFetch.finish(taskId);
-//     },
-//     (error) => {
-//       console.log('[BackgroundFetch] configure error:', error);
-//     }
-//   );
-// };
+    if (syncedCount > 0) {
+      await clearPendingLocations();
+      console.log(`[📍] Successfully synced ${syncedCount}/${pendingLocations.length} locations`);
+    }
+  } catch (error) {
+    console.error('[📍] Sync pending locations error:', error);
+  }
+};
 
-export const initBackgroundLocationTracking = async () => {
-  console.log('🔁 Starting Background Location Tracking...');
+// Background Fetch Handler
+const backgroundFetchHandler = async (taskId) => {
+  console.log(`[📍] Background fetch triggered: ${taskId} at ${new Date().toISOString()}`);
+  
+  try {
+    // Get location with retry
+    const location = await fetchWithRetry(true, 2); // Only 2 retries for background
+    
+    if (location) {
+      await storePendingLocation(location);
+      
+      // Check network and try to sync
+      const netInfo = await NetInfo.fetch();
+      if (netInfo.isConnected) {
+        try {
+          await syncPendingLocations();
+          await AsyncStorage.setItem(FAILED_ATTEMPTS_KEY, '0');
+        } catch (syncError) {
+          console.error('[📍] Background sync failed:', syncError);
+          const failedAttempts = parseInt(await AsyncStorage.getItem(FAILED_ATTEMPTS_KEY) || '0') + 1;
+          await AsyncStorage.setItem(FAILED_ATTEMPTS_KEY, failedAttempts.toString());
+        }
+      } else {
+        console.log('[📍] No network connection, location stored for later sync');
+      }
+    }
+  } catch (error) {
+    console.error('[📍] Background fetch error:', error);
+    const failedAttempts = parseInt(await AsyncStorage.getItem(FAILED_ATTEMPTS_KEY) || '0') + 1;
+    await AsyncStorage.setItem(FAILED_ATTEMPTS_KEY, failedAttempts.toString());
+  } finally {
+    BackgroundFetch.finish(taskId);
+  }
+};
 
-  const status = await BackgroundFetch.status();
-  console.log('[🔁 BackgroundFetch Status]', status);
+// Background Fetch Timeout Handler
+const backgroundFetchTimeoutHandler = async (taskId) => {
+  console.log(`[📍] Background fetch timeout: ${taskId}`);
+  const failedAttempts = parseInt(await AsyncStorage.getItem(FAILED_ATTEMPTS_KEY) || '0') + 1;
+  await AsyncStorage.setItem(FAILED_ATTEMPTS_KEY, failedAttempts.toString());
+  BackgroundFetch.finish(taskId);
+};
 
-  const hasPermission = await requestLocationPermissions();
-  if (!hasPermission) {
-    Alert.alert('Permission Required', 'Location permission is needed.');
+// Configure Background Fetch
+const configureBackgroundFetch = async () => {
+  try {
+    await BackgroundFetch.configure(
+      {
+        minimumFetchInterval: BACKGROUND_FETCH_INTERVAL,
+        stopOnTerminate: false,
+        startOnBoot: true,
+        enableHeadless: true,
+        forceAlarmManager: Platform.OS === 'android',
+        requiredNetworkType: BackgroundFetch.NETWORK_TYPE_NONE,
+      },
+      backgroundFetchHandler,
+      backgroundFetchTimeoutHandler
+    );
+
+    // Schedule periodic task for Android
+    if (Platform.OS === 'android') {
+      backgroundTaskId = 'com.boscosoft.dbms.location';
+      await BackgroundFetch.scheduleTask({
+        taskId: backgroundTaskId,
+        delay: 10 * 60 * 1000, // 10 minutes
+        periodic: true,
+        forceAlarmManager: true,
+        stopOnTerminate: false,
+        enableHeadless: true,
+        requiredNetworkType: BackgroundFetch.NETWORK_TYPE_NONE,
+      });
+    }
+    
+    console.log('[📍] Background fetch configured successfully');
+  } catch (error) {
+    console.error('[📍] Background fetch configuration error:', error);
+    throw error;
+  }
+};
+
+// Start Location Tracking
+export const startLocationTracking = async () => {
+  if (isTrackingInitialized) {
+    console.log('[📍] Location tracking already initialized');
+    return true;
+  }
+
+  try {
+    // Request permissions
+    const hasPermission = await requestLocationPermissions();
+    if (!hasPermission) {
+      console.log('[📍] Location permissions not granted');
+      return false;
+    }
+
+    // Check battery optimization
+    await checkBatteryOptimization();
+
+    // Start foreground service
+    await startForegroundService();
+
+    // Configure background fetch
+    await configureBackgroundFetch();
+
+    // Initial location fetch
+    try {
+      const location = await fetchWithRetry(false);
+      if (location) {
+        await storePendingLocation(location);
+        
+        // Try initial sync
+        const netInfo = await NetInfo.fetch();
+        if (netInfo.isConnected) {
+          await syncPendingLocations();
+        }
+      }
+    } catch (error) {
+      console.error('[📍] Initial location fetch failed:', error);
+    }
+
+    // Monitor network state for syncing
+    netListener = NetInfo.addEventListener((state) => {
+      if (state.isConnected) {
+        console.log('[📍] Network connected, attempting to sync pending locations');
+        syncPendingLocations().catch((error) =>
+          console.error('[📍] Network sync error:', error)
+        );
+      }
+    });
+
+    isTrackingInitialized = true;
+    console.log('[📍] Location tracking started successfully');
+    return true;
+  } catch (error) {
+    console.error('[📍] Failed to start location tracking:', error);
+    return false;
+  }
+};
+
+// Stop Location Tracking
+export const stopLocationTracking = async () => {
+  if (!isTrackingInitialized) {
+    console.log('[📍] Location tracking not initialized');
     return;
   }
 
-  // 🔔 Foreground Service Notification (IMPORTANT for Android 10+)
-  await notifee.createChannel({
-    id: 'background-fetch',
-    name: 'Background Fetch Notifications',
-  });
-
-  BackgroundFetch.configure(
-    {
-      minimumFetchInterval: 300, // ✅ 15 mins
-      stopOnTerminate: false,
-      startOnBoot: true,
-      requiredNetworkType: BackgroundFetch.NETWORK_TYPE_ANY,
-      enableHeadless: true,
-      forceAlarmManager: true,
-    },
-    async (taskId) => {
-      const now = new Date().toISOString();
-      console.log(`[✅ BackgroundFetch Triggered]: ${taskId} at ${now}`);
-
-      try {
-        const position = await getCurrentLocation(true);
-        console.log('📍 Background Location:', position);
-        saveLocation(position); // store in DB later
-      } catch (e) {
-        console.log('❌ Location Error:', e.message);
-      }
-
-      Geolocation.getCurrentPosition(
-        (position) => {
-          const location = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            timestamp: new Date().toISOString(),
-          };
-          console.log('📍 [Background Location]:', location);
-          // ✅ You can now save to DB
-        },
-        (error) => {
-          console.log('[❌ Location Error]', error.message);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 18000000, // 5 hours
-          forceRequestLocation: true,
-        }
-      );
-
-      BackgroundFetch.finish(taskId);
-    },
-    (error) => {
-      console.log('[❌ BackgroundFetch failed to configure]', error);
+  try {
+    isTrackingInitialized = false;
+    
+    // Remove network listener
+    if (netListener) {
+      netListener();
+      netListener = null;
     }
-  );
 
-  console.log('[✅ BackgroundFetch start() success]');
+    // Stop foreground service
+    await stopForegroundService();
 
-  // Add a heartbeat to see it's alive
-  setInterval(() => {
-    console.log('[⏱️ BackgroundFetch Heartbeat]', new Date().toISOString());
-  }, 5 * 60 * 60 * 1000); // every 5 hours
-  isConfigured = true; // Mark as configured
-  console.log('[🔁 Background Location Tracking Initialized]');
+    // Stop background fetch
+    if (backgroundTaskId) {
+      await BackgroundFetch.stop(backgroundTaskId);
+      backgroundTaskId = null;
+    }
+
+    console.log('[📍] Location tracking stopped');
+  } catch (error) {
+    console.error('[📍] Error stopping location tracking:', error);
+  }
+};
+
+// Handle App State Changes
+export const handleAppStateChange = async (nextAppState) => {
+  console.log('[📍] App state changed to:', nextAppState);
+  
+  if (nextAppState === 'active' && isTrackingInitialized) {
+    try {
+      // Sync any pending locations when app becomes active
+      const netInfo = await NetInfo.fetch();
+      if (netInfo.isConnected) {
+        await syncPendingLocations();
+      }
+      
+      // Get fresh location
+      const location = await fetchWithRetry(false);
+      if (location) {
+        await storePendingLocation(location);
+        
+        if (netInfo.isConnected) {
+          await syncPendingLocations();
+        }
+      }
+    } catch (error) {
+      console.error('[📍] Foreground location fetch error:', error);
+    }
+  }
+};
+
+// Get tracking status
+export const getTrackingStatus = () => {
+  return {
+    isInitialized: isTrackingInitialized,
+    hasNetworkListener: !!netListener,
+    backgroundTaskId: backgroundTaskId,
+  };
 };
 
 
-// For testing: Manually trigger a background fetch event
-export const triggerBackgroundFetch = async () => {
-  console.log('[🔁 Manual Background Fetch Trigger]');
-  await BackgroundFetch.scheduleTask({
-    taskId: 'com.boscosoft.dbms',
-    // delay: 1000, // 1 second delay
-    // delay: 10000, // 10 seconds (for testing)
-    delay: 300 * 60 * 1000, // ✅ 5 hours in ms
-    periodic: false,
-    requiresCharging: false,
-    requiresDeviceIdle: false,
-  });
-};
+
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+// import Geolocation from 'react-native-geolocation-service';
+// import { PermissionsAndroid, Platform, Alert, Linking } from 'react-native';
+// import BackgroundFetch from 'react-native-background-fetch';
+// import NetInfo from '@react-native-community/netinfo';
+// import notifee, { AndroidImportance } from '@notifee/react-native';
+// import { sendUserLocation } from '../api/auth';
+
+// // Constants
+// const PENDING_LOCATIONS_KEY = 'pending_locations';
+// const LOCATION_STORAGE_KEY = 'last_location';
+// const BACKGROUND_FETCH_INTERVAL = 10; // 10 minutes in minutes
+// const LOCATION_TIMEOUT = 15000; // 15 seconds
+// const MAX_LOCATION_AGE = 60000; // 1 minute
+
+// let isTrackingInitialized = false;
+// let netListener = null;
+
+// // Request Location Permissions
+// export const requestLocationPermissions = async () => {
+//   if (Platform.OS === 'android') {
+//     try {
+//       const permissions = [
+//         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+//         PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+//       ];
+      
+//       if (Platform.Version >= 29) {
+//         permissions.push(PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION);
+//       }
+      
+//       const granted = await PermissionsAndroid.requestMultiple(permissions);
+      
+//       const allGranted = Object.values(granted).every(permission => permission === 'granted');
+      
+//       if (!allGranted) {
+//         console.warn('[📍] Some location permissions denied:', granted);
+//         Alert.alert(
+//           'Location Permission Required',
+//           'Please enable all location permissions in Settings for background tracking to work properly.',
+//           [
+//             { text: 'Cancel', style: 'cancel' },
+//             { text: 'Open Settings', onPress: () => Linking.openSettings() },
+//           ]
+//         );
+//       }
+      
+//       return allGranted;
+//     } catch (err) {
+//       console.error('[📍] Permission error:', err);
+//       return false;
+//     }
+//   }
+//   return true; // iOS permissions handled by Geolocation
+// };
+
+// // Start Foreground Service (Android)
+// const startForegroundService = async () => {
+//   if (Platform.OS === 'android') {
+//     try {
+//       await notifee.createChannel({
+//         id: 'location-tracking',
+//         name: 'Location Tracking',
+//         importance: AndroidImportance.LOW,
+//         sound: null,
+//       });
+      
+//       await notifee.displayNotification({
+//         id: 'location-service',
+//         title: 'Location Tracking Active',
+//         body: 'App is tracking your location every 10 minutes',
+//         android: {
+//           channelId: 'location-tracking',
+//           asForegroundService: true,
+//           ongoing: true,
+//           smallIcon: 'ic_launcher',
+//           pressAction: { id: 'default' },
+//           actions: [
+//             {
+//               title: 'Stop Tracking',
+//               pressAction: { id: 'stop-tracking' },
+//             },
+//           ],
+//         },
+//       });
+//     } catch (error) {
+//       console.error('[📍] Foreground service error:', error);
+//     }
+//   }
+// };
+
+// // Stop Foreground Service
+// const stopForegroundService = async () => {
+//   if (Platform.OS === 'android') {
+//     try {
+//       await notifee.stopForegroundService();
+//       await notifee.cancelNotification('location-service');
+//     } catch (error) {
+//       console.error('[📍] Stop foreground service error:', error);
+//     }
+//   }
+// };
+
+// // Get Current Location with improved error handling
+// export const getCurrentLocation = async (isBackground = false) => {
+//   return new Promise((resolve, reject) => {
+//     const timeout = isBackground ? 30000 : LOCATION_TIMEOUT;
+//     let watchId = null;
+//     let hasResolved = false;
+
+//     const options = {
+//       enableHighAccuracy: true,
+//       timeout: timeout,
+//       maximumAge: isBackground ? MAX_LOCATION_AGE : 0,
+//       distanceFilter: 0,
+//       forceRequestLocation: Platform.OS === 'android',
+//       showLocationDialog: !isBackground,
+//     };
+
+//     const timeoutId = setTimeout(() => {
+//       if (!hasResolved) {
+//         hasResolved = true;
+//         if (watchId !== null) {
+//           Geolocation.clearWatch(watchId);
+//         }
+//         reject(new Error('Location request timed out'));
+//       }
+//     }, timeout + 5000);
+
+//     watchId = Geolocation.getCurrentPosition(
+//       (position) => {
+//         if (!hasResolved) {
+//           hasResolved = true;
+//           clearTimeout(timeoutId);
+//           if (watchId !== null) {
+//             Geolocation.clearWatch(watchId);
+//           }
+          
+//           const locationData = {
+//             latitude: position.coords.latitude,
+//             longitude: position.coords.longitude,
+//             accuracy: position.coords.accuracy,
+//             timestamp: new Date().toISOString(),
+//             source: isBackground ? 'background' : 'foreground',
+//           };
+          
+//           console.log('[📍] Location captured:', locationData);
+//           resolve(locationData);
+//         }
+//       },
+//       (error) => {
+//         if (!hasResolved) {
+//           hasResolved = true;
+//           clearTimeout(timeoutId);
+//           if (watchId !== null) {
+//             Geolocation.clearWatch(watchId);
+//           }
+//           console.error('[📍] Location error:', error);
+//           reject(error);
+//         }
+//       },
+//       options
+//     );
+//   });
+// };
+
+// // Store Pending Location
+// export const storePendingLocation = async (locationData) => {
+//   try {
+//     const existingLocations = await getPendingLocations();
+//     const newLocation = {
+//       ...locationData,
+//       id: Date.now().toString(),
+//       stored_at: new Date().toISOString(),
+//     };
+    
+//     existingLocations.push(newLocation);
+//     await AsyncStorage.setItem(PENDING_LOCATIONS_KEY, JSON.stringify(existingLocations));
+//     await AsyncStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(newLocation));
+    
+//     console.log('[📍] Stored pending location:', newLocation);
+//   } catch (error) {
+//     console.error('[📍] Store pending location error:', error);
+//   }
+// };
+
+// // Get Pending Locations
+// const getPendingLocations = async () => {
+//   try {
+//     const locations = await AsyncStorage.getItem(PENDING_LOCATIONS_KEY);
+//     return locations ? JSON.parse(locations) : [];
+//   } catch (error) {
+//     console.error('[📍] Get pending locations error:', error);
+//     return [];
+//   }
+// };
+
+// // Clear Pending Locations
+// const clearPendingLocations = async () => {
+//   try {
+//     await AsyncStorage.removeItem(PENDING_LOCATIONS_KEY);
+//     console.log('[📍] Cleared pending locations');
+//   } catch (error) {
+//     console.error('[📍] Clear pending locations error:', error);
+//   }
+// };
+
+// // Get Last Location
+// export const getLastLocation = async () => {
+//   try {
+//     const location = await AsyncStorage.getItem(LOCATION_STORAGE_KEY);
+//     return location ? JSON.parse(location) : null;
+//   } catch (error) {
+//     console.error('[📍] Get last location error:', error);
+//     return null;
+//   }
+// };
+
+// // Sync Pending Locations with Backend
+// export const syncPendingLocations = async () => {
+//   try {
+//     const pendingLocations = await getPendingLocations();
+//     if (pendingLocations.length === 0) {
+//       console.log('[📍] No pending locations to sync');
+//       return true;
+//     }
+
+//     console.log(`[📍] Syncing ${pendingLocations.length} pending locations`);
+//     const failedLocations = [];
+
+//     for (const location of pendingLocations) {
+//       try {
+//         await sendUserLocation(location);
+//         console.log('[📍] Successfully synced location:', location.id);
+//       } catch (error) {
+//         console.error('[📍] Failed to sync location:', location.id, error.message);
+//         failedLocations.push(location);
+//       }
+//     }
+
+//     if (failedLocations.length === 0) {
+//       await clearPendingLocations();
+//       console.log('[📍] All pending locations synced successfully');
+//       return true;
+//     } else {
+//       // Keep only failed locations
+//       await AsyncStorage.setItem(PENDING_LOCATIONS_KEY, JSON.stringify(failedLocations));
+//       console.log(`[📍] ${failedLocations.length} locations failed to sync, keeping for retry`);
+//       return false;
+//     }
+//   } catch (error) {
+//     console.error('[📍] Sync pending locations error:', error);
+//     return false;
+//   }
+// };
+
+// // Background Fetch Task Handler
+// const backgroundFetchHandler = async (taskId) => {
+//   console.log('[📍] Background fetch triggered:', taskId, new Date().toISOString());
+  
+//   try {
+//     // Get location with timeout
+//     const location = await Promise.race([
+//       getCurrentLocation(true),
+//       new Promise((_, reject) => 
+//         setTimeout(() => reject(new Error('Background fetch timeout')), 25000)
+//       )
+//     ]);
+
+//     if (location) {
+//       await storePendingLocation(location);
+      
+//       // Try to sync if connected
+//       const netState = await NetInfo.fetch();
+//       if (netState.isConnected && netState.isInternetReachable !== false) {
+//         await syncPendingLocations();
+//       } else {
+//         console.log('[📍] No internet connection, location stored for later sync');
+//       }
+//     }
+//   } catch (error) {
+//     console.error('[📍] Background fetch error:', error);
+//   } finally {
+//     console.log('[📍] Background fetch completed:', taskId);
+//     BackgroundFetch.finish(taskId);
+//   }
+// };
+
+// // Background Fetch Timeout Handler
+// const backgroundFetchTimeoutHandler = async (taskId) => {
+//   console.log('[📍] Background fetch timeout:', taskId);
+//   BackgroundFetch.finish(taskId);
+// };
+
+// // Configure Background Fetch
+// const configureBackgroundFetch = async () => {
+//   try {
+//     const status = await BackgroundFetch.configure(
+//       {
+//         minimumFetchInterval: BACKGROUND_FETCH_INTERVAL,
+//         stopOnTerminate: false,
+//         startOnBoot: true,
+//         enableHeadless: true,
+//         forceAlarmManager: Platform.OS === 'android',
+//         requiredNetworkType: 'NONE', // Don't require network for background task
+//       },
+//       backgroundFetchHandler,
+//       backgroundFetchTimeoutHandler
+//     );
+
+//     console.log('[📍] Background fetch status:', status);
+
+//     // Schedule additional task for Android
+//     if (Platform.OS === 'android') {
+//       await BackgroundFetch.scheduleTask({
+//         taskId: 'location-tracking-task',
+//         delay: 10 * 60 * 1000, // 10 minutes
+//         periodic: true,
+//         forceAlarmManager: true,
+//         stopOnTerminate: false,
+//         enableHeadless: true,
+//         requiredNetworkType: 'NONE',
+//       });
+//       console.log('[📍] Android background task scheduled');
+//     }
+
+//     return true;
+//   } catch (error) {
+//     console.error('[📍] Background fetch configuration error:', error);
+//     return false;
+//   }
+// };
+
+// // Start Location Tracking
+// export const startLocationTracking = async () => {
+//   if (isTrackingInitialized) {
+//     console.log('[📍] Location tracking already initialized');
+//     return true;
+//   }
+
+//   try {
+//     // Request permissions first
+//     const hasPermission = await requestLocationPermissions();
+//     if (!hasPermission) {
+//       console.log('[📍] Location permissions not granted');
+//       return false;
+//     }
+
+//     // Start foreground service
+//     await startForegroundService();
+
+//     // Configure background fetch
+//     const backgroundConfigured = await configureBackgroundFetch();
+//     if (!backgroundConfigured) {
+//       console.error('[📍] Failed to configure background fetch');
+//       return false;
+//     }
+
+//     // Get initial location
+//     try {
+//       const location = await getCurrentLocation(false);
+//       if (location) {
+//         await storePendingLocation(location);
+        
+//         // Try initial sync
+//         const netState = await NetInfo.fetch();
+//         if (netState.isConnected) {
+//           await syncPendingLocations();
+//         }
+//       }
+//     } catch (error) {
+//       console.error('[📍] Initial location fetch failed:', error);
+//       // Don't fail the entire setup for initial location failure
+//     }
+
+//     // Set up network listener for syncing when connection is restored
+//     if (netListener) {
+//       netListener(); // Clean up existing listener
+//     }
+    
+//     netListener = NetInfo.addEventListener(async (state) => {
+//       if (state.isConnected && state.isInternetReachable !== false) {
+//         console.log('[📍] Network connected, syncing pending locations');
+//         await syncPendingLocations();
+//       }
+//     });
+
+//     isTrackingInitialized = true;
+//     console.log('[📍] Location tracking started successfully');
+//     return true;
+
+//   } catch (error) {
+//     console.error('[📍] Failed to start location tracking:', error);
+//     return false;
+//   }
+// };
+
+// // Stop Location Tracking
+// export const stopLocationTracking = async () => {
+//   if (!isTrackingInitialized) {
+//     console.log('[📍] Location tracking not initialized');
+//     return;
+//   }
+
+//   try {
+//     // Stop background fetch
+//     await BackgroundFetch.stop();
+    
+//     // Clean up network listener
+//     if (netListener) {
+//       netListener();
+//       netListener = null;
+//     }
+
+//     // Stop foreground service
+//     await stopForegroundService();
+
+//     isTrackingInitialized = false;
+//     console.log('[📍] Location tracking stopped');
+//   } catch (error) {
+//     console.error('[📍] Error stopping location tracking:', error);
+//   }
+// };
+
+// // Handle App State Changes
+// export const handleAppStateChange = async (nextAppState) => {
+//   console.log('[📍] App state changed to:', nextAppState);
+  
+//   if (nextAppState === 'active' && isTrackingInitialized) {
+//     try {
+//       // Get location when app becomes active
+//       const location = await getCurrentLocation(false);
+//       if (location) {
+//         await storePendingLocation(location);
+        
+//         // Sync if connected
+//         const netState = await NetInfo.fetch();
+//         if (netState.isConnected) {
+//           await syncPendingLocations();
+//         }
+//       }
+//     } catch (error) {
+//       console.error('[📍] Foreground location fetch error:', error);
+//     }
+//   }
+// };
+
+// // Get tracking status
+// export const getTrackingStatus = () => {
+//   return {
+//     isInitialized: isTrackingInitialized,
+//     hasNetListener: netListener !== null,
+//   };
+// };
