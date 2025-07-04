@@ -25,7 +25,6 @@ import CreateEvent from './src/pages/CreateEvent.js';
 import NewsList from './src/pages/news/NewsList.js';
 import NewsDetail from './src/pages/news/NewsDetail.js';
 import CreateNews from './src/pages/news/CreateNews.js';
-// import WorkersScreen from './src/pages/news/WorkersScreen.js';
 import ContactUs from './src/pages/contactus/ContactUs.js';
 import CategotryServices from './src/pages/CategotryServices.js';
 import CategoryHelp from './src/pages/help/CategoryHelp.js';
@@ -37,9 +36,10 @@ import NotificationList from './src/pages/notifications/NotificationList.jsx';
 import NotificationView from './src/pages/notifications/NotificationView.jsx';
 import JobView from './src/pages/job/JobView.js';
 import ViewApplicants from './src/pages/job/ViewApplicants.js';
-import LocationViewScreen from './src/screens/LocationViewScreen.js';
 import LocationHistory from './src/screens/LocationHistory.js';
-import { checkIfLocationEnabled, getCurrentLocation, initBackgroundLocationTracking, requestLocationPermissions, requestLocationPermissions01 } from './src/services/LocationService.js';
+import { checkIfLocationEnabled, requestLocationPermissions01 } from './src/services/LocationService.js';
+import { notificationPermission } from './src/context/utils.js';
+
 LogBox.ignoreAllLogs(); // just for testing crash
 
 
@@ -115,34 +115,15 @@ const toastConfig = {
   )
 };
 
-// React.useEffect(() => {
-//     initBackgroundLocationTracking();
-//   }, []);
-
 const Stack = createNativeStackNavigator();
 export const ContextProps = createContext(null);
 
 function App() {
   const [appUpdate, setAppUpdate] = useState(true);
 
-  // useEffect(() => {
-  //   const init = async () => {
-  //   const granted = await requestLocationPermissions();
-  //   if (granted) {
-  //     getCurrentLocation(); // fetch once
-  //     initBackgroundLocationTracking(); // enable background
-  //   }
-  // };
-  // init();
-  //   // initBackgroundLocationTracking();
-  // }, []);
-
-
   useEffect(() => {
     const init = async () => {
       const granted = await requestLocationPermissions01();
-      console.log('[Location Permissions]', granted);
-
       if (granted) {
         const isLocationEnabled = await checkIfLocationEnabled();
 
@@ -164,60 +145,13 @@ function App() {
           );
           return;
         }
-        console.log('[✅ Permissions OK] Starting location tracking...');
-        await getCurrentLocation(); // fetch once
-        initBackgroundLocationTracking(); // enable background
       }
+      notificationPermission();
+
+      // initBackgroundFetch();
     };
     init();
   }, []);
-
-  // useEffect(() => {
-  //   const init = async () => {
-  //     const granted = await requestLocationPermissions();
-  //     if (granted) {
-  //       const isLocationEnabled = await checkIfLocationEnabled();
-  //       if (!isLocationEnabled) {
-  //         Alert.alert('Turn On Location', 'Please enable location services.');
-  //         return;
-  //       }
-  //       console.log('[✅ Permissions OK] Starting location tracking...');
-  //       await getCurrentLocation(); // One-time fetch
-  //       initBackgroundLocationTracking(); // Start background mode
-  //     }
-  //   };
-  //   init();
-  // }, []);
-
-  // useEffect(() => {
-  //   const setupLocation = async () => {
-  //     const granted = await requestLocationPermissions();
-  //     if (granted) {
-  //       initBackgroundLocationTracking();
-  //     }
-  //   };
-
-  //   setupLocation();
-  // }, []);
-
-
-  // Add a button for manual testing
-  const handleTriggerFetch = async () => {
-    try {
-      await triggerBackgroundFetch();
-      Toast.show({
-        type: 'success',
-        text1: 'Manual Fetch Triggered',
-        text2: 'Check logs or notifications for background task execution.',
-      });
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Manual Fetch Failed',
-        text2: error.message,
-      });
-    }
-  };
 
   return (
     <SafeAreaProvider>

@@ -3,7 +3,8 @@ import VersionCheck from 'react-native-version-check';
 import notifee, { AndroidImportance } from '@notifee/react-native';
 
 import { getToken } from '@react-native-firebase/messaging';
-import { messaging } from '../..';
+import { messaging } from '../../index';
+import { onBackgroundFetch } from '../services/LocationService';
 
 export const checkAppVersion = async (appUpdate, setAppUpdate) => {
   const isNeeded = await VersionCheck.needUpdate();
@@ -37,7 +38,7 @@ export const Loader = ({ loading }) => {
 export const ScrollLoader = ({ loading }) => {
   return (
     loading ?
-      <View style={{ justifyContent: 'center', alignItems: 'center', zIndex: 1, width:'100%', height: 80 }}>
+      <View style={{ justifyContent: 'center', alignItems: 'center', zIndex: 1, width: '100%', height: 80 }}>
         <ActivityIndicator size="large" color="#0000ff" />
       </View>
       : <View />
@@ -84,21 +85,28 @@ export const handleNotification = async (remoteMessage) => {
     // lightColor: '#FF0000',
   });
 
-  // Display a notification
-  await notifee.displayNotification({
-    title: remoteMessage.notification?.title,
-    body: remoteMessage.notification?.body,
-    data: remoteMessage.data,
-    android: {
-      channelId, // Use the channel ID you created
-      importance: AndroidImportance.HIGH,
-      smallIcon: 'ic_launcher', // optional, defaults to 'ic_launcher'.
-      // pressAction is needed if you want the notification to open the app when pressed
-      pressAction: {
-        id: 'default',
+  if (remoteMessage.notification?.title) {
+    // Display a notification
+    await notifee.displayNotification({
+      title: remoteMessage.notification?.title,
+      body: remoteMessage.notification?.body,
+      data: remoteMessage.data,
+      android: {
+        channelId, // Use the channel ID you created
+        importance: AndroidImportance.HIGH,
+        smallIcon: 'ic_launcher', // optional, defaults to 'ic_launcher'.
+        // pressAction is needed if you want the notification to open the app when pressed
+        pressAction: {
+          id: 'default',
+        },
       },
-    },
-  });
+    });
+  } else {
+    // triggered for get location
+    console.log("foreground get location ");
+    onBackgroundFetch();
+
+  }
 }
 
 export const page_limit = 25
@@ -122,27 +130,27 @@ export const dateFormat = (date, time = false) => {
 
 // Handle Scroll reach end for scroll view
 export const handleReachEnd = (nativeEvent, skip, limit, total, setLoading, setSkip) => {
-    const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
-    
-    // Check if the user has scrolled to the end    
-    if (Math.floor(layoutMeasurement?.height + contentOffset?.y) >= Math.floor(contentSize?.height) - 100) {
+  const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
 
-        if (skip + limit < total) {
-            // setLoading(true);
-            setSkip(skip + limit);
-        }
+  // Check if the user has scrolled to the end    
+  if (Math.floor(layoutMeasurement?.height + contentOffset?.y) >= Math.floor(contentSize?.height) - 100) {
+
+    if (skip + limit < total) {
+      // setLoading(true);
+      setSkip(skip + limit);
     }
+  }
 }
 
 // Handle remove duplicate object from array
 export const removeDuplicates = (arr, uniqueKey) => {
-  
-    return arr?.reduce((acc, currValue) => {      
-        if (!acc.some(item => item?.[uniqueKey] === currValue?.[uniqueKey])) {
-            acc.push(currValue);
-        }
-        return acc;
-    }, []); // empty array refers to initial value of acc
+
+  return arr?.reduce((acc, currValue) => {
+    if (!acc.some(item => item?.[uniqueKey] === currValue?.[uniqueKey])) {
+      acc.push(currValue);
+    }
+    return acc;
+  }, []); // empty array refers to initial value of acc
 }
 
 export const placeholderTextColor = '#999'

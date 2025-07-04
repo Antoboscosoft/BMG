@@ -212,25 +212,14 @@ export const getAccessToken = async () => {
 
 // send location data to backend
 export const sendUserLocation = async (locationData) => {
-  const token = await AsyncStorage.getItem('accessToken');
-    console.log('[📍 Sending Location]:', locationData, 'with token:', token);
   const payload = {
     latitude: String(locationData?.latitude),
     longitude: String(locationData?.longitude),
-    date_time: locationData?.timestamp || new Date().toISOString(), // fallback
+    date_time: locationData?.timestamp || new Date().toISOString()
   };
 
   try {
-    const response = await axiosInstance.post('user/location', payload, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    console.log('[📡 Location Sent]:', response?.data);
-    console.log("successfully sent location data to backend", response);
-    
+    const response = await axiosInstance.post('user/location', payload);
     return response?.data;
   } catch (error) {
     console.error('[❌ Location API Error]:', error);

@@ -25,7 +25,7 @@ import { setAuthToken } from "../api/axiosInstance";
 import { Controller, useForm } from "react-hook-form";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { ContextProps } from "../../App";
-import { checkAppVersion, notificationPermission } from "../context/utils";
+import { checkAppVersion } from "../context/utils";
 
 // import OtpInputs from 'react-native-otp-inputs';
 // import RNOtpVerify from 'react-native-otp-verify';
@@ -700,7 +700,6 @@ function LoginScreen({ navigation }) {
 
   useEffect(() => {
     checkAppVersion(appUpdate, setAppUpdate);
-    notificationPermission();
   }, []);
 
 

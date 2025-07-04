@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { sendSavedLocations } from '../services/LocationService';
 
 const NetworkStatus = () => {
   const [isConnected, setIsConnected] = useState(true);
@@ -17,45 +19,35 @@ const NetworkStatus = () => {
     // Fetch initial network state
     NetInfo.fetch().then((state) => {
       setIsConnected(state.isConnected && state.isInternetReachable);
-        setIsVisible(!state.isConnected);
+      setIsVisible(!state.isConnected);
     });
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
   }, []);
 
-//   useEffect(() => {
-//     // Animate the message in/out based on connection status
-//     Animated.timing(fadeAnim, {
-//       toValue: isConnected ? 0 : 1,
-//       duration: 300,
-//       useNativeDriver: true,
-//     }).start();
-//   }, [isConnected, isVisible, fadeAnim]);
+  useEffect(() => {
+    let timer;
+    if (isConnected) {
+      timer = setTimeout(() => {
+        Animated.timing(fadeAnim, { toValue: 0, duration: 300, useNativeDriver: true, }).start();
+      }, 3000); // Hide after 3 seconds
 
-useEffect(() => {
-  let timer;
-  if (isConnected) {
-    timer = setTimeout(() => {
+      // handle sending pending location in asyncstorage when connected
+      sendSavedLocations();
+    } else {
       Animated.timing(fadeAnim, {
-        toValue: 0,
+        toValue: 1,
         duration: 300,
         useNativeDriver: true,
       }).start();
-    }, 3000); // Hide after 3 seconds
-  } else {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }
-  return () => clearTimeout(timer);
-}, [isConnected, fadeAnim]);
+    }
+    return () => clearTimeout(timer);
+  }, [isConnected, fadeAnim]);
 
   if (isConnected) return null; // Don't render anything if connected
 
-    if (!isVisible) return null; // Don't render if not visible
+  if (!isVisible) return null; // Don't render if not visible
 
   return (
     // <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
