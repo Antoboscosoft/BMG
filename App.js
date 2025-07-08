@@ -39,6 +39,8 @@ import ViewApplicants from './src/pages/job/ViewApplicants.js';
 import LocationHistory from './src/screens/LocationHistory.js';
 import { checkIfLocationEnabled, requestLocationPermissions01 } from './src/services/LocationService.js';
 import { notificationPermission } from './src/context/utils.js';
+import { startLocationStatusMonitor } from './src/services/LocationService.js';
+import { checkLocationStatus } from './src/services/LocationService.js';
 
 LogBox.ignoreAllLogs(); // just for testing crash
 
@@ -120,38 +122,91 @@ export const ContextProps = createContext(null);
 
 function App() {
   const [appUpdate, setAppUpdate] = useState(true);
+  const [locationEnabled, setLocationEnabled] = useState(null);
 
   useEffect(() => {
     const init = async () => {
-      const granted = await requestLocationPermissions01();
-      if (granted) {
-        const isLocationEnabled = await checkIfLocationEnabled();
+      try {
+        console.log('🚀 [App] Initializing app...');
+        
+        const granted = await requestLocationPermissions01();
+        console.log('📍 [App] Location permission granted:', granted);
 
-        if (!isLocationEnabled) {
-          Alert.alert(
-            'Turn On Location',
-            'Please enable location services to get your current location.',
-            [
-              { text: 'Cancel', style: 'cancel' },
-              {
-                text: 'Open Settings',
-                onPress: () => {
-                  if (Platform.OS === 'android') {
-                    Linking.openSettings(); // or use IntentLauncher
-                  }
-                },
-              },
-            ]
-          );
-          return;
+        if (granted) {
+          const isEnabled = await checkLocationStatus();
+          console.log('📍 [App] Location status checked:', isEnabled);
+          handleLocationStatusChange(isEnabled);
+        } else {
+          console.log('❌ [App] Location permission denied');
+          showPermissionDeniedAlert();
         }
-      }
-      notificationPermission();
 
-      // initBackgroundFetch();
+        notificationPermission();
+      } catch (error) {
+        console.error('❌ [App] Initialization error:', error);
+      }
     };
+
     init();
+
+    // Start monitoring location status changes
+    const stopMonitoring = startLocationStatusMonitor(handleLocationStatusChange);
+
+    return () => {
+      console.log('🛑 [App] Stopping location monitoring');
+      stopMonitoring();
+    };
   }, []);
+
+  const handleLocationStatusChange = (isEnabled) => {
+    console.log('📍 [App] Location status changed:', isEnabled);
+    setLocationEnabled(isEnabled);
+
+    if (!isEnabled) {
+      showLocationDisabledAlert();
+    }
+  };
+
+  const showLocationDisabledAlert = () => {
+    console.log('⚠️ [App] Showing location disabled alert');
+    Alert.alert(
+      'Turn On Location',
+      'Please enable location services to get your current location.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Open Settings',
+          onPress: () => {
+            console.log('⚙️ [App] Opening device settings');
+            if (Platform.OS === 'android') {
+              Linking.openSettings();
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const showPermissionDeniedAlert = () => {
+    console.log('⚠️ [App] Showing permission denied alert');
+    Alert.alert(
+      'Location Permission Required',
+      'This app needs location permission to function properly.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Open Settings',
+          onPress: () => {
+            console.log('⚙️ [App] Opening app settings');
+            if (Platform.OS === 'android') {
+              Linking.openSettings();
+            }
+          },
+        },
+      ]
+    );
+  };
+
 
   return (
     <SafeAreaProvider>

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
     Animated,
     Dimensions,
@@ -15,21 +15,24 @@ import {
     BackHandler,
     Pressable,
     StatusBar,
+    PermissionsAndroid,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getAccessToken, getUserData, updateFirebaseToken } from '../api/auth';
+import { getAccessToken, getUserData, sendUserLocation, updateFirebaseToken } from '../api/auth';
 import { clearAuthToken } from '../api/axiosInstance';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { LanguageContext, useLanguage } from '../language/commondir';
-import { appVersion, checkAppVersion, getFirebaseToken, handleNotification } from '../context/utils';
+import { appVersion, checkAppVersion, everyTimeSendLocationtoBackendTime, getFirebaseToken, handleNotification } from '../context/utils';
 import { ContextProps } from '../../App';
 import notifee from '@notifee/react-native';
 import { messaging } from '../..';
 import { initBackgroundLocationTracking } from '../services/LocationService';
+import { checkIfLocationEnabled, getCurrentLocation, requestLocationPermissions, requestLocationPermissions01, sendSavedLocations } from '../services/LocationService.js';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -47,6 +50,8 @@ function DashboardPage({ navigation, route }) {
     const [showExitModal, setShowExitModal] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const { setUser } = useContext(LanguageContext);
+    const locationIntervalRef = useRef(null);
+    const locationCheckIntervalRef = useRef(null);
 
     const dashboardMenuItems = [
         { id: '6', name: 'profile', screen: 'Profile', icon: 'account' },
@@ -72,6 +77,265 @@ function DashboardPage({ navigation, route }) {
             console.error('Failed to send Firebase token:', error);
         }
     }
+
+
+    // Function to handle location tracking every 5 minutes
+    const startLocationTracking = async () => {
+        try {
+            console.log('🚀 [Dashboard] Starting location tracking...');
+
+            // Check if location is enabled
+            const isLocationEnabled = await checkIfLocationEnabled();
+            if (!isLocationEnabled) {
+                console.log('❌ [Dashboard] Location services are disabled');
+                return;
+            }
+
+            // Check permissions
+            const hasPermission = await requestLocationPermissions01();
+            if (!hasPermission) {
+                console.log('❌ [Dashboard] Location permissions not granted');
+                // Optional: Still proceed with foreground-only tracking if fine location was granted
+                const fineLocation = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
+                if (fineLocation) {
+                    console.log('✅ [Dashboard] Proceeding with foreground-only location tracking');
+                    await handleLocationUpdate();
+                    locationIntervalRef.current = setInterval(handleLocationUpdate, 5 * 60 * 1000);
+                    return;
+                }
+                return;
+            }
+
+            console.log('✅ [Dashboard] Location permissions granted, starting tracking');
+
+            // Initial location fetch
+            await handleLocationUpdate();
+
+            // Set up interval for every 5 minutes (300000 ms)
+            locationIntervalRef.current = setInterval(async () => {
+                await handleLocationUpdate();
+            }, 5 * 60 * 1000); // 5 minutes
+
+            console.log('⏰ [Dashboard] Location tracking interval set for every 5 minutes');
+
+        } catch (error) {
+            console.error('❌ [Dashboard] Location tracking setup failed:', error);
+        }
+    };
+
+    // Function to handle location update
+    const handleLocationUpdate = async () => {
+        try {
+            console.log('📍 [Dashboard] Fetching current location...');
+
+            const location = await getCurrentLocation();
+            if (location) {
+                console.log('📍 [Dashboard] Location obtained:', {
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    timestamp: location.timestamp
+                });
+
+                // Store in AsyncStorage
+                await storeLocationInAsync(location);
+
+                // Send to backend
+                await sendLocationToBackend(location);
+
+                // Update last sync time
+                const currentTime = new Date().getTime();
+                await AsyncStorage.setItem('lastSyncTime', currentTime.toString());
+                console.log('⏰ [Dashboard] Last sync time updated:', new Date(currentTime).toISOString());
+
+            } else {
+                console.log('❌ [Dashboard] Failed to get location');
+            }
+        } catch (error) {
+            console.error('❌ [Dashboard] Location update failed:', error);
+        }
+    };
+
+    // Function to check last sync time and update location if needed
+    const checkAndUpdateLocation = async () => {
+        try {
+            console.log('🚀 [Dashboard] Checking last sync time...');
+
+            // Check if location services are ON
+            const isLocationEnabled = await checkIfLocationEnabled();
+            if (!isLocationEnabled) {
+                console.log('❌ [Dashboard] Location services are disabled');
+                return;
+            }
+
+            // Check fine location permission only (no background permission!)
+            const hasPermission = await requestLocationPermissions01();
+            if (!hasPermission) {
+                console.log('❌ [Dashboard] Location permission not granted');
+                const fineLocation = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
+                if (!fineLocation) {
+                    console.log('❌ [Dashboard] Fine location not granted. Exiting.');
+                    return;
+                }
+            }
+
+            // Check time difference
+            const lastSync = await AsyncStorage.getItem('lastSyncTime');
+            const lastSyncTime = lastSync ? parseInt(lastSync, 10) : 0;
+            const currentTime = Date.now();
+            const timeDiffMinutes = (currentTime - lastSyncTime) / (1000 * 60);
+
+            console.log('⏱️ [Dashboard] Time since last sync (min):', timeDiffMinutes);
+
+            if (timeDiffMinutes >= everyTimeSendLocationtoBackendTime) {
+                console.log('📍 [Dashboard] 5+ minutes passed. Getting new location...');
+                const location = await getCurrentLocation();
+                if (location) {
+                    await storeLocationInAsync(location);
+                    await sendLocationToBackend(location);
+                    await AsyncStorage.setItem('lastSyncTime', currentTime.toString());
+                    console.log('✅ [Dashboard] Location sent & last sync time updated');
+                } else {
+                    console.log('❌ [Dashboard] Failed to get location');
+                }
+            } else {
+                console.log('⏳ [Dashboard] Less than 5 minutes. No need to update location');
+            }
+
+        } catch (error) {
+            console.error('❌ [Dashboard] Failed to check/send location:', error);
+        }
+    };
+
+    // Run on screen focus
+    useFocusEffect(
+        useCallback(() => {
+            if (!userData?.data?.id) return;
+
+            console.log('👤 [Dashboard] Screen focused for user:', userData.data.id);
+
+            checkAndUpdateLocation();
+
+            sendSavedLocations()
+                .then(() => console.log('📤 [Dashboard] Offline locations sent successfully'))
+                .catch(error => console.error('❌ [Dashboard] Failed to send offline locations:', error));
+
+        }, [userData?.data?.id])
+    );
+
+    // Auto check every 1 minute when Dashboard is open
+    useEffect(() => {
+        if (!userData?.data?.id) return;
+
+        locationCheckIntervalRef.current = setInterval(() => {
+            console.log('⏰ [Dashboard] Periodic location check triggered');
+            checkAndUpdateLocation();
+        }, 60 * 1000);  // Check every 1 minute
+
+        return () => {
+            clearInterval(locationCheckIntervalRef.current);
+            locationCheckIntervalRef.current = null;
+            console.log('🛑 [Dashboard] Cleared location check interval');
+        };
+    }, [userData?.data?.id]);
+
+
+    // Function to store location in AsyncStorage
+    const storeLocationInAsync = async (location) => {
+        try {
+            const locationData = {
+                ...location,
+                storedAt: new Date().toISOString(),
+                userId: userData?.data?.id
+            };
+
+            // Get existing locations
+            const existingLocations = await AsyncStorage.getItem('userLocations');
+            let locations = existingLocations ? JSON.parse(existingLocations) : [];
+
+            // Add new location
+            locations.push(locationData);
+
+            // Keep only last 50 locations to avoid storage issues
+            if (locations.length > 50) {
+                locations = locations.slice(-50);
+            }
+
+            // Store back to AsyncStorage
+            await AsyncStorage.setItem('userLocations', JSON.stringify(locations));
+
+            console.log('💾 [Dashboard] Location stored in AsyncStorage:', {
+                latitude: location.latitude,
+                longitude: location.longitude,
+                timestamp: location.timestamp,
+                totalLocationsStored: locations.length
+            });
+
+        } catch (error) {
+            console.error('❌ [Dashboard] Failed to store location in AsyncStorage:', error);
+        }
+    };
+
+    // Function to send location to backend
+    const sendLocationToBackend = async (location) => {
+        try {
+            console.log('🌐 [Dashboard] Sending location to backend...');
+
+            const response = await sendUserLocation(location);
+            console.log('✅ [Dashboard] Location sent to backend successfully:', {
+                latitude: location.latitude,
+                longitude: location.longitude,
+                timestamp: location.timestamp,
+                response: response?.status || 'success'
+            });
+
+        } catch (error) {
+            console.error('❌ [Dashboard] Failed to send location to backend:', error);
+
+            // Store in offline storage if network fails
+            try {
+                const offlineLocations = await AsyncStorage.getItem('offlineLocations');
+                let locations = offlineLocations ? JSON.parse(offlineLocations) : [];
+                locations.push(location);
+                await AsyncStorage.setItem('offlineLocations', JSON.stringify(locations));
+                console.log('💾 [Dashboard] Location stored offline for retry');
+            } catch (offlineError) {
+                console.error('❌ [Dashboard] Failed to store offline location:', offlineError);
+            }
+        }
+    };
+
+    // Function to stop location tracking
+    // const stopLocationTracking = () => {
+    //     if (locationIntervalRef.current) {
+    //         clearInterval(locationIntervalRef.current);
+    //         locationIntervalRef.current = null;
+    //         console.log('🛑 [Dashboard] Location tracking stopped');
+    //     }
+    // };
+
+    // // Location tracking useEffect
+    // useEffect(() => {
+    //     if (!userData?.data?.id) return;
+
+    //     console.log('👤 [Dashboard] User data available, setting up location tracking for user:', userData.data.id);
+
+    //     // Start location tracking
+    //     startLocationTracking();
+
+    //     // Send any saved offline locations
+    //     sendSavedLocations().then(() => {
+    //         console.log('📤 [Dashboard] Offline locations sent successfully');
+    //     }).catch(error => {
+    //         console.error('❌ [Dashboard] Failed to send offline locations:', error);
+    //     });
+
+    //     // Cleanup on unmount
+    //     return () => {
+    //         stopLocationTracking();
+    //     };
+    // }, [userData?.data?.id]);
+
+
 
     useEffect(() => {
         const setRoleInAsyncStorage = async () => {

@@ -24,6 +24,7 @@ export const checkAppVersion = async (appUpdate, setAppUpdate) => {
 
 export const appVersion = 'V1.16';
 
+export const everyTimeSendLocationtoBackendTime = 5;
 
 export const Loader = ({ loading }) => {
   return (
