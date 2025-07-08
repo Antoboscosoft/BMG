@@ -182,8 +182,14 @@ function DashboardPage({ navigation, route }) {
             const lastSync = await AsyncStorage.getItem('lastSyncTime');
             const lastSyncTime = lastSync ? parseInt(lastSync, 10) : 0;
             const currentTime = Date.now();
-            const timeDiffMinutes = (currentTime - lastSyncTime) / (1000 * 60);
-
+            // 5 minutes
+            // const timeDiffMinutes = (currentTime - lastSyncTime) / (1000 * 60);
+            // 2 hours
+            // const timeDiffMinutes = (currentTime - lastSyncTime) / (1000 * 60 * 60 * 2);
+            // 1 hour
+            // const timeDiffMinutes = (currentTime - lastSyncTime) / (1000 * 60 * 60);
+            // 5 hour
+            const timeDiffMinutes = (currentTime - lastSyncTime) / (1000 * 60 * 60 * 5);
             console.log('⏱️ [Dashboard] Time since last sync (min):', timeDiffMinutes);
 
             if (timeDiffMinutes >= everyTimeSendLocationtoBackendTime) {
