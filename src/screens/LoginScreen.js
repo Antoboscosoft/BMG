@@ -26,6 +26,7 @@ import { Controller, useForm } from "react-hook-form";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { ContextProps } from "../../App";
 import { checkAppVersion } from "../context/utils";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // import OtpInputs from 'react-native-otp-inputs';
 // import RNOtpVerify from 'react-native-otp-verify';
@@ -700,6 +701,7 @@ function LoginScreen({ navigation }) {
 
   useEffect(() => {
     checkAppVersion(appUpdate, setAppUpdate);
+    AsyncStorage.setItem('lastSyncTime', '');
   }, []);
 
 

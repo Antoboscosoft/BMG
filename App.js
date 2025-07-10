@@ -124,40 +124,6 @@ function App() {
   const [appUpdate, setAppUpdate] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(null);
 
-  useEffect(() => {
-    const init = async () => {
-      try {
-        console.log('🚀 [App] Initializing app...');
-        
-        const granted = await requestLocationPermissions01();
-        console.log('📍 [App] Location permission granted:', granted);
-
-        if (granted) {
-          const isEnabled = await checkLocationStatus();
-          console.log('📍 [App] Location status checked:', isEnabled);
-          handleLocationStatusChange(isEnabled);
-        } else {
-          console.log('❌ [App] Location permission denied');
-          showPermissionDeniedAlert();
-        }
-
-        notificationPermission();
-      } catch (error) {
-        console.error('❌ [App] Initialization error:', error);
-      }
-    };
-
-    init();
-
-    // Start monitoring location status changes
-    const stopMonitoring = startLocationStatusMonitor(handleLocationStatusChange);
-
-    return () => {
-      console.log('🛑 [App] Stopping location monitoring');
-      stopMonitoring();
-    };
-  }, []);
-
   const handleLocationStatusChange = (isEnabled) => {
     console.log('📍 [App] Location status changed:', isEnabled);
     setLocationEnabled(isEnabled);
@@ -206,6 +172,41 @@ function App() {
       ]
     );
   };
+
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        console.log('[App] Initializing app...');
+
+        const granted = await requestLocationPermissions01();
+        console.log('[App] Location permission granted:', granted);
+
+        if (granted) {
+          // const isEnabled = await checkLocationStatus();
+          console.log('[App] Location status checked:');
+          // // handleLocationStatusChange(isEnabled);
+        } else {
+          console.log('[App] Location permission denied');
+          showPermissionDeniedAlert();
+        }
+
+        notificationPermission();
+      } catch (error) {
+        console.error('[App] Initialization error:', error);
+      }
+    };
+
+    init();
+
+    // Start monitoring location status changes
+    const stopMonitoring = startLocationStatusMonitor(handleLocationStatusChange);
+
+    return () => {
+      console.log('[App] Stopping location monitoring');
+      stopMonitoring();
+    };
+  }, []);
 
 
   return (
