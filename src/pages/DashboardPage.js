@@ -20,7 +20,7 @@ const { width, height } = Dimensions.get('window');
 
 function DashboardPage({ navigation, route }) {
     const { appUpdate, setAppUpdate } = useContext(ContextProps);
-    const { languageTexts, language } = useLanguage();
+    const { languageTexts, language, changeLanguage } = useLanguage();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const slideAnim = useState(new Animated.Value(-250))[0];
     const [userData, setUserData] = useState(null);
@@ -588,6 +588,7 @@ function DashboardPage({ navigation, route }) {
     const handleLogout = async () => {
         setIsLoggingOut(true);
         setShowLogoutModal(false);
+        changeLanguage('EN');
         await clearAuthToken();
         setUser({});
         navigation.reset({

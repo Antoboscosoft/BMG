@@ -37,6 +37,9 @@ const OTP_TIMEOUT = 30;
 function LoginScreen({ navigation }) {
   // Tab state
   const [activeTab, setActiveTab] = useState("migrants");
+  // Prevent double submit after OTP or staff login success
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [staffLoginVerified, setStaffLoginVerified] = useState(false);
   const { appUpdate, setAppUpdate } = useContext(ContextProps);
   // Migrants login state
   const [mobile, setMobile] = useState("");
@@ -287,10 +290,12 @@ function LoginScreen({ navigation }) {
     }
 
     setVerifying(true);
+    setOtpVerified(false);
     try {
       const response = await verifyOtp(callingCode, mobile, otp);
 
       if (response?.status) {
+        setOtpVerified(true); // Prevent button re-enable
         await setAuthToken(response.access_token);
         Toast.show({
           type: "success",
@@ -304,6 +309,7 @@ function LoginScreen({ navigation }) {
           navigation.navigate("Dashboard", {
             accessToken: response.access_token,
           });
+          setOtpVerified(false); // Reset after navigation
         }, 2000);
       } else {
         setError("Invalid OTP. Please try again.");
@@ -343,13 +349,13 @@ function LoginScreen({ navigation }) {
   }
 
   const handleStaffLogin = async (data) => {
-    // if (!validateStaffCredentials()) return;
     Keyboard.dismiss();
     setLoading(true);
+    setStaffLoginVerified(false);
     try {
-      const response = await staffLogin(data.email, data.password); // Use the staffLogin API
-
+      const response = await staffLogin(data.email, data.password);
       if (response?.status) {
+        setStaffLoginVerified(true); // Prevent button re-enable
         await setAuthToken(response.access_token);
         Toast.show({
           type: "success",
@@ -362,6 +368,7 @@ function LoginScreen({ navigation }) {
           navigation.navigate("Dashboard", {
             accessToken: response.access_token,
           });
+          setStaffLoginVerified(false); // Reset after navigation
         }, 2000);
       } else {
         setError("Invalid credentials. Please try again.");
@@ -580,10 +587,10 @@ function LoginScreen({ navigation }) {
         </TouchableOpacity>
       ) : (
         <TouchableOpacity
-          style={[styles.button, otp.length !== 5 && styles.disabledButton]}
+          style={[styles.button, (otp.length !== 5 || verifying || otpVerified) && styles.disabledButton]}
           onPress={handleVerifyOtp}
           activeOpacity={0.8}
-          disabled={otp.length !== 5 || verifying}
+          disabled={otp.length !== 5 || verifying || otpVerified}
         >
           {verifying ? (
             <ActivityIndicator color="#3D2A1A" />
@@ -684,10 +691,10 @@ function LoginScreen({ navigation }) {
       </View>
 
       <TouchableOpacity
-        style={[styles.button, !isValid && styles.disabledButton]}
+        style={[styles.button, (!isValid || loading || staffLoginVerified) && styles.disabledButton]}
         onPress={handleSubmit(handleStaffLogin)}
         activeOpacity={0.8}
-        disabled={!isValid || loading}
+        disabled={!isValid || loading || staffLoginVerified}
       >
         {loading ? (
           <ActivityIndicator color="#3D2A1A" />

@@ -27,11 +27,18 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const { width, height } = Dimensions.get('window');
 
+// const languageOptions01 = [
+//     { id: 'en', name: 'English' },
+//     { id: 'hi', name: 'Hindi' },
+//     { id: 'ta', name: 'Tamil' },
+//     { id: 'bn', name: 'Bengali' },
+// ];
+
 const languageOptions = [
-    { id: 'en', name: 'English' },
-    { id: 'hi', name: 'Hindi' },
-    { id: 'ta', name: 'Tamil' },
-    { id: 'bn', name: 'Bengali' },
+    { id: 'ENGLISH', name: 'English' },
+    { id: 'HINDI', name: 'Hindi' },
+    { id: 'TAMIL', name: 'Tamil' },
+    { id: 'KANNADA', name: 'Kannada' },
 ];
 
 function formatDate(date) {
@@ -566,7 +573,8 @@ console.log("nativeStates",nativeStates);
             setSearchQuery('');
         };
 
-        const selectedItem = data.find((item) => String(item.id) === String(selectedValue));
+        // const selectedItem = data.find((item) => String(item.id) === String(selectedValue));
+        const selectedItem = data.find((item) => String(item.id).toUpperCase() === String(selectedValue).toUpperCase());
 
         return (
             <View style={styles.pickerContainer}>

@@ -311,10 +311,10 @@ function ProfileScreen({ navigation, route }) {
             <View style={styles.row}>
               <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.language || 'Language'}</Text>
               <Text style={styles.value}>
-                {userData?.language_pref === 'en' ? 'English'
-                  : userData?.language_pref === 'hi' ? 'Hindi'
-                    : userData?.language_pref === 'ta' ? 'Tamil'
-                      : userData?.language_pref === 'kn' ? 'Kannada' : '-'}
+                {userData?.language_pref === 'ENGLISH' ? 'English'
+                  : userData?.language_pref === 'HINDI' ? 'Hindi'
+                    : userData?.language_pref === 'TAMIL' ? 'Tamil'
+                      : userData?.language_pref === 'KANNADA' ? 'Kannada' : '-'}
               </Text>
             </View>
 
