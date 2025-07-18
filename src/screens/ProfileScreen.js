@@ -104,7 +104,7 @@ function ProfileScreen({ navigation, route }) {
           const response = await getUserData();
           if (response.status && response.data) {
             user = response.data;
-            setRole(response.data?.role?.name);
+            // setRole(response?.data?.role?.name);
             setIsSuperAdmin(response.data?.role?.name === 'Super Admin');
           }
         }

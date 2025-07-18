@@ -5,6 +5,7 @@ import notifee, { AndroidImportance } from '@notifee/react-native';
 import { getToken } from '@react-native-firebase/messaging';
 import { messaging } from '../../index';
 import { onBackgroundFetch } from '../services/LocationService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const checkAppVersion = async (appUpdate, setAppUpdate) => {
   const isNeeded = await VersionCheck.needUpdate();
@@ -22,7 +23,7 @@ export const checkAppVersion = async (appUpdate, setAppUpdate) => {
   }
 };
 
-export const appVersion = 'V1.18';
+export const appVersion = 'V1.19';
 
 export const everyTimeSendLocationtoBackendTime = 5;
 
@@ -155,3 +156,32 @@ export const removeDuplicates = (arr, uniqueKey) => {
 }
 
 export const placeholderTextColor = '#999'
+
+
+
+export const getLanguagePreference = async () => {
+  try {
+    const pref = await AsyncStorage.getItem('languagePref');
+    return pref || 'EN'; // Default to English if not set
+  } catch (error) {
+    console.error('Error getting language preference:', error);
+    return 'EN';
+  }
+};
+
+export const setLanguagePreference = async (languageCode) => {
+  try {
+    await AsyncStorage.setItem('languagePref', languageCode);
+  } catch (error) {
+    console.error('Error setting language preference:', error);
+  }
+};
+
+export const clearLanguagePreference = async () => {
+  try {
+    await AsyncStorage.setItem('languagePref', 'EN'); // Reset to English on logout
+  } catch (error) {
+    console.error('Error clearing language preference:', error);
+  }
+};
+

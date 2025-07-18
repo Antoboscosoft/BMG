@@ -34,7 +34,9 @@ function DashboardPage({ navigation, route }) {
     const { setUser } = useContext(LanguageContext);
     const locationIntervalRef = useRef(null);
     const locationCheckIntervalRef = useRef(null);
-
+    console.log('====================================');
+    console.log("userData",userData?.data?.language_pref || 'EN');
+    console.log('====================================');
     const dashboardMenuItems = [
         { id: '6', name: 'profile', screen: 'Profile', icon: 'account' },
         { id: '1', name: 'eventCalendar', screen: 'EventCalendar', icon: 'calendar-month' },
@@ -567,6 +569,21 @@ function DashboardPage({ navigation, route }) {
             navigation.navigate(itemName);
         }
     };
+
+    // previously used if need it, use it:
+    // const handleIconPress = (itemName) => {
+    //     const screensWithUserData = [
+    //         'EventCalendar', 'CreateEvent', 'MigrantsList', 'Profile',
+    //         'ServicesDirectory', 'Notifications', 'MultilingualSupport',
+    //         'HelpRequest', 'NewsList'
+    //     ];
+
+    //     if (screensWithUserData.includes(itemName)) {
+    //         navigation.navigate(itemName, { userData: userData.data });
+    //     } else {
+    //         navigation.navigate(itemName);
+    //     }
+    // };
 
     const handleLogout = async () => {
         setIsLoggingOut(true);
