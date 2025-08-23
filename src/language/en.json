@@ -308,6 +308,7 @@
         "mobile": "Mobile",
         "aadhaar": "Aadhaar",
         "dob": "Date of Birth",
+        "gender": "Gender",
         "age": "Age",
         "currentAddress": "Current Address",
         "currentCountry": "Current Country",

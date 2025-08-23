@@ -10,7 +10,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import CountryPicker from 'react-native-country-picker-modal';
 import ImagePicker from 'react-native-image-crop-picker';
 import Toast from 'react-native-simple-toast';
-import { getCountries, getStates, getDistricts, registerUser, extractIdentityData, getJobTypes, getSkillsByJobType } from '../api/auth';
+import { getCountries, getStates, getDistricts, registerUser, extractIdentityData, getJobTypes, getSkillsByJobType, getGenderOptions } from '../api/auth';
 // import RegisterImg from '../asserts/images/splash1.jpg';
 import RegisterImg from '../asserts/images/loginbg1.jpg';
 import { useRoute } from '@react-navigation/native';
@@ -334,6 +334,10 @@ const RegisterScreen = ({ navigation, route }) => {
     const [loadingStates, setLoadingStates] = useState(false);
     const [loadingDistricts, setLoadingDistricts] = useState(false);
     const [image, setImage] = useState(null);
+    // Add these state variables with your other state declarations
+    const [genderOptions, setGenderOptions] = useState([]);
+    const [loadingGenders, setLoadingGenders] = useState(false);
+
     const [errors, setErrors] = useState({
         name: '',
         dateOfBirth: '',
@@ -365,6 +369,30 @@ const RegisterScreen = ({ navigation, route }) => {
     const navData = useRoute();
     const showContent = navData.params.from === 'MigrantsList';
     console.log(navData.params.from, "navData");
+
+        
+    // Add this useEffect with your other useEffects to fetch gender options
+    useEffect(() => {
+        const fetchGenderOptions = async () => {
+            setLoadingGenders(true);
+            try {
+                const options = await getGenderOptions();
+                setGenderOptions(options);
+            } catch (error) {
+                console.error('Failed to fetch gender options:', error);
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: 'Failed to load gender options',
+                });
+            } finally {
+                setLoadingGenders(false);
+            }
+        };
+
+        fetchGenderOptions();
+    }, []);
+
 
     // Format Aadhaar number with spaces every 4 digits
     const formatAadhaar = (text) => {
@@ -535,6 +563,7 @@ const RegisterScreen = ({ navigation, route }) => {
                 native_state_id: form.nativeStateId,
                 native_district_id: form.nativeDistrictId,
                 date_of_birth: form.dateOfBirth ? formatDate(form.dateOfBirth) : null,
+                gender: form.gender || '',
                 aadhaar_number: form.aadhaarNumber || '',
                 skills: form.skills.map(id => ({ id })),
                 job_type: form.jobType.map(id => ({ id })),
@@ -872,6 +901,9 @@ const RegisterScreen = ({ navigation, route }) => {
             case 'dateOfBirth':
                 if (!value) error = 'Date of Birth is required';
                 break;
+            // case 'gender':
+            //     if (!value) error = 'Gender is required';
+            //     break;
             case 'currentCountryId':
                 if (!value) error = 'Country is required';
                 break;
@@ -914,6 +946,7 @@ const RegisterScreen = ({ navigation, route }) => {
         const newErrors = {
             name: '',
             dateOfBirth: '',
+            gender: '',
             mobileNumber: '',
             currentCountryId: '',
             currentStateId: '',
@@ -945,6 +978,11 @@ const RegisterScreen = ({ navigation, route }) => {
             newErrors.dateOfBirth = 'Date of Birth is required';
             isValid = false;
         }
+
+        // if (!form.gender) {
+        //     newErrors.gender = 'Gender is required';
+        //     isValid = false;
+        // }
 
         if (!form.currentCountryId) {
             newErrors.currentCountryId = 'Country is required';
@@ -1087,6 +1125,7 @@ const RegisterScreen = ({ navigation, route }) => {
                     name: data.name || prev.name,
                     mobileNumber: data.mobile_number || prev.mobileNumber,
                     dateOfBirth: data.date_of_birth ? new Date(data.date_of_birth).toISOString() : prev.dateOfBirth,
+                    gender: data.gender || prev.gender,
                     aadhaarNumber: data.aadhaar_number ? data.aadhaar_number.replace(/\s/g, '') : prev.aadhaarNumber,
                     nativeAddressLine: data.native_address_line || prev.nativeAddressLine,
                     nativeCountryId: data.native_country_id ? data.native_country_id : prev.nativeCountryId || null,
@@ -1106,6 +1145,7 @@ const RegisterScreen = ({ navigation, route }) => {
                 validateField('name', data.name || form.name);
                 validateField('mobileNumber', data.mobile_number || form.mobileNumber);
                 validateField('dateOfBirth', data.date_of_birth ? new Date(data.date_of_birth).toISOString() : form.dateOfBirth);
+                validateField('gender', data.gender || form.gender);
                 validateField('currentCountryId', data.native_country_id ? String(data.native_country_id) : form.currentCountryId);
                 validateField('currentStateId', data.native_state_id ? String(data.native_state_id) : form.currentStateId);
                 validateField('currentDistrictId', data.native_district_id ? String(data.native_district_id) : form.currentDistrictId);
@@ -1116,6 +1156,7 @@ const RegisterScreen = ({ navigation, route }) => {
                     name: true,
                     mobileNumber: true,
                     dateOfBirth: true,
+                    gender: true,
                     currentCountryId: true,
                     currentStateId: true,
                     currentDistrictId: true,
@@ -1384,6 +1425,23 @@ const RegisterScreen = ({ navigation, route }) => {
                                 maximumDate={new Date()}
                             />
                         )}
+
+                        {/* Gender Dropdown */}
+                        <SearchableDropdown
+                            label="Gender"
+                            placeholder="Select Gender"
+                            data={genderOptions.map(option => ({ 
+                                id: option.value, 
+                                name: option.label || option.name || option.value 
+                            }))}
+                            selectedValue={form.gender}
+                            onSelect={(value) => handleChange('gender', value)}
+                            error={touched.gender && errors.gender}
+                            disabled={false}
+                            loading={loadingGenders}
+                            // isMandatory={true}
+                            validateField={(value) => validateField('gender', value)}
+                        />
 
                         {/* Aadhaar Number */}
                         <View style={styles.inputContainer}>

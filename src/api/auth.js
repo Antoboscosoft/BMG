@@ -270,6 +270,19 @@ export const getUserData = async (token) => {
     }
 };
 
+export const getGenderOptions = async () => {
+    try {
+        const response = await axiosInstance.get('options/gender');
+        // return response.data;
+        if (response.data.status && response.data.data) {
+            return response.data.data; // Return the array of gender options
+        }
+        return [];
+    } catch (error) {
+        throw error.response?.data || { message: "Failed to fetch gender options" };
+    }
+};
+
 // Function to get list of migrant users
 export const getMigrantsList = async (skip=0, limit=25, search="") => {
     try {
@@ -329,6 +342,7 @@ export const updateUserData = async (userId, userData) => {
             photo: null, // We'll handle the photo separately if needed
             age: userData.date_of_birth ? parseInt(calculateAge(userData.date_of_birth)) : 0,
             aadhaar_number: userData.aadhaar_number || null,
+            gender: userData.gender || null,
             native_address_line: userData.native_address_line || null,
             native_district_id: userData.native_district_id || null,
             native_state_id: userData.native_state_id || null,

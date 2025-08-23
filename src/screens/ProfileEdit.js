@@ -18,7 +18,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { getCountries, getDistricts, getStates, getUserData, updateUserData, getJobTypes, getSkillsByJobType } from '../api/auth';
+import { getCountries, getDistricts, getStates, getUserData, updateUserData, getJobTypes, getSkillsByJobType, getGenderOptions } from '../api/auth';
 import Toast from 'react-native-toast-message';
 import CountryPicker from 'react-native-country-picker-modal';
 import { useForm, Controller } from 'react-hook-form';
@@ -73,6 +73,8 @@ function ProfileEdit({ navigation, route }) {
     const [loadingJobTypes, setLoadingJobTypes] = useState(false);
     const [loadingSkills, setLoadingSkills] = useState(false);
 console.log("nativeStates",nativeStates);
+    const [genderOptions, setGenderOptions] = useState([]);
+    const [loadingGenders, setLoadingGenders] = useState(false);
 
     const { control, handleSubmit, reset, formState: { errors }, setValue, watch } = useForm({
         defaultValues: {
@@ -82,6 +84,7 @@ console.log("nativeStates",nativeStates);
             mobile_code: userData?.mobile_code || '',
             date_of_birth: userData?.date_of_birth || '',
             aadhaar_number: userData?.aadhaar_number || '',
+            gender: userData?.gender || '',
             current_address_line: userData?.current_address_line || '',
             native_address_line: userData?.native_address_line || '',
             current_district_id: userData?.current_district_id ? String(userData.current_district_id) : '',
@@ -110,6 +113,44 @@ console.log("nativeStates",nativeStates);
     const currentStateId = watch('current_state_id');
     const nativeCountryId = watch('native_country_id');
     const nativeStateId = watch('native_state_id');
+
+
+    // Fetch gender options on mount
+    useEffect(() => {
+        const fetchGenderOptions = async () => {
+        setLoadingGenders(true);
+        try {
+            const options = await getGenderOptions();
+            setGenderOptions(options);
+        } catch (error) {
+            console.error('Failed to fetch gender options:', error);
+            Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: 'Failed to load gender options',
+            });
+        } finally {
+            setLoadingGenders(false);
+        }
+        };
+
+        fetchGenderOptions();
+    }, []);
+
+    
+    useEffect(() => {
+    if (userData?.gender && genderOptions.length > 0) {
+        // Find the matching gender option
+        const genderOption = genderOptions.find(option => 
+        option.value.toUpperCase() === userData.gender.toUpperCase()
+        );
+        
+        if (genderOption) {
+        setValue('gender', genderOption.value);
+        }
+    }
+    }, [userData, genderOptions, setValue]);
+
 
     // Fetch countries on mount
     useEffect(() => {
@@ -315,7 +356,8 @@ console.log("nativeStates",nativeStates);
                 photo: data.photo || null,
                 native_country_id: data.native_country_id || null,
                 native_state_id: data.native_country_id ? data.native_state_id || null : null,
-                native_district_id: data.native_country_id && data.native_state_id ? data.native_district_id || null : null
+                native_district_id: data.native_country_id && data.native_state_id ? data.native_district_id || null : null,
+                gender: data.gender || null
             };
             delete submissionData.current_country_name;
             delete submissionData.current_state_name;
@@ -655,6 +697,119 @@ console.log("nativeStates",nativeStates);
         );
     };
 
+
+    // Add a new SingleSelectSearchableDropdown component specifically for gender
+    const SingleSelectSearchableDropdown = ({
+    placeholder,
+    data,
+    selectedValue,
+    onSelect,
+    error,
+    disabled,
+    loading,
+    }) => {
+    const [modalVisible, setModalVisible] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filteredData, setFilteredData] = useState(data);
+
+    useEffect(() => {
+        if (searchQuery) {
+        const filtered = data.filter((item) =>
+            item.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        setFilteredData(filtered);
+        } else {
+        setFilteredData(data);
+        }
+    }, [searchQuery, data]);
+
+    const handleSelect = (item) => {
+        onSelect(item);
+        setModalVisible(false);
+        setSearchQuery('');
+    };
+
+    const selectedItem = data.find((item) => String(item.id) === String(selectedValue));
+
+    return (
+        <View style={styles.pickerContainer}>
+        {loading ? (
+            <ActivityIndicator size="small" color="#FFF2E0" />
+        ) : (
+            <>
+            <TouchableOpacity
+                style={[
+                styles.picker,
+                error && styles.errorInput,
+                disabled && styles.disabledInput,
+                ]}
+                onPress={() => !disabled && setModalVisible(true)}
+                disabled={disabled}
+            >
+                <Text style={selectedValue && selectedItem ? styles.dropdownText : styles.placeholderText}>
+                {selectedItem ? (selectedItem.name || selectedItem.id) : placeholder}
+                </Text>
+                <Icon name="arrow-drop-down" size={20} color="#FFF2E0" />
+            </TouchableOpacity>
+            </>
+        )}
+        <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={() => setModalVisible(false)}
+        >
+            <View style={styles.modalOverlay}>
+            <View style={styles.whiteModalContainer}>
+                <View style={styles.searchContainer}>
+                <Icon name="search" size={18} color="#666" style={styles.searchIcon} />
+                <TextInput
+                    style={styles.whiteSearchInput}
+                    placeholder={`Search...`}
+                    placeholderTextColor="#999"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    autoFocus
+                />
+                <TouchableOpacity
+                    onPress={() => {
+                    setModalVisible(false);
+                    setSearchQuery('');
+                    }}
+                >
+                    <Text style={styles.closeButton}>Close</Text>
+                </TouchableOpacity>
+                </View>
+                <FlatList
+                data={filteredData}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                    <TouchableOpacity
+                    style={[
+                        styles.whiteModalItem,
+                        String(selectedValue) === String(item.id) && styles.selectedItem,
+                    ]}
+                    onPress={() => handleSelect(item)}
+                    activeOpacity={0.7}
+                    >
+                    <Text style={styles.whiteModalItemText}>{item.name || item.id}</Text>
+                    {String(selectedValue) === String(item.id) && (
+                        <Icon name="check" size={18} color="#007AFF" style={styles.tickIcon} />
+                    )}
+                    </TouchableOpacity>
+                )}
+                ListEmptyComponent={
+                    <Text style={styles.whiteEmptyText}>No results found</Text>
+                }
+                showsVerticalScrollIndicator={false}
+                />
+            </View>
+            </View>
+        </Modal>
+        </View>
+    );
+    };
+
     return (
         <KeyboardAvoidingView
             style={{ flex: 1 }}
@@ -848,6 +1003,83 @@ console.log("nativeStates",nativeStates);
                                 )}
                             </TouchableOpacity>
                         </View>
+
+                        {/* <View style={styles.row}>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.gender || 'Gender'}
+                            </Text>
+                            <Controller
+                                control={control}
+                                render={({ field: { onChange, value } }) => {
+                                // Format gender options with proper capitalization
+                                const formattedGenderOptions = genderOptions.map(option => ({
+                                    id: option.value,
+                                    name: option.label.charAt(0).toUpperCase() + option.label.slice(1).toLowerCase()
+                                }));
+                                
+                                return (
+                                    <SearchableDropdown
+                                    placeholder={languageTexts?.profile?.edit?.placeholders?.selectGender || 'Select Gender'}
+                                    data={formattedGenderOptions}
+                                    selectedValue={value}
+                                    onSelect={(selectedItem) => {
+                                        onChange(selectedItem.id); // Store the value (MALE, FEMALE, etc.)
+                                    }}
+                                    error={errors.gender}
+                                    disabled={loadingGenders}
+                                    loading={loadingGenders}
+                                    />
+                                );
+                                }}
+                                name="gender"
+                                rules={{ 
+                                required: languageTexts?.profile?.edit?.error?.gender || 'Gender is required' 
+                                }}
+                            />
+                            </View> */}
+
+
+                            {/* // Update the gender section in the render method to use the new component */}
+                            <View style={styles.row}>
+                            <Text style={styles.label}>
+                                {languageTexts?.profile?.edit?.labels?.gender || 'Gender'}
+                            </Text>
+                            <Controller
+                                control={control}
+                                render={({ field: { onChange, value } }) => {
+                                // Format gender options with proper capitalization
+                                const formattedGenderOptions = genderOptions.map(option => ({
+                                    id: option.value,
+                                    name: option.label.charAt(0).toUpperCase() + option.label.slice(1).toLowerCase()
+                                }));
+                                
+                                return (
+                                    <SingleSelectSearchableDropdown
+                                    placeholder={languageTexts?.profile?.edit?.placeholders?.selectGender || 'Select Gender'}
+                                    data={formattedGenderOptions}
+                                    selectedValue={value}
+                                    onSelect={(selectedItem) => {
+                                        onChange(selectedItem.id); // Store the value (MALE, FEMALE, etc.)
+                                    }}
+                                    error={errors.gender}
+                                    disabled={loadingGenders}
+                                    loading={loadingGenders}
+                                    />
+                                );
+                                }}
+                                name="gender"
+                                rules={{ 
+                                required: languageTexts?.profile?.edit?.error?.gender || 'Gender is required' 
+                                }}
+                            />
+                            </View>
+                            {errors.gender && (
+                            <Text style={styles.errorText}>{errors.gender.message}</Text>
+                            )}
+
+                            {errors.gender && (
+                            <Text style={styles.errorText}>{errors.gender.message}</Text>
+                            )}
 
                         <View style={styles.row}>
                             <Text style={styles.label}>

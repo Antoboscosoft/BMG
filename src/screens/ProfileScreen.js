@@ -14,7 +14,7 @@ import {
   View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { changePassword, getUserData } from '../api/auth';
+import { changePassword, getGenderOptions, getUserData } from '../api/auth';
 import { clearAuthToken } from '../api/axiosInstance';
 import Toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -73,7 +73,8 @@ function ProfileScreen({ navigation, route }) {
       confirmPassword: ''
     }
   });
-  
+  const [genderOptions, setGenderOptions] = useState([]);
+
   const { user } = useContext(LanguageContext);
 //   console.log("userData : >>> ", user?.data?.role?.name, user?.data?.id);
   const userId = userData?.data?.id;
@@ -130,6 +131,20 @@ function ProfileScreen({ navigation, route }) {
     fetchData();
   }, [passedUserData, updatedUserData, navigation]);
 
+  useEffect(() => {
+  const fetchGenderOptions = async () => {
+    try {
+      const options = await getGenderOptions();
+      setGenderOptions(options);
+    } catch (error) {
+      console.error('Failed to fetch gender options:', error);
+      // You can show a toast message here if needed
+    }
+  };
+
+  fetchGenderOptions();
+}, []);
+
   const handlePasswordChange = async (data) => {
     setChangePasswordError('');
     try {
@@ -170,6 +185,21 @@ function ProfileScreen({ navigation, route }) {
       </View>
     );
   }
+
+  
+  const getGenderLabel = () => {
+    if (!userData?.gender || genderOptions.length === 0) return '-';
+    
+    // Find the matching gender option (case-insensitive comparison)
+    const genderOption = genderOptions.find(option => 
+      option.value.toUpperCase() === userData.gender.toUpperCase()
+    );
+    // make to lower case
+    const label = genderOption?.label || userData.gender;
+    return label.charAt(0).toUpperCase() + label.slice(1).toLowerCase();
+
+  };
+
 
   const goback = () => {
     // console.log("route.params.from: >>> ", route.params);
@@ -243,6 +273,12 @@ function ProfileScreen({ navigation, route }) {
             <View style={styles.row}>
               <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.dob || 'Date of Birth'}</Text>
               <Text style={styles.value}>{formatDate(userData?.date_of_birth) || '-'}</Text>
+            </View>
+
+            {/* Add this gender field below your date of birth field */}
+            <View style={styles.row}>
+              <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.gender || 'Gender'}</Text>
+              <Text style={styles.value}>{getGenderLabel()}</Text>
             </View>
 
             <View style={styles.row}>

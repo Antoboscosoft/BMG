@@ -306,6 +306,7 @@
         "mobile": "मोबाइल",
         "aadhaar": "आधार",
         "dob": "जन्म तिथि",
+        "gender": "लिंग",
         "age": "आयु",
         "currentAddress": "वर्तमान पता",
         "currentCountry": "वर्तमान देश",
