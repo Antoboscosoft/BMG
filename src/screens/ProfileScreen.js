@@ -196,8 +196,9 @@ function ProfileScreen({ navigation, route }) {
     );
     // make to lower case
     const label = genderOption?.label || userData.gender;
-    return label.charAt(0).toUpperCase() + label.slice(1).toLowerCase();
-
+    // return label.charAt(0).toUpperCase() + label.slice(1).toLowerCase();
+    // make the uppercase
+    return label.toUpperCase();
   };
 
 
@@ -829,6 +830,47 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 5,
   },
+
+  // gender radio button style:
+  
+    radioRowContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        marginTop: 8,
+        marginBottom: 4,
+    },
+    radioItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 20,
+        marginBottom: 10,
+    },
+    radioCircle: {
+        height: 18,
+        width: 18,
+        borderRadius: 9,
+        borderWidth: 2,
+        borderColor: '#007AFF',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 8,
+        backgroundColor: '#FFFFFF',
+    },
+    radioSelected: {
+        backgroundColor: '#007AFF',
+    },
+    radioDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#FFFFFF',
+    },
+    radioText: {
+        fontSize: 16,
+        color: '#333',
+        fontWeight: '400',
+    },
+    
 });
 
 export default ProfileScreen;

@@ -1,6 +1,28 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axiosInstance from "./axiosInstance"
 
+// export const sendOtp = async (phone) => {
+//   try {
+//     const response = await axiosInstance.post('/api/send-otp', { phone });
+//     return response.data; // { status: true, details?: string }
+//   } catch (error) {
+//     throw new Error(error.response?.data?.details || 'Failed to send OTP');
+//   }
+// };
+
+// export const registerEventParticipant = async (eventId, participantData, otp) => {
+//   try {
+//     const response = await axiosInstance.post('/api/register-event', {
+//       eventId,
+//       participantData,
+//       otp,
+//     });
+//     return response.data; // { status: true, details?: string }
+//   } catch (error) {
+//     throw new Error(error.response?.data?.details || 'Failed to register for event');
+//   }
+// };
+
 // Function to request OTP
 export const getLoginOtp = async (mobile_code, mobile_no) => {
     console.log("getLoginOtp called with params:", mobile_code, mobile_no);

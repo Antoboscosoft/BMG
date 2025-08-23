@@ -1427,7 +1427,7 @@ const RegisterScreen = ({ navigation, route }) => {
                         )}
 
                         {/* Gender Dropdown */}
-                        <SearchableDropdown
+                        {/* <SearchableDropdown
                             label="Gender"
                             placeholder="Select Gender"
                             data={genderOptions.map(option => ({ 
@@ -1441,7 +1441,100 @@ const RegisterScreen = ({ navigation, route }) => {
                             loading={loadingGenders}
                             // isMandatory={true}
                             validateField={(value) => validateField('gender', value)}
-                        />
+                        /> */}
+
+                        {/* Gender Radio Buttons */}
+                        {/* <View style={styles.inputContainer}>
+                            <View style={styles.labelContainer}>
+                                <Text style={styles.label}>Gender</Text>
+                                <Text style={styles.mandatoryIndicator}>*</Text>
+                            </View>
+                            
+                            {loadingGenders ? (
+                                <ActivityIndicator size="small" color="#007AFF" style={{ marginVertical: 10 }} />
+                            ) : (
+                                <View style={styles.radioGroupContainer}>
+                                    {genderOptions.map((option, index) => (
+                                        <TouchableOpacity
+                                            key={option.value || index}
+                                            style={[
+                                                styles.radioButtonContainer,
+                                                touched.gender && errors.gender && styles.errorRadioContainer
+                                            ]}
+                                            onPress={() => {
+                                                handleChange('gender', option.value);
+                                                validateField('gender', option.value);
+                                            }}
+                                            activeOpacity={0.7}
+                                        >
+                                            <View style={styles.radioButton}>
+                                                <View style={[
+                                                    styles.radioButtonCircle,
+                                                    form.gender === option.value && styles.radioButtonSelected
+                                                ]}>
+                                                    {form.gender === option.value && (
+                                                        <View style={styles.radioButtonInner} />
+                                                    )}
+                                                </View>
+                                            </View>
+                                            <Text style={[
+                                                styles.radioButtonText,
+                                                form.gender === option.value && styles.radioButtonSelectedText
+                                            ]}>
+                                                {option.label || option.name || option.value}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            )}
+                            
+                            {touched.gender && errors.gender && (
+                                <Text style={styles.errorText}>{errors.gender}</Text>
+                            )}
+                        </View> */}
+
+
+                        {/* Gender Radio Buttons */}
+                        <View style={styles.inputContainer}>
+                            <View style={styles.labelContainer}>
+                                <Text style={styles.label}>Gender</Text>
+                                <Text style={styles.mandatoryIndicator}>*</Text>
+                            </View>
+                            
+                            {loadingGenders ? (
+                                <ActivityIndicator size="small" color="#007AFF" style={{ marginVertical: 10 }} />
+                            ) : (
+                                <View style={styles.radioRowContainer}>
+                                    {genderOptions.map((option, index) => (
+                                        <TouchableOpacity
+                                            key={option.value || index}
+                                            style={styles.radioItem}
+                                            onPress={() => {
+                                                handleChange('gender', option.value);
+                                                validateField('gender', option.value);
+                                            }}
+                                            activeOpacity={0.7}
+                                        >
+                                            <View style={[
+                                                styles.radioCircle,
+                                                form.gender === option.value && styles.radioSelected
+                                            ]}>
+                                                {form.gender === option.value && (
+                                                    <View style={styles.radioDot} />
+                                                )}
+                                            </View>
+                                            <Text style={styles.radioText}>
+                                                {option.label || option.name || option.value}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            )}
+                            
+                            {touched.gender && errors.gender && (
+                                <Text style={styles.errorText}>{errors.gender}</Text>
+                            )}
+                        </View>
 
                         {/* Aadhaar Number */}
                         <View style={styles.inputContainer}>
@@ -2094,6 +2187,108 @@ const styles = StyleSheet.create({
         padding: 8,
         zIndex: 1,
     },
+
+    // gender radio button style:
+    // radioGroupContainer: {
+    //     marginTop: 8,
+    //     marginBottom: 4,
+    // },
+    // radioButtonContainer: {
+    //     flexDirection: 'row',
+    //     alignItems: 'center',
+    //     paddingVertical: 12,
+    //     paddingHorizontal: 16,
+    //     marginBottom: 8,
+    //     backgroundColor: '#FFFFFF',
+    //     borderRadius: 8,
+    //     borderWidth: 1,
+    //     borderColor: '#E1E1E1',
+    //     shadowColor: '#000',
+    //     shadowOffset: {
+    //         width: 0,
+    //         height: 1,
+    //     },
+    //     shadowOpacity: 0.1,
+    //     shadowRadius: 2,
+    //     elevation: 1,
+    // },
+    // errorRadioContainer: {
+    //     borderColor: '#FF3B30',
+    //     backgroundColor: '#FFF5F5',
+    // },
+    // radioButton: {
+    //     marginRight: 12,
+    // },
+    // radioButtonCircle: {
+    //     height: 20,
+    //     width: 20,
+    //     borderRadius: 10,
+    //     borderWidth: 2,
+    //     borderColor: '#007AFF',
+    //     alignItems: 'center',
+    //     justifyContent: 'center',
+    //     backgroundColor: '#FFFFFF',
+    // },
+    // radioButtonSelected: {
+    //     borderColor: '#007AFF',
+    //     backgroundColor: '#E3F2FD',
+    // },
+    // radioButtonInner: {
+    //     width: 8,
+    //     height: 8,
+    //     borderRadius: 4,
+    //     backgroundColor: '#007AFF',
+    // },
+    // radioButtonText: {
+    //     fontSize: 16,
+    //     color: '#333',
+    //     fontWeight: '400',
+    //     flex: 1,
+    // },
+    // radioButtonSelectedText: {
+    //     color: '#007AFF',
+    //     fontWeight: '500',
+    // },
+
+    
+    radioRowContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        marginTop: 8,
+        marginBottom: 4,
+    },
+    radioItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 20,
+        marginBottom: 10,
+    },
+    radioCircle: {
+        height: 18,
+        width: 18,
+        borderRadius: 9,
+        borderWidth: 2,
+        borderColor: '#007AFF',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 8,
+        backgroundColor: '#FFFFFF',
+    },
+    radioSelected: {
+        backgroundColor: '#007AFF',
+    },
+    radioDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#FFFFFF',
+    },
+    radioText: {
+        fontSize: 16,
+        color: '#333',
+        fontWeight: '400',
+    },
+
 });
 
 export default RegisterScreen;

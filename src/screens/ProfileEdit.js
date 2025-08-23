@@ -146,7 +146,7 @@ console.log("nativeStates",nativeStates);
         );
         
         if (genderOption) {
-        setValue('gender', genderOption.value);
+        setValue('gender', genderOption.value.toUpperCase());
         }
     }
     }, [userData, genderOptions, setValue]);
@@ -1040,7 +1040,7 @@ console.log("nativeStates",nativeStates);
 
 
                             {/* // Update the gender section in the render method to use the new component */}
-                            <View style={styles.row}>
+                            {/* <View style={styles.row}>
                             <Text style={styles.label}>
                                 {languageTexts?.profile?.edit?.labels?.gender || 'Gender'}
                             </Text>
@@ -1079,8 +1079,63 @@ console.log("nativeStates",nativeStates);
 
                             {errors.gender && (
                             <Text style={styles.errorText}>{errors.gender.message}</Text>
-                            )}
+                            )} */}
 
+                            {/* Gender Radio Buttons */}
+                            <View style={styles.row}>
+                                <Text style={styles.label}>
+                                    {languageTexts?.profile?.edit?.labels?.gender || 'Gender'}
+                                    {/* <Text style={styles.mandatoryIndicator}> *</Text> */}
+                                </Text>
+                                
+                                <Controller
+                                    control={control}
+                                    render={({ field: { onChange, value } }) => (
+                                        <View style={styles.genderContainer}>
+                                            {loadingGenders ? (
+                                                <ActivityIndicator size="small" color="#FFF2E0" style={{ marginVertical: 10 }} />
+                                            ) : (
+                                                <View style={styles.radioRowContainer}>
+                                                    {genderOptions.map((option, index) => (
+                                                        <TouchableOpacity
+                                                            key={option.value || index}
+                                                            style={styles.radioItem}
+                                                            onPress={() => {
+                                                                onChange(option.value);
+                                                            }}
+                                                            activeOpacity={0.7}
+                                                        >
+                                                            <View style={[
+                                                                styles.radioCircle,
+                                                                value === option.value && styles.radioSelected
+                                                            ]}>
+                                                                {value === option.value && (
+                                                                    <View style={styles.radioDot} />
+                                                                )}
+                                                            </View>
+                                                            <Text style={styles.radioText}>
+                                                                {/* {option.label?.charAt(0).toUpperCase() + option.label?.slice(1).toLowerCase() || 
+                                                                option.name?.charAt(0).toUpperCase() + option.name?.slice(1).toLowerCase() || 
+                                                                option.value} */}
+                                                                 {option.label?.toUpperCase() || 
+                                                                    option.name?.toUpperCase() || 
+                                                                    option.value?.toString().toUpperCase()}
+                                                            </Text>
+                                                        </TouchableOpacity>
+                                                    ))}
+                                                </View>
+                                            )}
+                                        </View>
+                                    )}
+                                    name="gender"
+                                    rules={{ 
+                                        required: languageTexts?.profile?.edit?.error?.gender || 'Gender is required' 
+                                    }}
+                                />
+                            </View>
+                            {errors.gender && (
+                                <Text style={styles.errorText}>{errors.gender.message}</Text>
+                            )}
                         <View style={styles.row}>
                             <Text style={styles.label}>
                                 {languageTexts?.profile?.edit?.labels?.currentAddress || 'Current Address'}
@@ -1635,6 +1690,95 @@ const styles = StyleSheet.create({
         fontSize: 16,
         padding: 20,
         fontStyle: 'italic',
+    },
+
+    // gender radio button:
+    
+    // radioRowContainer: {
+    //     flexDirection: 'row',
+    //     flexWrap: 'wrap',
+    //     marginTop: 8,
+    //     marginBottom: 4,
+    // },
+    // radioItem: {
+    //     flexDirection: 'row',
+    //     alignItems: 'center',
+    //     marginRight: 20,
+    //     marginBottom: 10,
+    // },
+    // radioCircle: {
+    //     height: 18,
+    //     width: 18,
+    //     borderRadius: 9,
+    //     borderWidth: 2,
+    //     borderColor: '#007AFF',
+    //     alignItems: 'center',
+    //     justifyContent: 'center',
+    //     marginRight: 8,
+    //     backgroundColor: '#FFFFFF',
+    // },
+    // radioSelected: {
+    //     backgroundColor: '#007AFF',
+    // },
+    // radioDot: {
+    //     width: 8,
+    //     height: 8,
+    //     borderRadius: 4,
+    //     backgroundColor: '#FFFFFF',
+    // },
+    // radioText: {
+    //     fontSize: 16,
+    //     color: '#333',
+    //     fontWeight: '400',
+    // },
+
+
+    mandatoryIndicator: {
+        color: '#FF6B6B',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    genderContainer: {
+        flex: 1,
+        marginLeft: 20,
+    },
+    radioRowContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        marginTop: 4,
+    },
+    radioItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 20,
+        marginBottom: 8,
+        paddingVertical: 4,
+    },
+    radioCircle: {
+        height: 20,
+        width: 20,
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: '#FFF2E0',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 10,
+        backgroundColor: 'transparent',
+    },
+    radioSelected: {
+        borderColor: '#FFECD2',
+        backgroundColor: '#FFECD2',
+    },
+    radioDot: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: '#3D2A1A',
+    },
+    radioText: {
+        fontSize: 16,
+        color: '#FFF2E0',
+        fontWeight: '400',
     },
 });
 

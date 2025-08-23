@@ -13,6 +13,11 @@
     "cancel": "Cancel",
     "logout": "Are you sure you want to logout?"
   },
+  "publicEvent": {
+    "title": "Public Events",
+    "description": "Explore and participate in community events.",
+    "noEvents": "No public events available at the moment."
+  },
   "menu": {
     "eventCalendar": "Events",
     "servicesDirectory": "Services Directory",
