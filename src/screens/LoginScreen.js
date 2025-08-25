@@ -20,7 +20,7 @@ import {
 import loginImg from "../asserts/images/loginbg1.jpg";
 import CountryPicker from "react-native-country-picker-modal";
 import Toast from "react-native-toast-message";
-import { getLoginOtp, staffLogin, verifyOtp } from "../api/auth";
+import { getLoginOtp, getPublicEventsConfig, staffLogin, verifyOtp } from "../api/auth";
 import { setAuthToken } from "../api/axiosInstance";
 import { Controller, useForm } from "react-hook-form";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -72,6 +72,8 @@ function LoginScreen({ navigation }) {
   const [showExitModal, setShowExitModal] = useState(false);
   // Add this state at the top with your other useState declarations
   const [isPublicEvent, setIsPublicEvent] = useState(true); // This comes from backend
+  const [publicEventsConfig, setPublicEventsConfig] = useState(null);
+  const [loadingEvents, setLoadingEvents] = useState(true);
   const [pulseAnim] = useState(new Animated.Value(1));
 
   // Add this useEffect for the pulse animation
@@ -94,9 +96,39 @@ function LoginScreen({ navigation }) {
     }
   }, [isPublicEvent, pulseAnim]);
 
+  useEffect(() => {
+    const fetchPublicEventsConfig = async () => {
+      try {
+        setLoadingEvents(true);
+        const response = await getPublicEventsConfig();
+        
+        // Check if there are public events available
+        const hasPublicEvents = response.data && response.data.length > 0;
+        setIsPublicEvent(hasPublicEvents);
+        setPublicEventsConfig(response.data);
+      } catch (error) {
+        console.error('Error fetching public events config:', error);
+        setIsPublicEvent(false); // Hide button if API fails
+        // Optional: Show error toast
+        Toast.show({
+          type: 'error',
+          text1: 'Connection Error',
+          text2: 'Could not load events information',
+        });
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+
+    fetchPublicEventsConfig();
+  }, []);
+
+
   // Add this function
   const handlePublicEvents = () => {
-    navigation.navigate('PublicEventScreen');
+    navigation.navigate('PublicEventScreen', { 
+      events: publicEventsConfig 
+    });
   };
 
   // Add this render function
@@ -116,6 +148,9 @@ function LoginScreen({ navigation }) {
             </View>
             <View style={styles.textContainer}>
               <Text style={styles.publicEventTitle}>Public Events</Text>
+              <Text style={styles.publicEventSubtitle}>
+                {publicEventsConfig?.length} upcoming event{publicEventsConfig?.length !== 1 ? 's' : ''}
+              </Text>
               {/* <Text style={styles.publicEventSubtitle}>View upcoming community events</Text> */}
             </View>
             <View style={styles.arrowContainer}>

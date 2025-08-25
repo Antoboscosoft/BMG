@@ -16,11 +16,19 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import RenderHtml from 'react-native-render-html';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import CountryPicker from 'react-native-country-picker-modal'; // Add this import
 import { useLanguage } from '../language/commondir';
-import { sendOtp, registerEventParticipant, getGenderOptions } from '../api/auth';
+import { sendOtp, registerEventParticipant, getGenderOptions, verifyEventOtp, registerEvent } from '../api/auth';
 
-// Utility function to format date
-const formatDate = (date) => {
+// Utility function to format date for API (YYYY-MM-DD)
+const formatDateForApi = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+};
+
+// Utility function to format date for display
+const formatDateForDisplay = (date) => {
   if (!date) return '';
   const d = new Date(date);
   return `${d.getDate()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getFullYear()}`;
@@ -53,9 +61,14 @@ function RegisterEventParticipant({ navigation, route }) {
   const { languageTexts } = useLanguage();
   const { eventData } = route.params;
 
+  // Country code states
+  const [countryCode, setCountryCode] = useState('IN');
+  const [callingCode, setCallingCode] = useState('91');
+
   // Form state
   const [form, setForm] = useState({
     name: '',
+    mobile_code: '+91',
     phone: '',
     dateOfBirth: '',
     gender: '',
@@ -71,6 +84,14 @@ function RegisterEventParticipant({ navigation, route }) {
   const [resendCountdown, setResendCountdown] = useState(0);
   const [genderOptions, setGenderOptions] = useState([]);
   const [loadingGenders, setLoadingGenders] = useState(false);
+
+  // Initialize calling code from form.mobile_code if it exists
+  useEffect(() => {
+    if (form.mobile_code) {
+      const codeWithoutPlus = form.mobile_code.replace('+', '');
+      setCallingCode(codeWithoutPlus);
+    }
+  }, []);
 
   // Countdown timer for resend OTP
   useEffect(() => {
@@ -88,8 +109,23 @@ function RegisterEventParticipant({ navigation, route }) {
     const fetchGenderOptions = async () => {
       setLoadingGenders(true);
       try {
-        const options = await getGenderOptions();
-        setGenderOptions(options);
+        const response = await getGenderOptions();
+        
+        // Handle different response formats
+        if (Array.isArray(response)) {
+          setGenderOptions(response);
+        } else if (response.data && Array.isArray(response.data)) {
+          setGenderOptions(response.data);
+        } else if (response.genders && Array.isArray(response.genders)) {
+          setGenderOptions(response.genders);
+        } else {
+          // Fallback to default options if API response format is unexpected
+          setGenderOptions([
+            { value: 'MALE', label: 'Male' },
+            { value: 'FEMALE', label: 'Female' },
+            { value: 'OTHER', label: 'Other' },
+          ]);
+        }
       } catch (error) {
         console.error('Failed to fetch gender options:', error);
         // Fallback to default options if API fails
@@ -149,6 +185,12 @@ function RegisterEventParticipant({ navigation, route }) {
         }
         break;
 
+      case 'mobile_code':
+        if (!value) {
+          error = 'Country code is required';
+        }
+        break;
+
       case 'phone':
         if (!value || value.trim().length === 0) {
           error = 'Phone number is required';
@@ -192,7 +234,7 @@ function RegisterEventParticipant({ navigation, route }) {
   };
 
   const validateForm = () => {
-    const fields = ['name', 'phone', 'dateOfBirth', 'gender', ...(otpSent ? ['otp'] : [])];
+    const fields = ['name', 'mobile_code', 'phone', 'dateOfBirth', 'gender', ...(otpSent ? ['otp'] : [])];
     let isValid = true;
 
     fields.forEach((field) => {
@@ -209,6 +251,46 @@ function RegisterEventParticipant({ navigation, route }) {
     return isValid;
   };
 
+  // const handleSendOtp = async () => {
+  //   if (!validateForm()) {
+  //     Alert.alert('Validation Error', 'Please correct the errors in the form before requesting an OTP.');
+  //     return;
+  //   }
+
+  //   setIsSendingOtp(true);
+  //   console.log("Enter send otp...1");
+    
+  //   try {
+  //     console.log("Enter send otp try...2");
+
+  //     // Clean phone number (remove any non-digit characters)
+  //     const cleanPhone = form.phone.replace(/\D/g, '');
+      
+  //     // Send phone with country code
+  //     const phoneWithCountryCode = `+${callingCode}${cleanPhone}`;
+      
+  //     const response = await registerEvent(phoneWithCountryCode);
+      
+  //     // Handle different API response formats
+  //     if (response.status === true || response.success === true) {
+  //       console.log("Enter send otp response if...3");
+        
+  //       setOtpSent(true);
+  //       setResendCountdown(30); // 30 second countdown
+  //       Alert.alert('Success', 'OTP has been sent to your phone number.');
+  //     } else {
+  //       console.log("Enter send otp response else...4");
+  //       const errorMessage = response.message || response.details || 'Failed to send OTP';
+  //       throw new Error(errorMessage);
+  //     }
+  //   } catch (error) {
+  //     console.error('Send OTP Error:', error);
+  //     Alert.alert('Error', error.message || 'Failed to send OTP. Please try again.');
+  //   } finally {
+  //     setIsSendingOtp(false);
+  //   }
+  // };
+
   const handleSendOtp = async () => {
     if (!validateForm()) {
       Alert.alert('Validation Error', 'Please correct the errors in the form before requesting an OTP.');
@@ -216,14 +298,37 @@ function RegisterEventParticipant({ navigation, route }) {
     }
 
     setIsSendingOtp(true);
+    console.log("Enter send otp...1");
+    
     try {
-      const response = await sendOtp(form.phone);
-      if (response.status) {
+      console.log("Enter send otp try...2");
+
+      // Prepare user data for OTP request
+      const userDataForOtp = {
+        name: form.name.trim(),
+        // mobile_code: `+${callingCode}`,
+        mobile_code: `${callingCode}`,
+        mobile_number: form.phone.replace(/\D/g, ''), // Clean phone number
+        date_of_birth: formatDateForApi(form.dateOfBirth),
+        gender: form.gender
+      };
+      
+      console.log('Sending OTP with data:', userDataForOtp);
+      
+      // Call registerEvent with eventId and user data
+      const response = await registerEvent(eventData.id, userDataForOtp);
+      
+      // Handle different API response formats
+      if (response.status === true || response.success === true) {
+        console.log("Enter send otp response if...3");
+        
         setOtpSent(true);
-        setResendCountdown(15); // Start 15 second countdown
+        setResendCountdown(30); // 30 second countdown
         Alert.alert('Success', 'OTP has been sent to your phone number.');
       } else {
-        throw new Error(response.details || 'Failed to send OTP');
+        console.log("Enter send otp response else...4");
+        const errorMessage = response.message || response.details || 'Failed to send OTP';
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Send OTP Error:', error);
@@ -233,17 +338,58 @@ function RegisterEventParticipant({ navigation, route }) {
     }
   };
 
+
+  // const handleResendOtp = async () => {
+  //   if (resendCountdown > 0) return; // Prevent resend during countdown
+
+  //   setIsSendingOtp(true);
+  //   try {
+  //     // Clean phone number (remove any non-digit characters)
+  //     const cleanPhone = form.phone.replace(/\D/g, '');
+      
+  //     // Send phone with country code
+  //     const phoneWithCountryCode = `+${callingCode}${cleanPhone}`;
+
+  //     const response = await verifyEventOtp(phoneWithCountryCode);
+
+  //     // Handle different API response formats
+  //     if (response.status === true || response.success === true) {
+  //       setResendCountdown(30); // 30 second countdown
+  //       Alert.alert('Success', 'New OTP has been sent to your phone number.');
+  //     } else {
+  //       const errorMessage = response.message || response.details || 'Failed to send OTP';
+  //       throw new Error(errorMessage);
+  //     }
+  //   } catch (error) {
+  //     console.error('Resend OTP Error:', error);
+  //     Alert.alert('Error', error.message || 'Failed to resend OTP. Please try again.');
+  //   } finally {
+  //     setIsSendingOtp(false);
+  //   }
+  // };
+
   const handleResendOtp = async () => {
-    if (resendCountdown > 0) return; // Prevent resend during countdown
+    if (resendCountdown > 0) return;
 
     setIsSendingOtp(true);
     try {
-      const response = await sendOtp(form.phone);
-      if (response.status) {
-        setResendCountdown(15); // Restart 15 second countdown
+      const userDataForOtp = {
+        name: form.name.trim(),
+        // mobile_code: `+${callingCode}`,
+        mobile_code: `${callingCode}`,
+        mobile_number: form.phone.replace(/\D/g, ''),
+        date_of_birth: formatDateForApi(form.dateOfBirth),
+        gender: form.gender
+      };
+      
+      const response = await registerEvent(eventData.id, userDataForOtp);
+
+      if (response.status === true || response.success === true) {
+        setResendCountdown(30);
         Alert.alert('Success', 'New OTP has been sent to your phone number.');
       } else {
-        throw new Error(response.details || 'Failed to send OTP');
+        const errorMessage = response.message || response.details || 'Failed to send OTP';
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Resend OTP Error:', error);
@@ -263,14 +409,21 @@ function RegisterEventParticipant({ navigation, route }) {
 
     try {
       const participantData = {
-        name: form.name,
-        phone: form.phone,
-        dateOfBirth: formatDate(form.dateOfBirth),
+        name: form.name.trim(),
+        mobile_code: `${callingCode}`, // Use the selected calling code
+        mobile_number: form.phone.replace(/\D/g, ''), // Clean phone number
+        date_of_birth: formatDateForApi(form.dateOfBirth), // Format for API
         gender: form.gender,
+        // Note: OTP is passed as a separate parameter, not in userData
       };
-
-      const response = await registerEventParticipant(eventData.id, participantData, form.otp);
-      if (response.status) {
+      
+      console.log('Submitting participant data:', participantData);
+      
+      // Pass three parameters: eventId, otp, and userData
+      const response = await verifyEventOtp(eventData.id, form.otp, participantData);
+      
+      // Handle different API response formats
+      if (response.status === true || response.success === true) {
         Alert.alert(
           'Success',
           `Thank you ${form.name}! Your registration for "${eventData.title}" has been submitted successfully.`,
@@ -283,7 +436,8 @@ function RegisterEventParticipant({ navigation, route }) {
           { cancelable: false }
         );
       } else {
-        throw new Error(response.details || 'Failed to register for event');
+        const errorMessage = response.message || response.details || 'Failed to register for event';
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Registration Error:', error);
@@ -379,22 +533,38 @@ function RegisterEventParticipant({ navigation, route }) {
                 <Text style={styles.label}>
                   Phone Number <Text style={styles.mandatoryIndicator}>*</Text>
                 </Text>
-                <TextInput
-                  style={[styles.input, touched.phone && errors.phone && styles.errorInput]}
-                  placeholder="Enter your phone number"
-                  placeholderTextColor="#999"
-                  value={form.phone}
-                  onChangeText={(value) => {
-                    const cleaned = value.replace(/[^0-9]/g, '');
-                    handleChange('phone', cleaned);
-                  }}
-                  onBlur={() => {
-                    setTouched((prev) => ({ ...prev, phone: true }));
-                    validateField('phone', form.phone);
-                  }}
-                  keyboardType="phone-pad"
-                  maxLength={10}
-                />
+                <View style={[styles.phoneRow, touched.phone && errors.phone && styles.errorInput]}>
+                  <CountryPicker
+                    countryCode={countryCode}
+                    withCallingCode
+                    withFlag
+                    withFilter
+                    withEmoji
+                    onSelect={(country) => {
+                      setCountryCode(country.cca2);
+                      setCallingCode(country.callingCode[0]);
+                      handleChange('mobile_code', `+${country.callingCode[0]}`);
+                    }}
+                    containerButtonStyle={styles.countryPicker}
+                  />
+                  <Text style={styles.callingCode}>+{callingCode}</Text>
+                  <TextInput
+                    style={[styles.mobileinput, { flex: 1 }]}
+                    onBlur={() => {
+                      setTouched((prev) => ({ ...prev, phone: true }));
+                      validateField('phone', form.phone);
+                    }}
+                    onChangeText={(text) => {
+                      const cleaned = text.replace(/[^0-9]/g, '');
+                      handleChange('phone', cleaned);
+                    }}
+                    value={form.phone}
+                    keyboardType="phone-pad"
+                    placeholder="Enter your phone number"
+                    placeholderTextColor="#999"
+                    maxLength={15}
+                  />
+                </View>
                 {touched.phone && errors.phone && (
                   <Text style={styles.errorText}>{errors.phone}</Text>
                 )}
@@ -412,7 +582,7 @@ function RegisterEventParticipant({ navigation, route }) {
                   <Text
                     style={[styles.dateText, !form.dateOfBirth && styles.placeholderText]}
                   >
-                    {form.dateOfBirth ? formatDate(form.dateOfBirth) : 'Select date of birth'}
+                    {form.dateOfBirth ? formatDateForDisplay(form.dateOfBirth) : 'Select date of birth'}
                   </Text>
                   <Icon name="calendar-today" size={20} color="#666" />
                 </TouchableOpacity>
@@ -649,13 +819,34 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '##333',
+    color: '#333',
   },
   mandatoryIndicator: {
     color: '#FF6B6B',
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 2,
+  },
+  phoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    backgroundColor: '#fff',
+  },
+  countryPicker: {
+    padding: 10,
+  },
+  callingCode: {
+    fontSize: 16,
+    color: '#333',
+    paddingHorizontal: 5,
+  },
+  mobileinput: {
+    padding: 12,
+    fontSize: 16,
+    color: '#333',
   },
   input: {
     borderWidth: 1,

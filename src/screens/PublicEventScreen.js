@@ -7,42 +7,31 @@ import {
   Animated,
   ScrollView,
   ActivityIndicator,
+  RefreshControl,
+  Dimensions,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import RenderHtml from 'react-native-render-html';
-import { getPublicEvents } from '../api/auth'; // Add this API call
+import { Calendar, LocaleConfig } from 'react-native-calendars';
 import moment from 'moment';
+import { getPublicEvents } from '../api/auth';
 import { useLanguage } from '../language/commondir';
 
-function PublicEventScreen({ navigation }) {
+const { width } = Dimensions.get('window');
+
+function PublicEventScreen({ navigation, route }) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
   const { languageTexts } = useLanguage();
-  // Sample events data
-  const sampleEvents = [
-    {
-      id: 1,
-      title: "Job Skills Training Workshop",
-      description: "<p>Learn essential job skills including <b>resume writing</b>, <i>interview preparation</i>, and workplace communication. This comprehensive workshop is designed to help migrants find better employment opportunities.</p><p>Topics covered:</p><ul><li>Resume building</li><li>Interview techniques</li><li>Professional communication</li><li>Workplace etiquette</li></ul>",
-      location: "Don Bosco Community Center, Main Hall",
-      start_datetime: "2025-08-30T09:00:00Z",
-      end_datetime: "2025-08-30T17:00:00Z",
-      all_day: false,
-      event_attachments: []
-    },
-    {
-      id: 2,
-      title: "Health and Wellness Camp",
-      description: "<p>Free <b>health check-ups</b> and <u>medical consultations</u> for the migrant community. Our medical team will provide:</p><p><strong>Services available:</strong></p><ul><li>General health screening</li><li>Blood pressure check</li><li>Basic eye examination</li><li>Health awareness sessions</li><li>Medicine distribution (if needed)</li></ul><p><em>Bring your health records if available.</em></p>",
-      location: "Don Bosco Medical Center, Ground Floor",
-      start_datetime: "2025-09-05T08:00:00Z",
-      end_datetime: "2025-09-05T16:00:00Z",
-      all_day: false,
-      event_attachments: []
-    }
-  ];
+  const [selectedDate, setSelectedDate] = useState(moment().format('YYYY-MM-DD'));
+  const [markedDates, setMarkedDates] = useState({});
+  const [filteredEvents, setFilteredEvents] = useState([]);
+
+  // Get events from navigation params or fetch from API
+  const eventsFromParams = route.params?.events;
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -51,29 +40,119 @@ function PublicEventScreen({ navigation }) {
       useNativeDriver: true,
     }).start();
     
-    fetchPublicEvents();
-  }, []);
+    if (eventsFromParams) {
+      // Use events passed from login screen
+      processEvents(eventsFromParams);
+      setLoading(false);
+    } else {
+      // Fallback: fetch events directly if not passed
+      fetchPublicEvents();
+    }
+  }, [eventsFromParams]);
+
+  useEffect(() => {
+    // Configure calendar locale
+    LocaleConfig.locales['custom'] = {
+      monthNames: languageTexts?.calendar?.monthNames || [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December',
+      ],
+      monthNamesShort: languageTexts?.calendar?.monthNamesShort || [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      ],
+      dayNames: languageTexts?.calendar?.dayNames || [
+        'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
+      ],
+      dayNamesShort: languageTexts?.calendar?.dayNamesShort || [
+        'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat',
+      ],
+      today: languageTexts?.calendar?.today || 'Today',
+    };
+    LocaleConfig.defaultLocale = 'custom';
+  }, [languageTexts]);
+
+  const processEvents = (eventsData) => {
+    setEvents(eventsData);
+    
+    // Create marked dates for calendar
+    const markedDatesObj = {};
+    const today = moment().format('YYYY-MM-DD');
+    
+    eventsData.forEach(event => {
+      const startDate = moment(event.start_datetime).format('YYYY-MM-DD');
+      const endDate = moment(event.end_datetime).format('YYYY-MM-DD');
+      
+      // Mark all dates in the event range
+      let currentDate = moment(startDate);
+      const end = moment(endDate);
+      
+      while (currentDate.isSameOrBefore(end)) {
+        const dateStr = currentDate.format('YYYY-MM-DD');
+        
+        if (!markedDatesObj[dateStr]) {
+          markedDatesObj[dateStr] = {
+            marked: true,
+            dotColor: dateStr === today ? '#ffc107' : '#2753b2',
+          };
+        }
+        
+        currentDate.add(1, 'day');
+      }
+    });
+    
+    // Mark selected date
+    markedDatesObj[selectedDate] = {
+      ...markedDatesObj[selectedDate],
+      selected: true,
+      selectedColor: '#2753b2'
+    };
+    
+    setMarkedDates(markedDatesObj);
+    filterEventsByDate(eventsData, selectedDate);
+  };
+
+  const filterEventsByDate = (eventsData, date) => {
+    const filtered = eventsData.filter(event => {
+      const eventStart = moment(event.start_datetime).startOf('day');
+      const eventEnd = moment(event.end_datetime).endOf('day');
+      const selected = moment(date);
+      
+      return selected.isBetween(eventStart, eventEnd, null, '[]');
+    });
+    
+    setFilteredEvents(filtered);
+  };
 
   const fetchPublicEvents = async () => {
     try {
       setLoading(true);
-      // Replace with your actual API call
-    //   const response = await getPublicEvents();
-    //   if (response.status && response.data) {
-    //     setEvents(response.data);
-    //   }
-
-    // Using sample data for demonstration
-      setTimeout(() => {
-        setEvents(sampleEvents);
-        setLoading(false);
-      }, 1000);
-
+      const response = await getPublicEvents();
+      if (response.status && response.data) {
+        processEvents(response.data);
+      }
     } catch (error) {
       console.error('Failed to fetch public events:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchPublicEvents();
+  };
+
+  const handleDateSelect = (day) => {
+    setSelectedDate(day.dateString);
+    filterEventsByDate(events, day.dateString);
+  };
+
+  const handleEnrollNow = (event) => {
+    navigation.navigate('RegisterEventParticipant', { 
+      eventData: event 
+    });
   };
 
   const formatDateRange = (start, end) => {
@@ -102,13 +181,7 @@ function PublicEventScreen({ navigation }) {
     } else if (eventDate.isAfter(today)) {
       return { text: 'Upcoming', style: styles.upcomingBadge };
     }
-    return { text: eventDate.format('MMM D'), style: styles.upcomingBadge };
-  };
-
-  const handleEnrollNow = (event) => {
-    navigation.navigate('RegisterEventParticipant', { 
-      eventData: event 
-    });
+    return { text: eventDate.format('MMM D'), style: styles.pastBadge };
   };
 
   const renderEventCard = (event) => {
@@ -146,7 +219,7 @@ function PublicEventScreen({ navigation }) {
           <View style={styles.eventDescription}>
             <Text style={styles.descriptionTitle}>About this event</Text>
             <RenderHtml
-              contentWidth={300}
+              contentWidth={width - 80}
               source={{ html: event.description }}
               baseStyle={{ color: '#666', fontSize: 14, lineHeight: 20 }}
               tagsStyles={{
@@ -162,29 +235,14 @@ function PublicEventScreen({ navigation }) {
           </View>
         )}
         
-        {/* <View style={styles.eventActions}> */}
-          {/* <TouchableOpacity style={styles.btnSecondary}>
-            <Text style={styles.btnSecondaryText}>Learn More</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.btnPrimary}>
-            <Text style={styles.btnPrimaryText}>Register</Text>
-          </TouchableOpacity> */}
-          {/* <TouchableOpacity 
-            style={styles.btnPrimary}
+        <View style={styles.eventActions}>
+          <TouchableOpacity 
+            style={styles.enrollButton}
             onPress={() => handleEnrollNow(event)}
           >
             <Icon name="person-add" size={18} color="#fff" style={styles.buttonIcon} />
-            <Text style={styles.btnPrimaryText}>Enroll Now</Text>
-          </TouchableOpacity> */}
-        {/* </View> */}
-        <View style={styles.eventActions}>
-            <TouchableOpacity 
-            style={styles.enrollButton}
-            onPress={() => handleEnrollNow(event)}
-            >
-            <Icon name="person-add" size={18} color="#fff" style={styles.buttonIcon} />
             <Text style={styles.enrollButtonText}>Enroll Now</Text>
-            </TouchableOpacity>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -193,9 +251,12 @@ function PublicEventScreen({ navigation }) {
   const renderNoEvents = () => (
     <View style={styles.noEventsContainer}>
       <Icon name="event-busy" size={64} color="#666" />
-      <Text style={styles.noEventsTitle}>No Public Events</Text>
+      <Text style={styles.noEventsTitle}>No Events Found</Text>
       <Text style={styles.noEventsText}>
-        There are currently no public events scheduled. Please check back later for updates.
+        {selectedDate === moment().format('YYYY-MM-DD') 
+          ? "There are no events scheduled for today. Please check other dates."
+          : `There are no events scheduled for ${moment(selectedDate).format('MMM D, YYYY')}.`
+        }
       </Text>
     </View>
   );
@@ -211,213 +272,81 @@ function PublicEventScreen({ navigation }) {
             <Icon name="arrow-back" size={24} color="#ffffff" />
           </TouchableOpacity>
           <Text style={styles.titleText}>{languageTexts.publicEvent.title || 'Public Events'}</Text>
-          <View style={{ width: 60 }} />
+          <View style={{ width: 44 }} /> {/* Spacer for alignment */}
         </View>
 
-        <ScrollView 
-          contentContainerStyle={styles.contentContainer} 
-          showsVerticalScrollIndicator={false}
-        >
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#2753b2" />
-              <Text style={styles.loadingText}>Loading events...</Text>
-            </View>
-          ) : events.length > 0 ? (
-            events.map(renderEventCard)
-          ) : (
-            renderNoEvents()
-          )}
-        </ScrollView>
+        {/* Calendar Section - Always Visible */}
+        <View style={styles.calendarSection}>
+          {/* <Text style={styles.sectionTitle}>Select a Date</Text> */}
+          <View style={styles.calendarContainer}>
+            <Calendar
+              current={selectedDate}
+              onDayPress={handleDateSelect}
+              markedDates={markedDates}
+              theme={{
+                calendarBackground: 'rgba(255, 255, 255, 0.95)',
+                textSectionTitleColor: '#333',
+                dayTextColor: '#333',
+                todayTextColor: '#2753b2',
+                selectedDayTextColor: '#FFF',
+                selectedDayBackgroundColor: '#2753b2',
+                monthTextColor: '#2753b2',
+                textMonthFontSize: 18,
+                textMonthFontWeight: 'bold',
+                arrowColor: '#2753b2',
+                textDayHeaderFontWeight: '500',
+                textDayFontWeight: '500',
+                'stylesheet.calendar.header': {
+                  monthText: {
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    color: '#2753b2',
+                  },
+                },
+              }}
+              style={styles.calendarStyle}
+            />
+          </View>
+        </View>
+
+        {/* Events List Section */}
+        <View style={styles.eventsSection}>
+          <View style={styles.dateHeader}>
+            <Text style={styles.dateHeaderText}>
+              Events on {moment(selectedDate).format('MMMM D, YYYY')}
+            </Text>
+            <Text style={styles.eventsCount}>
+              ({filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''})
+            </Text>
+          </View>
+
+          <ScrollView 
+            contentContainerStyle={styles.eventsList}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={['#2753b2']}
+              />
+            }
+          >
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#2753b2" />
+                <Text style={styles.loadingText}>Loading events...</Text>
+              </View>
+            ) : filteredEvents.length > 0 ? (
+              filteredEvents.map(renderEventCard)
+            ) : (
+              renderNoEvents()
+            )}
+          </ScrollView>
+        </View>
       </Animated.View>
     </LinearGradient>
   );
 }
-
-const styles1 = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  innerContainer: {
-    flex: 1,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 30,
-  },
-  backButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 80,
-  },
-  titleText: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#FFF',
-    textAlign: 'center',
-  },
-  contentContainer: {
-    padding: 20,
-  },
-  eventCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 15,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    position: 'relative',
-    borderLeftWidth: 5,
-    borderLeftColor: '#2753b2',
-  },
-  eventBadge: {
-    position: 'absolute',
-    top: 15,
-    right: 15,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  todayBadge: {
-    backgroundColor: '#ffc107',
-  },
-  upcomingBadge: {
-    backgroundColor: '#28a745',
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  eventTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2753b2',
-    marginBottom: 15,
-    marginRight: 80,
-    lineHeight: 24,
-  },
-  eventDetails: {
-    marginBottom: 15,
-  },
-  eventDetailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  detailIcon: {
-    backgroundColor: '#2753b2',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  detailText: {
-    flex: 1,
-  },
-  detailTitle: {
-    fontSize: 15,
-    color: '#333',
-    fontWeight: '600',
-  },
-  detailSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 2,
-  },
-  eventDescription: {
-    backgroundColor: 'rgba(39, 83, 178, 0.05)',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
-    borderLeftWidth: 3,
-    borderLeftColor: '#2753b2',
-  },
-  descriptionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2753b2',
-    marginBottom: 8,
-  },
-  eventActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 10,
-    paddingTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(39, 83, 178, 0.1)',
-  },
-  btnPrimary: {
-    backgroundColor: '#2753b2',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 25,
-  },
-  btnSecondary: {
-    backgroundColor: 'rgba(39, 83, 178, 0.1)',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 25,
-    borderWidth: 2,
-    borderColor: '#2753b2',
-  },
-  btnPrimaryText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-    // textTransform: 'uppercase',
-  },
-  btnSecondaryText: {
-    color: '#2753b2',
-    fontSize: 14,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  noEventsContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 60,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 15,
-    marginTop: 40,
-  },
-  noEventsTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2753b2',
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  noEventsText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 22,
-    maxWidth: 300,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 60,
-  },
-  loadingText: {
-    marginTop: 15,
-    fontSize: 16,
-    color: '#2753b2',
-  },
-});
-
-
 
 const styles = StyleSheet.create({
   container: {
@@ -432,6 +361,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 30,
+    paddingBottom: 15,
   },
   backButton: {
     paddingVertical: 6,
@@ -445,11 +375,58 @@ const styles = StyleSheet.create({
     color: '#FFF',
     textAlign: 'center',
   },
-  contentContainer: {
-    padding: 20,
+  calendarSection: {
+    paddingHorizontal: 15,
+    paddingBottom: 15,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFF',
+    marginBottom: 10,
+    marginLeft: 5,
+  },
+  calendarContainer: {
+    borderRadius: 10,
+    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  calendarStyle: {
+    borderRadius: 10,
+  },
+  eventsSection: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 15,
+  },
+  dateHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 5,
+  },
+  dateHeaderText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2753b2',
+  },
+  eventsCount: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+  },
+  eventsList: {
+    paddingBottom: 20,
   },
   eventCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: '#FFF',
     borderRadius: 15,
     padding: 20,
     marginBottom: 15,
@@ -475,6 +452,9 @@ const styles = StyleSheet.create({
   },
   upcomingBadge: {
     backgroundColor: '#28a745',
+  },
+  pastBadge: {
+    backgroundColor: '#6c757d',
   },
   badgeText: {
     color: '#fff',
@@ -563,16 +543,16 @@ const styles = StyleSheet.create({
   noEventsContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 60,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 15,
-    marginTop: 40,
+    marginTop: 20,
   },
   noEventsTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#2753b2',
-    marginTop: 20,
+    marginTop: 15,
     marginBottom: 10,
   },
   noEventsText: {
@@ -580,133 +560,16 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     lineHeight: 22,
-    maxWidth: 300,
   },
   loadingContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 60,
+    padding: 40,
   },
   loadingText: {
     marginTop: 15,
     fontSize: 16,
     color: '#2753b2',
-  },
-  // Modal styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  keyboardAvoid: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 15,
-    width: '90%',
-    maxHeight: '80%',
-    overflow: 'hidden',
-  },
-  modalHeader: {
-    backgroundColor: '#2753b2',
-    padding: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: 'white',
-    flex: 1,
-  },
-  closeButton: {
-    padding: 4,
-  },
-  modalBody: {
-    padding: 20,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: '#333',
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 20,
-    fontSize: 16,
-  },
-  genderOptions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  genderOption: {
-    width: '48%',
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    marginBottom: 10,
-    alignItems: 'center',
-  },
-  genderOptionSelected: {
-    backgroundColor: 'rgba(39, 83, 178, 0.1)',
-    borderColor: '#2753b2',
-  },
-  genderText: {
-    fontSize: 16,
-    color: '#666',
-  },
-  genderTextSelected: {
-    color: '#2753b2',
-    fontWeight: '600',
-  },
-  genderLoading: {
-    marginVertical: 20,
-  },
-  modalFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  cancelButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    backgroundColor: '#f8f9fa',
-    flex: 1,
-    marginRight: 10,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: '#333',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  submitButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    backgroundColor: '#2753b2',
-    flex: 1,
-    marginLeft: 10,
-    alignItems: 'center',
-  },
-  submitButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
 
