@@ -1,27 +1,52 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axiosInstance from "./axiosInstance"
 
-// export const sendOtp = async (phone) => {
-//   try {
-//     const response = await axiosInstance.post('/api/send-otp', { phone });
-//     return response.data; // { status: true, details?: string }
-//   } catch (error) {
-//     throw new Error(error.response?.data?.details || 'Failed to send OTP');
-//   }
-// };
+// Function to fetch public events config
+export const getPublicEventsConfig = async () => {
+  try {
+    const response = await axiosInstance.get('event?skip=0&limit=25&public_events=true&is_upcoming=true');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching public events config:', error);
+    throw error;
+  }
+};
 
-// export const registerEventParticipant = async (eventId, participantData, otp) => {
-//   try {
-//     const response = await axiosInstance.post('/api/register-event', {
-//       eventId,
-//       participantData,
-//       otp,
-//     });
-//     return response.data; // { status: true, details?: string }
-//   } catch (error) {
-//     throw new Error(error.response?.data?.details || 'Failed to register for event');
-//   }
-// };
+// Function to fetch public events
+export const getPublicEvents = async () => {
+  try {
+    const response = await axiosInstance.get('event?skip=0&limit=25&public_events=true&is_upcoming=true');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching public events:', error);
+    throw error;
+  }
+};
+
+// Function to verify event OTP
+export const verifyEventOtp = async (eventId, otp, userData) => {
+    console.log("verifyEventOtp called with params:", eventId, otp, userData);
+
+  try {
+    const response = await axiosInstance.post(`event/register/otp/${eventId}?otp=${otp}`, userData);
+    return response.data;
+  } catch (error) {
+    console.error('Error verifying event OTP:', error);
+    throw error;
+  }
+};
+
+// sent data to get otp data:
+export const registerEvent = async (eventId, userData) => {
+    console.log("registerEvent called with params:", eventId, userData);
+  try {
+    const response = await axiosInstance.post(`event/register/${eventId}`, userData);
+    return response.data;
+  } catch (error) {
+    console.error('Error registering for event:', error);
+    throw error;
+  }
+};
 
 // Function to request OTP
 export const getLoginOtp = async (mobile_code, mobile_no) => {

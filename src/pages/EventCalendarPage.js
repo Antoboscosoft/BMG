@@ -301,6 +301,15 @@ function EventCalendarPage({ navigation }) {
         return eventEndDate.isSameOrAfter(now, 'day');
     };
 
+    const handleEnrollNow = (event) => {
+        navigation.navigate('RegisterEventParticipant', {
+            eventData: event,
+            fromCalendar: true // Add this flag
+        });
+    };
+
+
+
     return (
         <LinearGradient colors={['#2753b2', '#e6e9f0']} style={styles.container}>
             <Animated.View style={[styles.innerContainer, { opacity: fadeAnim }]}>
@@ -419,14 +428,24 @@ function EventCalendarPage({ navigation }) {
                                         {isCurrentOrFutureEvent(event) &&
                                             <View style={styles.buttonContainer}>
                                                 {event.registered === null ? (
-                                                    <TouchableOpacity
-                                                        style={styles.registerButton}
-                                                        onPress={() => handleRegister(event)}
-                                                    >
-                                                        <Text style={styles.registerButtonText}>
-                                                            {languageTexts?.eventCalendar?.register || 'Register'}
-                                                        </Text>
-                                                    </TouchableOpacity>
+                                                    <>
+                                                        <TouchableOpacity
+                                                            style={styles.enrollButton}
+                                                            onPress={() => handleEnrollNow(event)}
+                                                        >
+                                                            <Text style={styles.enrollButtonText}>
+                                                                {languageTexts?.eventCalendar?.enroll || 'Enroll Now'}
+                                                            </Text>
+                                                        </TouchableOpacity>
+                                                        <TouchableOpacity
+                                                            style={styles.registerButton}
+                                                            onPress={() => handleRegister(event)}
+                                                        >
+                                                            <Text style={styles.registerButtonText}>
+                                                                {languageTexts?.eventCalendar?.register || 'Register'}
+                                                            </Text>
+                                                        </TouchableOpacity>
+                                                    </>
                                                 ) : (
                                                     <TouchableOpacity
                                                         style={styles.registeredButton}
@@ -573,6 +592,18 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'flex-end',
         marginTop: 10,
+        gap: 10,
+    },
+    enrollButton: {
+        backgroundColor: '#FFA500', // Orange color for Enroll button
+        paddingVertical: 8,
+        paddingHorizontal: 15,
+        borderRadius: 8,
+    },
+    enrollButtonText: {
+        color: '#FFF',
+        fontSize: 14,
+        fontWeight: '600',
     },
     registerButton: {
         backgroundColor: '#2753b2',
