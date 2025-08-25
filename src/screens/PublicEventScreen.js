@@ -102,11 +102,13 @@ function PublicEventScreen({ navigation, route }) {
     });
     
     // Mark selected date
-    markedDatesObj[selectedDate] = {
-      ...markedDatesObj[selectedDate],
-      selected: true,
-      selectedColor: '#2753b2'
-    };
+    if (selectedDate) {
+      markedDatesObj[selectedDate] = {
+        ...markedDatesObj[selectedDate],
+        selected: true,
+        selectedColor: '#2753b2'
+        };
+    }
     
     setMarkedDates(markedDatesObj);
     filterEventsByDate(eventsData, selectedDate);
@@ -144,11 +146,60 @@ function PublicEventScreen({ navigation, route }) {
     await fetchPublicEvents();
   };
 
-  const handleDateSelect = (day) => {
-    setSelectedDate(day.dateString);
-    filterEventsByDate(events, day.dateString);
+  // Handle date selection 1st method
+  const handleDateSelect1 = (day) => {
+    const newSelectedDate = day.dateString;
+    setSelectedDate(newSelectedDate);
+    
+    // Update marked dates to show the new selection
+    const updatedMarkedDates = { ...markedDates };
+    
+    // Remove previous selection from all dates
+    Object.keys(updatedMarkedDates).forEach(date => {
+      if (updatedMarkedDates[date].selected) {
+        delete updatedMarkedDates[date].selected;
+        delete updatedMarkedDates[date].selectedColor;
+      }
+    });
+    
+    // Add selection to the new date
+    updatedMarkedDates[newSelectedDate] = {
+      ...updatedMarkedDates[newSelectedDate],
+      selected: true,
+      selectedColor: '#2753b2'
+    };
+    
+    setMarkedDates(updatedMarkedDates);
+    filterEventsByDate(events, newSelectedDate);
+    // setSelectedDate(day.dateString);
+    // filterEventsByDate(events, day.dateString);
   };
 
+  // Handle date selection 2nd method
+  const handleDateSelect = (day) => {
+    setSelectedDate(day.dateString);
+    
+    // Rebuild marked dates with the new selection
+    const updatedMarkedDates = { ...markedDates };
+    
+    // Clear any existing selection
+    Object.keys(updatedMarkedDates).forEach(date => {
+      if (updatedMarkedDates[date].selected) {
+        delete updatedMarkedDates[date].selected;
+        delete updatedMarkedDates[date].selectedColor;
+      }
+    });
+    
+    // Set new selection
+    updatedMarkedDates[day.dateString] = {
+      ...updatedMarkedDates[day.dateString],
+      selected: true,
+      selectedColor: '#2753b2'
+    };
+    
+    setMarkedDates(updatedMarkedDates);
+    filterEventsByDate(events, day.dateString);
+  };
   const handleEnrollNow = (event) => {
     navigation.navigate('RegisterEventParticipant', { 
       eventData: event 
