@@ -297,23 +297,7 @@
           "healthCheckup": "স্বাস্থ পরীক্ষা",
           "healthCheckupDesc": "পরবর্তী সপ্তাহের জন্য বিনামূল্যে স্বাস্থ্য পরীক্ষা নির্ধারিত।"
         }
-      ]
-    }
-  },
-  "notifications": {
-    "title": "বিজ্ঞপ্তি",
-    "empty": "কোনও বিজ্ঞপ্তি পাওয়া যায় নি।",
-    "timestamps": {
-      "twoHoursAgo": "২ ঘণ্টা আগে",
-      "oneDayAgo": "১ দিন আগে",
-      "threeDaysAgo": "৩ দিন আগে",
-      "fiveDaysAgo": "৫ দিন আগে"
-    },
-    "items": {
-      "newJobOpportunity": "নতুন কাজের সুযোগ",
-      "newJobOpportunityDesc": "আপনার এলাকায় একটি নির্মাণ কাজ উপলব্ধ। এখন আবেদন করুন!",
-      "policyUpdate": "নীতি হালনাগাদ",
-      "policyUpdateDesc": "প্রবাসী শ্রমিকদের অধিকার সম্পর্কিত নতুন সরকারি নীতি ঘোষণা।",
+      ],
       "eventReminder": "ইভেন্ট রিমাইন্ডার",
       "eventReminderDesc": "আগামীকাল সকাল ১০ টায় আইনি পরামর্শ সেশন।",
       "healthCheckup": "স্বাস্থ্য পরীক্ষা",
