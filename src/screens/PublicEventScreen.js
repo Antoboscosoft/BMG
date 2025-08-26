@@ -13,7 +13,6 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import RenderHtml from 'react-native-render-html';
-import { Calendar, LocaleConfig } from 'react-native-calendars';
 import moment from 'moment';
 import { getPublicEvents } from '../api/auth';
 import { useLanguage } from '../language/commondir';
@@ -26,9 +25,6 @@ function PublicEventScreen({ navigation, route }) {
   const [refreshing, setRefreshing] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
   const { languageTexts } = useLanguage();
-  const [selectedDate, setSelectedDate] = useState(moment().format('YYYY-MM-DD'));
-  const [markedDates, setMarkedDates] = useState({});
-  const [filteredEvents, setFilteredEvents] = useState([]);
 
   // Get events from navigation params or fetch from API
   const eventsFromParams = route.params?.events;
@@ -42,7 +38,7 @@ function PublicEventScreen({ navigation, route }) {
     
     if (eventsFromParams) {
       // Use events passed from login screen
-      processEvents(eventsFromParams);
+      setEvents(eventsFromParams);
       setLoading(false);
     } else {
       // Fallback: fetch events directly if not passed
@@ -50,88 +46,12 @@ function PublicEventScreen({ navigation, route }) {
     }
   }, [eventsFromParams]);
 
-  useEffect(() => {
-    // Configure calendar locale
-    LocaleConfig.locales['custom'] = {
-      monthNames: languageTexts?.calendar?.monthNames || [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December',
-      ],
-      monthNamesShort: languageTexts?.calendar?.monthNamesShort || [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-      ],
-      dayNames: languageTexts?.calendar?.dayNames || [
-        'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
-      ],
-      dayNamesShort: languageTexts?.calendar?.dayNamesShort || [
-        'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat',
-      ],
-      today: languageTexts?.calendar?.today || 'Today',
-    };
-    LocaleConfig.defaultLocale = 'custom';
-  }, [languageTexts]);
-
-  const processEvents = (eventsData) => {
-    setEvents(eventsData);
-    
-    // Create marked dates for calendar
-    const markedDatesObj = {};
-    const today = moment().format('YYYY-MM-DD');
-    
-    eventsData.forEach(event => {
-      const startDate = moment(event.start_datetime).format('YYYY-MM-DD');
-      const endDate = moment(event.end_datetime).format('YYYY-MM-DD');
-      
-      // Mark all dates in the event range
-      let currentDate = moment(startDate);
-      const end = moment(endDate);
-      
-      while (currentDate.isSameOrBefore(end)) {
-        const dateStr = currentDate.format('YYYY-MM-DD');
-        
-        if (!markedDatesObj[dateStr]) {
-          markedDatesObj[dateStr] = {
-            marked: true,
-            dotColor: dateStr === today ? '#ffc107' : '#2753b2',
-          };
-        }
-        
-        currentDate.add(1, 'day');
-      }
-    });
-    
-    // Mark selected date
-    if (selectedDate) {
-      markedDatesObj[selectedDate] = {
-        ...markedDatesObj[selectedDate],
-        selected: true,
-        selectedColor: '#2753b2'
-        };
-    }
-    
-    setMarkedDates(markedDatesObj);
-    filterEventsByDate(eventsData, selectedDate);
-  };
-
-  const filterEventsByDate = (eventsData, date) => {
-    const filtered = eventsData.filter(event => {
-      const eventStart = moment(event.start_datetime).startOf('day');
-      const eventEnd = moment(event.end_datetime).endOf('day');
-      const selected = moment(date);
-      
-      return selected.isBetween(eventStart, eventEnd, null, '[]');
-    });
-    
-    setFilteredEvents(filtered);
-  };
-
   const fetchPublicEvents = async () => {
     try {
       setLoading(true);
       const response = await getPublicEvents();
       if (response.status && response.data) {
-        processEvents(response.data);
+        setEvents(response.data);
       }
     } catch (error) {
       console.error('Failed to fetch public events:', error);
@@ -146,60 +66,6 @@ function PublicEventScreen({ navigation, route }) {
     await fetchPublicEvents();
   };
 
-  // Handle date selection 1st method
-  const handleDateSelect1 = (day) => {
-    const newSelectedDate = day.dateString;
-    setSelectedDate(newSelectedDate);
-    
-    // Update marked dates to show the new selection
-    const updatedMarkedDates = { ...markedDates };
-    
-    // Remove previous selection from all dates
-    Object.keys(updatedMarkedDates).forEach(date => {
-      if (updatedMarkedDates[date].selected) {
-        delete updatedMarkedDates[date].selected;
-        delete updatedMarkedDates[date].selectedColor;
-      }
-    });
-    
-    // Add selection to the new date
-    updatedMarkedDates[newSelectedDate] = {
-      ...updatedMarkedDates[newSelectedDate],
-      selected: true,
-      selectedColor: '#2753b2'
-    };
-    
-    setMarkedDates(updatedMarkedDates);
-    filterEventsByDate(events, newSelectedDate);
-    // setSelectedDate(day.dateString);
-    // filterEventsByDate(events, day.dateString);
-  };
-
-  // Handle date selection 2nd method
-  const handleDateSelect = (day) => {
-    setSelectedDate(day.dateString);
-    
-    // Rebuild marked dates with the new selection
-    const updatedMarkedDates = { ...markedDates };
-    
-    // Clear any existing selection
-    Object.keys(updatedMarkedDates).forEach(date => {
-      if (updatedMarkedDates[date].selected) {
-        delete updatedMarkedDates[date].selected;
-        delete updatedMarkedDates[date].selectedColor;
-      }
-    });
-    
-    // Set new selection
-    updatedMarkedDates[day.dateString] = {
-      ...updatedMarkedDates[day.dateString],
-      selected: true,
-      selectedColor: '#2753b2'
-    };
-    
-    setMarkedDates(updatedMarkedDates);
-    filterEventsByDate(events, day.dateString);
-  };
   const handleEnrollNow = (event) => {
     navigation.navigate('RegisterEventParticipant', { 
       eventData: event 
@@ -228,9 +94,9 @@ function PublicEventScreen({ navigation, route }) {
     const eventDate = moment(startDate);
     
     if (eventDate.isSame(today, 'day')) {
-      return { text: 'Today', style: styles.todayBadge };
+      return { text: (languageTexts?.publicEvent?.Today || 'Today'), style: styles.todayBadge };
     } else if (eventDate.isAfter(today)) {
-      return { text: 'Upcoming', style: styles.upcomingBadge };
+      return { text: (languageTexts?.publicEvent?.Upcoming || 'Upcoming'), style: styles.upcomingBadge };
     }
     return { text: eventDate.format('MMM D'), style: styles.pastBadge };
   };
@@ -268,7 +134,7 @@ function PublicEventScreen({ navigation, route }) {
         
         {event.description && (
           <View style={styles.eventDescription}>
-            <Text style={styles.descriptionTitle}>About this event</Text>
+            <Text style={styles.descriptionTitle}>{(languageTexts?.publicEvent?.AboutThisEvent || "About this event")}</Text>
             <RenderHtml
               contentWidth={width - 80}
               source={{ html: event.description }}
@@ -292,7 +158,7 @@ function PublicEventScreen({ navigation, route }) {
             onPress={() => handleEnrollNow(event)}
           >
             <Icon name="person-add" size={18} color="#fff" style={styles.buttonIcon} />
-            <Text style={styles.enrollButtonText}>Enroll Now</Text>
+            <Text style={styles.enrollButtonText}>{'Register Now'}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -302,12 +168,9 @@ function PublicEventScreen({ navigation, route }) {
   const renderNoEvents = () => (
     <View style={styles.noEventsContainer}>
       <Icon name="event-busy" size={64} color="#666" />
-      <Text style={styles.noEventsTitle}>No Events Found</Text>
+      <Text style={styles.noEventsTitle}>{(languageTexts?.publicEvent?.NoEventsFound || 'No Events Found')}</Text>
       <Text style={styles.noEventsText}>
-        {selectedDate === moment().format('YYYY-MM-DD') 
-          ? "There are no events scheduled for today. Please check other dates."
-          : `There are no events scheduled for ${moment(selectedDate).format('MMM D, YYYY')}.`
-        }
+        {(languageTexts?.publicEvent?.NoEventsAvailable || 'There are currently no public events available. Please check back later.')}
       </Text>
     </View>
   );
@@ -325,75 +188,37 @@ function PublicEventScreen({ navigation, route }) {
           <Text style={styles.titleText}>{languageTexts.publicEvent.title || 'Public Events'}</Text>
           <View style={{ width: 44 }} /> {/* Spacer for alignment */}
         </View>
-
-        {/* Calendar Section - Always Visible */}
-        <View style={styles.calendarSection}>
-          {/* <Text style={styles.sectionTitle}>Select a Date</Text> */}
-          <View style={styles.calendarContainer}>
-            <Calendar
-              current={selectedDate}
-              onDayPress={handleDateSelect}
-              markedDates={markedDates}
-              theme={{
-                calendarBackground: 'rgba(255, 255, 255, 0.95)',
-                textSectionTitleColor: '#333',
-                dayTextColor: '#333',
-                todayTextColor: '#2753b2',
-                selectedDayTextColor: '#FFF',
-                selectedDayBackgroundColor: '#2753b2',
-                monthTextColor: '#2753b2',
-                textMonthFontSize: 18,
-                textMonthFontWeight: 'bold',
-                arrowColor: '#2753b2',
-                textDayHeaderFontWeight: '500',
-                textDayFontWeight: '500',
-                'stylesheet.calendar.header': {
-                  monthText: {
-                    fontSize: 18,
-                    fontWeight: 'bold',
-                    color: '#2753b2',
-                  },
-                },
-              }}
-              style={styles.calendarStyle}
+        
+        <ScrollView 
+          contentContainerStyle={styles.eventsList}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#2753b2']}
             />
-          </View>
-        </View>
-
-        {/* Events List Section */}
-        <View style={styles.eventsSection}>
-          <View style={styles.dateHeader}>
-            <Text style={styles.dateHeaderText}>
-              Events on {moment(selectedDate).format('MMMM D, YYYY')}
-            </Text>
+          }
+        >
+          {/* <View style={styles.eventsHeader}>
+            <Text style={styles.eventsTitle}>All Public Events</Text>
+            <Text style={styles.eventsTitle}></Text>
             <Text style={styles.eventsCount}>
-              ({filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''})
+              ({events.length} event{events.length !== 1 ? 's' : ''})
             </Text>
-          </View>
+          </View> */}
 
-          <ScrollView 
-            contentContainerStyle={styles.eventsList}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={['#2753b2']}
-              />
-            }
-          >
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#2753b2" />
-                <Text style={styles.loadingText}>Loading events...</Text>
-              </View>
-            ) : filteredEvents.length > 0 ? (
-              filteredEvents.map(renderEventCard)
-            ) : (
-              renderNoEvents()
-            )}
-          </ScrollView>
-        </View>
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#ffffff" />
+              <Text style={styles.loadingText}>{(languageTexts?.publicEvent?.LoadingEvents || 'Loading events...')}</Text>
+            </View>
+          ) : events.length > 0 ? (
+            events.map(renderEventCard)
+          ) : (
+            renderNoEvents()
+          )}
+        </ScrollView>
       </Animated.View>
     </LinearGradient>
   );
@@ -426,55 +251,26 @@ const styles = StyleSheet.create({
     color: '#FFF',
     textAlign: 'center',
   },
-  calendarSection: {
-    paddingHorizontal: 15,
-    paddingBottom: 15,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFF',
-    marginBottom: 10,
-    marginLeft: 5,
-  },
-  calendarContainer: {
-    borderRadius: 10,
-    overflow: 'hidden',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-  calendarStyle: {
-    borderRadius: 10,
-  },
-  eventsSection: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 15,
-  },
-  dateHeader: {
+  eventsHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
     paddingHorizontal: 5,
   },
-  dateHeaderText: {
-    fontSize: 18,
+  eventsTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#2753b2',
+    color: '#FFF',
   },
   eventsCount: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 16,
+    color: '#FFF',
     fontWeight: '500',
   },
   eventsList: {
-    paddingBottom: 20,
+    padding: 15,
+    paddingBottom: 30,
   },
   eventCard: {
     backgroundColor: '#FFF',
@@ -487,8 +283,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     position: 'relative',
-    borderLeftWidth: 5,
-    borderLeftColor: '#2753b2',
+    // borderLeftWidth: 5,
+    // borderLeftColor: '#2753b2',
   },
   eventBadge: {
     position: 'absolute',
@@ -620,7 +416,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 15,
     fontSize: 16,
-    color: '#2753b2',
+    color: '#FFF',
   },
 });
 

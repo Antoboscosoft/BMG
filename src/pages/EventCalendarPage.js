@@ -302,6 +302,8 @@ function EventCalendarPage({ navigation }) {
     };
 
     const handleEnrollNow = (event) => {
+        console.log("event > ",event);
+        
         navigation.navigate('RegisterEventParticipant', {
             eventData: event,
             fromCalendar: true // Add this flag
@@ -411,7 +413,7 @@ function EventCalendarPage({ navigation }) {
                                             <View style={{ flex: 1 }}>
                                                 <RenderHtml
                                                     contentWidth={300}
-                                                    source={{ html: languageTexts?.eventCalendar?.descriptions?.[event.descriptionKey] || event.description || '' }}
+                                                    source={{ html: languageTexts?.eventCalendar?.descriptions?.[event.descriptionKey] || event.description || 'No description' }}
                                                     baseStyle={{ color: '#666', fontSize: 14 }}
                                                     tagsStyles={{
                                                         b: { fontWeight: 'bold', color: '#666', fontSize: 14 },
@@ -434,7 +436,7 @@ function EventCalendarPage({ navigation }) {
                                                             onPress={() => handleEnrollNow(event)}
                                                         >
                                                             <Text style={styles.enrollButtonText}>
-                                                                {languageTexts?.eventCalendar?.enroll || 'Enroll Now'}
+                                                                {languageTexts?.eventCalendar?.enrollNow || 'Enroll Now'}
                                                             </Text>
                                                         </TouchableOpacity>
                                                         <TouchableOpacity
@@ -577,11 +579,12 @@ const styles = StyleSheet.create({
     },
     eventDetailRow: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         marginBottom: 8,
     },
     icon: {
         marginRight: 10,
+        marginTop: 2,
     },
     eventDetailText: {
         fontSize: 14,

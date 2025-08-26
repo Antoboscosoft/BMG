@@ -16,7 +16,38 @@
   "publicEvent": {
     "title": "সার্বজনীন ইভেন্ট",
     "description": "সামাজিক ইভেন্টগুলিতে অংশগ্রহণ করুন এবং সেগুলি সম্পর্কে তথ্য পান।",
-    "noEvents": "বর্তমানে কোন সার্বজনীন ইভেন্ট উপলব্ধ নেই।"
+    "noEvents": "বর্তমানে কোন সার্বজনীন ইভেন্ট উপলব্ধ নেই।",
+    "Today": "আজ",
+    "Upcoming": "আসন্ন",
+    "AboutThisEvent": "এই ইভেন্ট সম্পর্কে",
+    "NoEventsFound": "কোন অনুষ্ঠান পাওয়া যায়নি",
+    "NoEventsAvailable": "এই সময়ে কোন পাবলিক ইভেন্ট উপলব্ধ নেই। দয়া করে পরে চেক করুন।",
+    "LoadingEvents": "ইভেন্ট লোড হচ্ছে..."
+  },
+  "eventRegister": {
+    "title": "নিবন্ধন",
+    "eventDetails": "নিবন্ধন বিবরণ",
+    "description": "এই ইভেন্টে অংশগ্রহণ করতে নিবন্ধন করুন।",
+    "participantInfo": "অংশগ্রহণকারী তথ্য",
+    "fullname": "পুরো নাম",
+    "fullnamePlaceholder": "আপনার পুরো নাম লিখুন",
+    "phoneNumber": "ফোন নম্বর",
+    "phoneNumberPlaceholder": "আপনার ফোন নম্বর লিখুন",
+    "dateOfBirth": "জন্ম তারিখ",
+    "dateOfBirthPlaceholder": "আপনার জন্ম তারিখ লিখুন",
+    "gender": "লিঙ্গ",
+    "male": "পুরুষ",
+    "female": "মহিলা",
+    "other": "অন্যান্য",
+    "nameRequired": "নাম প্রয়োজন",
+    "nameMinLength": "নামে কমপক্ষে 2 অক্ষর থাকতে হবে",
+    "countryCodeRequired": "দেশ কোড প্রয়োজন",
+    "phoneRequired": "ফোন নম্বর প্রয়োজন",
+    "phoneInvalid": "দয়া করে একটি বৈধ 10-অঙ্কের ফোন নম্বর লিখুন",
+    "dobRequired": "জন্ম তারিখ প্রয়োজন",
+    "dobInvalid": "দয়া করে একটি বৈধ জন্ম তারিখ লিখুন",
+    "genderRequired": "লিঙ্গ প্রয়োজন",
+    "otpRequired": "দয়া করে একটি বৈধ 5-অঙ্কের ওটিপি লিখুন"
   },
   "menu": {
     "eventCalendar": "ইভেন্ট ক্যালেন্ডার",
@@ -38,6 +69,7 @@
   "eventCalendar": {
     "subtitle": "আসন্ন ইভেন্ট এবং কার্যকলাপ দেখুন।",
     "noEvents": "এই তারিখের জন্য কোনো ইভেন্ট নির্ধারিত নেই",
+    "enrollNow": "নিবন্ধন করুন",
     "register": "নিবন্ধন",
     "registered": "নিবন্ধিত",
     "events": {

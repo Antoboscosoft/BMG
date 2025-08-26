@@ -16,7 +16,38 @@
   "publicEvent": {
     "title": "Public Events",
     "description": "Explore and participate in community events.",
-    "noEvents": "No public events available at the moment."
+    "noEvents": "No public events available at the moment.",
+    "Today": "Today",
+    "Upcoming": "Upcoming",
+    "AboutThisEvent": "About this event",
+    "NoEventsFound": "No Events Found",
+    "NoEventsAvailable": "There are currently no public events available. Please check back later.",
+    "LoadingEvents": "Loading events..."
+  },
+  "eventRegister": {
+    "title": "Event Registration",
+    "eventDetails": "Event Details",
+    "description": "Register to participate in this event.",
+    "participantInfo": "Participant Information",
+    "fullname": "Full Name",
+    "fullnamePlaceholder": "Enter your full name",
+    "phoneNumber": "Phone Number",
+    "phoneNumberPlaceholder": "Enter your phone number",
+    "dateOfBirth": "Date of Birth",
+    "dateOfBirthPlaceholder": "Enter your date of birth",
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "other": "Other",
+    "nameRequired": "Name is required",
+    "nameMinLength": "Name must be at least 2 characters",
+    "countryCodeRequired": "Country code is required",
+    "phoneRequired": "Phone number is required", 
+    "phoneInvalid": "Please enter a valid 10-digit phone number",
+    "dobRequired": "Date of birth is required",
+    "dobInvalid": "Please enter a valid date of birth",
+    "genderRequired": "Gender is required",
+    "otpRequired": "Please enter a valid 5-digit OTP"
   },
   "menu": {
     "eventCalendar": "Events",
@@ -38,6 +69,7 @@
   "eventCalendar": {
     "subtitle": "View upcoming events and activities.",
     "noEvents": "No events scheduled for this date",
+    "enrollNow": "Enroll",
     "register": "Register",
     "registered": "Registered",
     "events": {
