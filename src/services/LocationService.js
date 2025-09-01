@@ -125,11 +125,7 @@ export const checkIfLocationEnabled = async () => {
 
 // request location permissions
 export const requestLocationPermissions01 = async () => {
-  // console.log("request location permission entered.....");
-
   if (Platform.OS === 'android') {
-    // console.log("is android 1");
-
     try {
       // Step 1: Request foreground location
       const fineLocation = await PermissionsAndroid.request(
@@ -140,17 +136,13 @@ export const requestLocationPermissions01 = async () => {
           buttonPositive: 'Allow',
         }
       );
-      // console.log("fine location 2 :", fineLocation, PermissionsAndroid.RESULTS.GRANTED);
 
       if (fineLocation !== 'granted') {
         return false;
       }
-      console.log("Platform.Version", Platform.Version);
 
       // Step 2: Request background location separately (only Android 10+)
       if (Platform.Version >= 29) {
-        // console.log("above 29 version 3 ...");
-
         const backgroundLocation = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
           {
@@ -160,7 +152,6 @@ export const requestLocationPermissions01 = async () => {
             buttonPositive: 'Allow',
           }
         );
-        console.log("backgroundLocation 4 ...", backgroundLocation, PermissionsAndroid.RESULTS.GRANTED);
 
         // return backgroundLocation === PermissionsAndroid.RESULTS.GRANTED;
         return backgroundLocation === 'granted';
@@ -226,13 +217,11 @@ export const getCurrentLocation = async () => {
           longitude,
           timestamp: new Date().toISOString(),
         };
-        console.log('📍 [Foreground Location:]', locationData);
         resolve(locationData);
         // Save to backend/local if needed
         // saveLocation(locationData);
       },
       (error) => {
-        console.log('[Location Error]', error.message);
         // fallback to watchPosition in background
         if (Platform.OS === 'android') {
           const watchId = Geolocation.watchPosition(
@@ -243,11 +232,9 @@ export const getCurrentLocation = async () => {
                 longitude: pos.coords.longitude,
                 timestamp: new Date().toISOString(),
               };
-              console.log('📍 [Watch Fallback Location]:', fallbackLocation);
               resolve(fallbackLocation);
             },
             (watchErr) => {
-              console.log('[❌ Watch Fallback Error]', watchErr.message);
               reject(watchErr);
             },
             {

@@ -57,7 +57,6 @@ function ProfileScreen({ navigation, route }) {
     confirmPassword: false
   });
   const [changePasswordError, setChangePasswordError] = useState('');
-  console.log("route.params: >>> ", passedUserData, passedUserData?.role?.name);
   const createdOn = passedUserData?.created_on;
   const createdBy = passedUserData?.creator?.name || "-";
   const {
@@ -76,9 +75,7 @@ function ProfileScreen({ navigation, route }) {
   const [genderOptions, setGenderOptions] = useState([]);
 
   const { user } = useContext(LanguageContext);
-//   console.log("userData : >>> ", user?.data?.role?.name, user?.data?.id);
   const userId = userData?.data?.id;
-//   console.log("Role check : -------------------", user?.data?.role?.name);
 
   const locaionShow = user?.data?.role?.name === 'Staff' || user?.data?.role?.name === 'Super Admin';
 //   const rolebased = user?.data?.role?.name !== 'Migrant';
@@ -152,7 +149,6 @@ function ProfileScreen({ navigation, route }) {
         old_password: data.oldPassword,
         new_password: data.newPassword
       });
-    //   console.log("Change Password Response:", response);
 
       if (response.status) {
         Alert.alert(
@@ -203,8 +199,6 @@ function ProfileScreen({ navigation, route }) {
 
 
   const goback = () => {
-    // console.log("route.params.from: >>> ", route.params);
-
     if (navigation.canGoBack()) {
       route.params.from === 'MigrantsList'
         ? navigation.navigate('MigrantsList')

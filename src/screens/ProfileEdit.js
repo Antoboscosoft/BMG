@@ -49,8 +49,6 @@ function formatDate(date) {
 
 function ProfileEdit({ navigation, route }) {
     const { userData } = route.params;
-    console.log("route.params >> ! ",route.params.from === 'MigrantsList' ? 'MigrantsList' : 'Profile');
-    
     const { languageTexts } = useLanguage();
     const [showDOBPicker, setShowDOBPicker] = useState(false);
     const [imageUri, setImageUri] = useState(userData?.photo || null);
@@ -72,7 +70,6 @@ function ProfileEdit({ navigation, route }) {
     const [skills, setSkills] = useState([]);
     const [loadingJobTypes, setLoadingJobTypes] = useState(false);
     const [loadingSkills, setLoadingSkills] = useState(false);
-console.log("nativeStates",nativeStates);
     const [genderOptions, setGenderOptions] = useState([]);
     const [loadingGenders, setLoadingGenders] = useState(false);
 

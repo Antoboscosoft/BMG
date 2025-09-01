@@ -34,9 +34,7 @@ function DashboardPage({ navigation, route }) {
     const { setUser } = useContext(LanguageContext);
     const locationIntervalRef = useRef(null);
     const locationCheckIntervalRef = useRef(null);
-    console.log('====================================');
-    console.log("userData",userData?.data?.language_pref || 'EN');
-    console.log('====================================');
+    
     const dashboardMenuItems = [
         { id: '6', name: 'profile', screen: 'Profile', icon: 'account' },
         { id: '1', name: 'eventCalendar', screen: 'EventCalendar', icon: 'calendar-month' },
@@ -53,7 +51,6 @@ function DashboardPage({ navigation, route }) {
         try {
             let token = await getFirebaseToken();
             updateFirebaseToken(token).then((response) => {
-                // console.log('Firebase token sent successfully:', response);
             }).catch((error) => {
                 console.error('Failed to send Firebase token:', error);
             })
@@ -66,23 +63,19 @@ function DashboardPage({ navigation, route }) {
     // // Function to handle location tracking every 5 minutes
     // const startLocationTracking = async () => {
     //     try {
-    //         console.log('🚀 [Dashboard] Starting location tracking...');
 
     //         // Check if location is enabled
     //         const isLocationEnabled = await checkIfLocationEnabled();
     //         if (!isLocationEnabled) {
-    //             console.log('❌ [Dashboard] Location services are disabled');
     //             return;
     //         }
 
     //         // Check permissions
     //         const hasPermission = await requestLocationPermissions01();
     //         if (!hasPermission) {
-    //             console.log('❌ [Dashboard] Location permissions not granted');
     //             // Optional: Still proceed with foreground-only tracking if fine location was granted
     //             const fineLocation = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
     //             if (fineLocation) {
-    //                 console.log('✅ [Dashboard] Proceeding with foreground-only location tracking');
     //                 await handleLocationUpdate();
     //                 locationIntervalRef.current = setInterval(handleLocationUpdate, 5 * 60 * 1000);
     //                 return;
@@ -90,7 +83,6 @@ function DashboardPage({ navigation, route }) {
     //             return;
     //         }
 
-    //         console.log('✅ [Dashboard] Location permissions granted, starting tracking');
 
     //         // Initial location fetch
     //         await handleLocationUpdate();
@@ -100,7 +92,6 @@ function DashboardPage({ navigation, route }) {
     //             await handleLocationUpdate();
     //         }, 5 * 60 * 1000); // 5 minutes
 
-    //         console.log('⏰ [Dashboard] Location tracking interval set for every 5 minutes');
 
     //     } catch (error) {
     //         console.error('❌ [Dashboard] Location tracking setup failed:', error);
@@ -110,11 +101,9 @@ function DashboardPage({ navigation, route }) {
     // // Function to handle location update
     // const handleLocationUpdate = async () => {
     //     try {
-    //         console.log('📍 [Dashboard] Fetching current location...');
 
     //         const location = await getCurrentLocation();
     //         if (location) {
-    //             console.log('📍 [Dashboard] Location obtained:', {
     //                 latitude: location.latitude,
     //                 longitude: location.longitude,
     //                 timestamp: location.timestamp
@@ -129,10 +118,8 @@ function DashboardPage({ navigation, route }) {
     //             // Update last sync time
     //             const currentTime = new Date().getTime();
     //             await AsyncStorage.setItem('lastSyncTime', currentTime.toString());
-    //             console.log('⏰ [Dashboard] Last sync time updated:', new Date(currentTime).toISOString());
 
     //         } else {
-    //             console.log('❌ [Dashboard] Failed to get location');
     //         }
     //     } catch (error) {
     //         console.error('❌ [Dashboard] Location update failed:', error);
@@ -179,15 +166,14 @@ function DashboardPage({ navigation, route }) {
     // Function to send location to backend
     const sendLocationToBackend = async (location) => {
         try {
-            console.log('🌐 [Dashboard] Sending location to backend...');
 
             const response = await sendUserLocation(location);
-            console.log('✅ [Dashboard] Location sent to backend successfully:', {
-                latitude: location.latitude,
-                longitude: location.longitude,
-                timestamp: location.timestamp,
-                response: response?.status || 'success'
-            });
+            // console.log('✅ [Dashboard] Location sent to backend successfully:', {
+            //     latitude: location.latitude,
+            //     longitude: location.longitude,
+            //     timestamp: location.timestamp,
+            //     response: response?.status || 'success'
+            // });
 
         } catch (error) {
             console.error('❌ [Dashboard] Failed to send location to backend:', error);
@@ -198,7 +184,7 @@ function DashboardPage({ navigation, route }) {
                 let locations = offlineLocations ? JSON.parse(offlineLocations) : [];
                 locations.push(location);
                 await AsyncStorage.setItem('offlineLocations', JSON.stringify(locations));
-                console.log('💾 [Dashboard] Location stored offline for retry');
+                // console.log('💾 [Dashboard] Location stored offline for retry');
             } catch (offlineError) {
                 console.error('❌ [Dashboard] Failed to store offline location:', offlineError);
             }

@@ -92,7 +92,6 @@ function CreateRegister({ navigation, route }) {
     const [loading, setLoading] = useState(true);
     const eventId = eventData?.eventData?.id; // Use the event ID from the route params
     const [eventAttachments, setEventAttachments] = useState([]); // State to hold event attachments
-    // console.log('Event Attachments:', eventAttachments);
 
     const [isModalVisible, setModalVisible] = useState(false);
     const [selectedImageUrl, setSelectedImageUrl] = useState(null);
@@ -105,8 +104,6 @@ function CreateRegister({ navigation, route }) {
                 const data = await getEventById(eventId);
                 // setEventData(data);/
                 // setStatus(data.currentStatus || 'maybe');
-                // console.log('Fetched Event Data:', data);
-                // console.log("data?.event_attachments", data?.data?.event_attachments);
                 setEventAttachments(data?.data?.event_attachments || []);
             } catch (error) {
                 console.error('Fetch Event Error:', error);
@@ -289,7 +286,6 @@ function CreateRegister({ navigation, route }) {
                                 {eventData.location}
                             </Text>
                         </View>
-                        {console.log("eventData.description", eventData.description)}
                         <View style={styles.eventDetailRow}>
                             <Icon name="description" size={20} color="#555" style={styles.icon} />
                             <View style={[ styles.eventDetail, { flex: 1, marginLeft: 8 }]}>

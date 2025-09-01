@@ -33,7 +33,6 @@ function NewsList({ navigation }) {
         const getUserRole = async () => {
             try {
                 const role = await AsyncStorage.getItem('userRole');
-                console.log('Retrieved userRole from AsyncStorage:', role);
                 setIsAdmin(role === 'Super Admin' || role === 'Admin' || role === 'Staff');
             } catch (error) {
                 console.error('Failed to retrieve user role from AsyncStorage:', error);
@@ -69,8 +68,6 @@ function NewsList({ navigation }) {
     };
 
     const handleEditNews = (newsItem) => {
-        console.log('Editing news item:', newsItem);
-
         navigation.navigate('CreateNews', { newsItem, refreshNews: fetchNews });
     };
 
@@ -127,8 +124,6 @@ function NewsList({ navigation }) {
                         {item?.excerpt || item?.content?.substring(0, 100)}...
                     </Text> */}
                     {/* <Text style={styles.newsExcerpt} numberOfLines={2}>
-                        {console.log(item.description)
-                        }
                         {item.description || 'No description available'}
                     </Text> */}
                     <View style={[styles.descriptionContainer, { maxHeight: 70, minHeight: 70, overflow: 'hidden' }]}>
@@ -161,8 +156,7 @@ function NewsList({ navigation }) {
                             // numberOfLines={3} // Limit to 2 lines as per original design
                             textSelectable={false} // Optional: Prevent text selection if not needed
                         /> */}
-                        {console.log("item.description", item.description)
-                        }
+                        
                         <Text style={styles.newsExcerpt}>
                             {(item.description !== null && item.description !== undefined)
                                 ? <HTML

@@ -21,8 +21,6 @@ function CreateEvent({ navigation, route }) {
     const { languageTexts } = useLanguage();
     const { userData, eventData } = route.params || {};
     const isAdmin = userData?.data?.role?.name === "Super Admin" || userData?.data?.role?.name === "Admin";
-    console.log('User Data:', isAdmin);
-    console.log('Event Data for Update:', eventData);
 
     const isUpdate = !!eventData; // Check if eventData exists to determine if this is an update
 
@@ -80,7 +78,6 @@ function CreateEvent({ navigation, route }) {
             setError(languageTexts?.createEvent?.error?.validation || 'End date/time must be after start date/time');
             return;
         }
-        console.log('Form Data:', data);
 
         setError('');
         setIsSubmitting(true);
@@ -96,7 +93,6 @@ function CreateEvent({ navigation, route }) {
                 location: data.location,
                 max_participants: Number(data.max_participants),
             };
-            console.log('Payload:', payload);
             const fm = new FormData();
             fm.append('event_data', JSON.stringify(payload));
             if (files && files.length > 0) {

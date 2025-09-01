@@ -30,7 +30,6 @@ function CategoryHelp({ route, navigation }) {
         try {
             const role = user?.data?.role?.name.toUpperCase();
             const idToPass = role === 'MIGRANT' ? userId : undefined;
-            console.log("userId:", userId, "role:", role, "idToPass:", idToPass);
 
             const response = await getHelpRequestsByCategory(category?.id, idToPass);
             setRequests(response.data || []);

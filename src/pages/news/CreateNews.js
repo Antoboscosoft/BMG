@@ -45,7 +45,6 @@ function CreateNews({ navigation, route }) {
         const checkUserRole = async () => {
             try {
                 const role = await AsyncStorage.getItem('userRole');
-                console.log('Retrieved userRole:', role);
                 const isAuthorized = role === 'Admin' || role === 'Super Admin' || role === 'Staff';
                 setIsAdmin(isAuthorized);
                 if (!isAuthorized) {
@@ -68,7 +67,6 @@ function CreateNews({ navigation, route }) {
         };
         checkUserRole();
     }, []);
-    console.log("newsItem.attachments:", newsItem?.attachments);
 
     useEffect(() => {
         if (newsItem) {
@@ -101,14 +99,11 @@ function CreateNews({ navigation, route }) {
 
     // Remove image
     const removeImage = async (index) => {
-        console.log('Removing image at index:', index);
-
         const image = images[index];
         if (image.id) {
             // Existing image, call API to delete
             try {
                 const response = await deleteNewsAttachment(image.id);
-                console.log('Image deleted:', response);
 
                 Toast.show({
                     type: 'success',

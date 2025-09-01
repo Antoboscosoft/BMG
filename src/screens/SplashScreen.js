@@ -61,7 +61,6 @@ function SplashScreen({ navigation }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const flatListRef = useRef();
   const { user } = useContext(LanguageContext);
-  // console.log("user", user);
 
   // smooth slide moovement:
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -100,15 +99,12 @@ function SplashScreen({ navigation }) {
       try {
         // Check if token exists in AsyncStorage
         const token = await AsyncStorage.getItem('accessToken');
-        // console.log("Token in SplashScreen:", token);
 
         // Simulate a delay for the splash screen (e.g., 2 seconds)
         setTimeout(() => {
           if (token && user && user?.status) {
-            console.log("Token found, navigating to Dashboard");
             navigation.replace('Dashboard');
           } else {
-            // console.log("No token found, navigating to Login");
             // navigation.replace('Login');
           }
           // navigation.replace(token ? 'Dashboard' : 'Login');
@@ -162,8 +158,6 @@ function SplashScreen({ navigation }) {
       </View>
     </View>
   );
-
-  // console.log("user", user);
 
   const currentSlide = slides[currentIndex];
 

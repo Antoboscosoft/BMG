@@ -33,7 +33,6 @@ function CreateHelp({ route, navigation }) {
             // formData.append('description', description);
 
             // // Log FormData for debugging (note: FormData logging might not show all data directly)
-            // console.log('FormData prepared:', { category_id: category.id, description });
 
             // await createHelpRequest(formData);
             const response = await createHelpRequest({

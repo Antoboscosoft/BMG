@@ -38,7 +38,6 @@ function EventCalendarPage({ navigation }) {
         const getUserRole = async () => {
             try {
                 const role = await AsyncStorage.getItem('userRole');
-                console.log('Retrieved userRole from AsyncStorage:', role);
                 setIsSuperAdmin(role === 'Super Admin' || role === 'Admin' || role === 'Staff');
             } catch (error) {
                 console.error('Failed to retrieve user role from AsyncStorage:', error);
@@ -48,7 +47,6 @@ function EventCalendarPage({ navigation }) {
 
         getUserRole();
     }, []);
-    console.log("isSuperAdmin:", isSuperAdmin);
 
     useEffect(() => {
         Animated.timing(fadeAnim, {
@@ -302,8 +300,6 @@ function EventCalendarPage({ navigation }) {
     };
 
     const handleEnrollNow = (event) => {
-        console.log("event > ",event);
-        
         navigation.navigate('RegisterEventParticipant', {
             eventData: event,
             fromCalendar: true // Add this flag

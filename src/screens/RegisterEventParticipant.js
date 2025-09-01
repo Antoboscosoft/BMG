@@ -57,7 +57,6 @@ const formatEventTime = (startDatetime, endDatetime) => {
 function RegisterEventParticipant({ navigation, route }) {
   const { languageTexts } = useLanguage();
   const { eventData, fromCalendar = false } = route.params; // Add fromCalendar flag
-  console.log("eventData > ", eventData);
 
   // Country code states
   const [countryCode, setCountryCode] = useState('IN');
@@ -66,7 +65,7 @@ function RegisterEventParticipant({ navigation, route }) {
   // Form state
   const [form, setForm] = useState({
     name: '',
-    mobile_code: '+91',
+    mobile_code: '91',
     phone: '',
     dateOfBirth: '',
     gender: '',
@@ -115,7 +114,7 @@ function RegisterEventParticipant({ navigation, route }) {
 
     return genderOptions.map(option => ({
       ...option,
-      label: genderTranslationMap[option.value] || option.label
+      label: (genderTranslationMap[option.value] || option.label).toUpperCase() // Convert to uppercase
     }));
   };
 
@@ -308,7 +307,7 @@ function RegisterEventParticipant({ navigation, route }) {
     try {
       const userDataForOtp = {
         name: form.name.trim(),
-        mobile_code: `+${callingCode}`,
+        mobile_code: `${callingCode}`,
         mobile_number: form.phone.replace(/\D/g, ''),
         date_of_birth: formatDateForApi(form.dateOfBirth),
         gender: form.gender
@@ -339,7 +338,7 @@ function RegisterEventParticipant({ navigation, route }) {
     try {
       const userDataForOtp = {
         name: form.name.trim(),
-        mobile_code: `+${callingCode}`,
+        mobile_code: `${callingCode}`,
         mobile_number: form.phone.replace(/\D/g, ''),
         date_of_birth: formatDateForApi(form.dateOfBirth),
         gender: form.gender
@@ -405,7 +404,7 @@ function RegisterEventParticipant({ navigation, route }) {
     try {
       const participantData = {
         name: form.name.trim(),
-        mobile_code: `+${callingCode}`,
+        mobile_code: `${callingCode}`,
         mobile_number: form.phone.replace(/\D/g, ''),
         date_of_birth: formatDateForApi(form.dateOfBirth),
         gender: form.gender,
@@ -651,9 +650,9 @@ function RegisterEventParticipant({ navigation, route }) {
                 <>
                   {/* Send OTP Button */}
                   <TouchableOpacity
-                    style={[styles.sendOtpButton, (!isFormValid() || isSendingOtp) && styles.disabledButton]}
+                    style={[styles.sendOtpButton, (!isFormValid() || isSendingOtp || otpSent) && styles.disabledButton ]} // Disable when resendCountdown > 0
                     onPress={handleSendOtp}
-                    disabled={!isFormValid() || isSendingOtp}
+                    disabled={!isFormValid() || isSendingOtp || resendCountdown > 0 || otpSent} // Disable when resendCountdown > 0
                   >
                     {isSendingOtp ? (
                       <ActivityIndicator color="#fff" />

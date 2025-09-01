@@ -304,7 +304,6 @@ const RegisterScreen = ({ navigation, route }) => {
         photo: null,
         identity: null,
     });
-    console.log("RegisterScreen form state:", route.params.from);
 
     // State for image preview
     const [isImagePreviewVisible, setIsImagePreviewVisible] = useState(false);
@@ -368,7 +367,6 @@ const RegisterScreen = ({ navigation, route }) => {
     // hide footer:
     const navData = useRoute();
     const showContent = navData.params.from === 'MigrantsList';
-    console.log(navData.params.from, "navData");
 
         
     // Add this useEffect with your other useEffects to fetch gender options
@@ -573,7 +571,6 @@ const RegisterScreen = ({ navigation, route }) => {
             };
             const fm = new FormData();
             fm.append("user", JSON.stringify(registrationData));
-            console.log("Registration Data:", registrationData);
 
             // Append profile photo (mandatory)
             // Ensure photo exists before appending
@@ -834,7 +831,6 @@ const RegisterScreen = ({ navigation, route }) => {
             setLoadingJobTypes(true);
             try {
                 const response = await getJobTypes();
-                console.log("Job Types Response:", response);
 
                 // Mock images for job types (replace with actual image URLs from API if available)
                 // const jobTypesWithImages = (response.data || []).map((jobType) => ({
