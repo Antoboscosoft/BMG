@@ -66,7 +66,6 @@ function MigrantsList({ navigation, route }) {
             }
             // setLoading(true);
             const response = await getMigrantsList(skip, limit);
-            // console.log("Response data:", response.data);
 
             if (response.data && response.data.length < limit) {
                 setHasMore(false); // No more data to load
@@ -231,8 +230,6 @@ function MigrantsList({ navigation, route }) {
     };
 
     const renderMigrantItem = ({ item }) => (
-        // console.log("Rendering migrant item:", item),
-
         <View style={styles.listItem}>
             <TouchableOpacity
                 style={styles.userIconContainer}

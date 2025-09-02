@@ -35,7 +35,7 @@ function LocationHistory({ navigation, route }) {
       }
 
       const response = await getLocationHistory(userData.id, currentSkip, limit);
-      console.log("response >>> ! ", response);
+      ("response >>> ! ", response);
 
       if (response.status) {
         if (isRefreshing || currentSkip === 0) {

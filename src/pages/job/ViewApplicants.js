@@ -27,7 +27,6 @@ function ViewApplicants({ navigation, route }) {
     ];
 
     const handleStatusChange = (request, status) => {
-        console.log('request:', request, 'status:', status);
         setSelectedRequest(request);
         setSelectedStatus(status);
         if (status === 'PENDING') {

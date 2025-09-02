@@ -23,7 +23,7 @@ export const checkAppVersion = async (appUpdate, setAppUpdate) => {
   }
 };
 
-export const appVersion = 'V1.19';
+export const appVersion = 'V1.20';
 
 export const everyTimeSendLocationtoBackendTime = 5;
 

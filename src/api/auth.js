@@ -1,6 +1,53 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axiosInstance from "./axiosInstance"
 
+// Function to fetch public events config
+export const getPublicEventsConfig = async () => {
+  try {
+    const response = await axiosInstance.get('event?skip=0&limit=25&public_events=true&is_upcoming=true');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching public events config:', error);
+    throw error;
+  }
+};
+
+// Function to fetch public events
+export const getPublicEvents = async () => {
+  try {
+    const response = await axiosInstance.get('event?skip=0&limit=25&public_events=true&is_upcoming=true');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching public events:', error);
+    throw error;
+  }
+};
+
+// Function to verify event OTP
+export const verifyEventOtp = async (eventId, otp, userData) => {
+    console.log("verifyEventOtp called with params:", eventId, otp, userData);
+
+  try {
+    const response = await axiosInstance.post(`event/register/otp/${eventId}?otp=${otp}`, userData);
+    return response.data;
+  } catch (error) {
+    console.error('Error verifying event OTP:', error);
+    throw error;
+  }
+};
+
+// sent data to get otp data:
+export const registerEvent = async (eventId, userData) => {
+    console.log("registerEvent called with params:", eventId, userData);
+  try {
+    const response = await axiosInstance.post(`event/register/${eventId}`, userData);
+    return response.data;
+  } catch (error) {
+    console.error('Error registering for event:', error);
+    throw error;
+  }
+};
+
 // Function to request OTP
 export const getLoginOtp = async (mobile_code, mobile_no) => {
     console.log("getLoginOtp called with params:", mobile_code, mobile_no);
@@ -270,6 +317,19 @@ export const getUserData = async (token) => {
     }
 };
 
+export const getGenderOptions = async () => {
+    try {
+        const response = await axiosInstance.get('options/gender');
+        // return response.data;
+        if (response.data.status && response.data.data) {
+            return response.data.data; // Return the array of gender options
+        }
+        return [];
+    } catch (error) {
+        throw error.response?.data || { message: "Failed to fetch gender options" };
+    }
+};
+
 // Function to get list of migrant users
 export const getMigrantsList = async (skip=0, limit=25, search="") => {
     try {
@@ -329,6 +389,7 @@ export const updateUserData = async (userId, userData) => {
             photo: null, // We'll handle the photo separately if needed
             age: userData.date_of_birth ? parseInt(calculateAge(userData.date_of_birth)) : 0,
             aadhaar_number: userData.aadhaar_number || null,
+            gender: userData.gender || null,
             native_address_line: userData.native_address_line || null,
             native_district_id: userData.native_district_id || null,
             native_state_id: userData.native_state_id || null,

@@ -38,7 +38,6 @@ function EventCalendarPage({ navigation }) {
         const getUserRole = async () => {
             try {
                 const role = await AsyncStorage.getItem('userRole');
-                console.log('Retrieved userRole from AsyncStorage:', role);
                 setIsSuperAdmin(role === 'Super Admin' || role === 'Admin' || role === 'Staff');
             } catch (error) {
                 console.error('Failed to retrieve user role from AsyncStorage:', error);
@@ -48,7 +47,6 @@ function EventCalendarPage({ navigation }) {
 
         getUserRole();
     }, []);
-    console.log("isSuperAdmin:", isSuperAdmin);
 
     useEffect(() => {
         Animated.timing(fadeAnim, {
@@ -301,6 +299,15 @@ function EventCalendarPage({ navigation }) {
         return eventEndDate.isSameOrAfter(now, 'day');
     };
 
+    const handleEnrollNow = (event) => {
+        navigation.navigate('RegisterEventParticipant', {
+            eventData: event,
+            fromCalendar: true // Add this flag
+        });
+    };
+
+
+
     return (
         <LinearGradient colors={['#2753b2', '#e6e9f0']} style={styles.container}>
             <Animated.View style={[styles.innerContainer, { opacity: fadeAnim }]}>
@@ -402,7 +409,7 @@ function EventCalendarPage({ navigation }) {
                                             <View style={{ flex: 1 }}>
                                                 <RenderHtml
                                                     contentWidth={300}
-                                                    source={{ html: languageTexts?.eventCalendar?.descriptions?.[event.descriptionKey] || event.description || '' }}
+                                                    source={{ html: languageTexts?.eventCalendar?.descriptions?.[event.descriptionKey] || event.description || 'No description' }}
                                                     baseStyle={{ color: '#666', fontSize: 14 }}
                                                     tagsStyles={{
                                                         b: { fontWeight: 'bold', color: '#666', fontSize: 14 },
@@ -419,14 +426,24 @@ function EventCalendarPage({ navigation }) {
                                         {isCurrentOrFutureEvent(event) &&
                                             <View style={styles.buttonContainer}>
                                                 {event.registered === null ? (
-                                                    <TouchableOpacity
-                                                        style={styles.registerButton}
-                                                        onPress={() => handleRegister(event)}
-                                                    >
-                                                        <Text style={styles.registerButtonText}>
-                                                            {languageTexts?.eventCalendar?.register || 'Register'}
-                                                        </Text>
-                                                    </TouchableOpacity>
+                                                    <>
+                                                        <TouchableOpacity
+                                                            style={styles.enrollButton}
+                                                            onPress={() => handleEnrollNow(event)}
+                                                        >
+                                                            <Text style={styles.enrollButtonText}>
+                                                                {languageTexts?.eventCalendar?.enrollNow || 'Enroll Now'}
+                                                            </Text>
+                                                        </TouchableOpacity>
+                                                        <TouchableOpacity
+                                                            style={styles.registerButton}
+                                                            onPress={() => handleRegister(event)}
+                                                        >
+                                                            <Text style={styles.registerButtonText}>
+                                                                {languageTexts?.eventCalendar?.register || 'Register'}
+                                                            </Text>
+                                                        </TouchableOpacity>
+                                                    </>
                                                 ) : (
                                                     <TouchableOpacity
                                                         style={styles.registeredButton}
@@ -558,11 +575,12 @@ const styles = StyleSheet.create({
     },
     eventDetailRow: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         marginBottom: 8,
     },
     icon: {
         marginRight: 10,
+        marginTop: 2,
     },
     eventDetailText: {
         fontSize: 14,
@@ -573,6 +591,18 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'flex-end',
         marginTop: 10,
+        gap: 10,
+    },
+    enrollButton: {
+        backgroundColor: '#FFA500', // Orange color for Enroll button
+        paddingVertical: 8,
+        paddingHorizontal: 15,
+        borderRadius: 8,
+    },
+    enrollButtonText: {
+        color: '#FFF',
+        fontSize: 14,
+        fontWeight: '600',
     },
     registerButton: {
         backgroundColor: '#2753b2',

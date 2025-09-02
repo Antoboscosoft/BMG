@@ -41,6 +41,8 @@ import { checkIfLocationEnabled, requestLocationPermissions01 } from './src/serv
 import { notificationPermission } from './src/context/utils.js';
 import { startLocationStatusMonitor } from './src/services/LocationService.js';
 import { checkLocationStatus } from './src/services/LocationService.js';
+import PublicEventScreen from './src/screens/PublicEventScreen.js';
+import RegisterEventParticipant from './src/screens/RegisterEventParticipant.js';
 
 LogBox.ignoreAllLogs(); // just for testing crash
 
@@ -252,6 +254,10 @@ function App() {
               <Stack.Screen name="ContactUs" component={ContactUs} options={{ title: 'Contact Us' }} />
               <Stack.Screen name="LocationHistory" component={LocationHistory} options={{ title: 'Location History' }} />
 
+              {/* Add other screens here */}
+              <Stack.Screen name="PublicEventScreen" component={PublicEventScreen} options={{ title: 'Public Events' }} />
+              {/* Add RegisterEventParticipant screen */}
+              <Stack.Screen name="RegisterEventParticipant" component={RegisterEventParticipant} options={{ title: 'Register for Event' }} />
             </Stack.Navigator>
             {/* <Toast config={toastConfig} /> */}
           </NavigationContainer>

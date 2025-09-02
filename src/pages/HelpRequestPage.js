@@ -56,7 +56,6 @@ function HelpRequestPage({ navigation }) {
             try {
                 setLoading(true);
                 const response = await getHelpCategories();
-                console.log("response data from api >>>> ", response);
 
                 if (response && response.status && response.data) {
                     const formattedServices = response.data.map(service => ({
@@ -94,7 +93,6 @@ function HelpRequestPage({ navigation }) {
     };
 
     const handleViewCategory = (category) => {
-        console.log("category >>>> ", category);
         navigation.navigate('CategoryHelp', {
             category: { id: category.category_id, name: category.name, userId: user.data?.role?.id },
             userId: user?.data?.id, // Pass the logged-in user ID

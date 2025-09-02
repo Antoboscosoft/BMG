@@ -39,7 +39,6 @@ function ServicesDirectory({ navigation }) {
             try {
                 setLoading(true);
                 const response = await getServiceCategories();
-                // console.log("response data from api >>>> ", response);
 
                 if (response && response.status && response.data) {
                     const formattedServices = response.data.map(service => ({
@@ -71,7 +70,6 @@ function ServicesDirectory({ navigation }) {
             try {
                 setJobLoading(true);
                 const response = await getJobOpportunity();
-                console.log("response job oppo: -> ", response);
                 setJobOpportunity(response.data); // Store job opportunity data
             } catch (err) {
                 setJobError(languageTexts?.servicesDirectory?.error?.fetch || 'Failed to load job opportunities.');

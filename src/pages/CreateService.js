@@ -8,7 +8,6 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 function CreateService({ navigation, route }) {
     const { languageTexts } = useLanguage();
     const serviceData = route.params?.serviceData || {};
-    console.log("Service Data:", serviceData);
     
     const [description, setDescription] = useState('');
     const [error, setError] = useState('');

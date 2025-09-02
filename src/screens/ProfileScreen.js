@@ -14,7 +14,7 @@ import {
   View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { changePassword, getUserData } from '../api/auth';
+import { changePassword, getGenderOptions, getUserData } from '../api/auth';
 import { clearAuthToken } from '../api/axiosInstance';
 import Toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -57,7 +57,6 @@ function ProfileScreen({ navigation, route }) {
     confirmPassword: false
   });
   const [changePasswordError, setChangePasswordError] = useState('');
-  console.log("route.params: >>> ", passedUserData, passedUserData?.role?.name);
   const createdOn = passedUserData?.created_on;
   const createdBy = passedUserData?.creator?.name || "-";
   const {
@@ -73,11 +72,10 @@ function ProfileScreen({ navigation, route }) {
       confirmPassword: ''
     }
   });
-  
+  const [genderOptions, setGenderOptions] = useState([]);
+
   const { user } = useContext(LanguageContext);
-//   console.log("userData : >>> ", user?.data?.role?.name, user?.data?.id);
   const userId = userData?.data?.id;
-//   console.log("Role check : -------------------", user?.data?.role?.name);
 
   const locaionShow = user?.data?.role?.name === 'Staff' || user?.data?.role?.name === 'Super Admin';
 //   const rolebased = user?.data?.role?.name !== 'Migrant';
@@ -130,6 +128,20 @@ function ProfileScreen({ navigation, route }) {
     fetchData();
   }, [passedUserData, updatedUserData, navigation]);
 
+  useEffect(() => {
+  const fetchGenderOptions = async () => {
+    try {
+      const options = await getGenderOptions();
+      setGenderOptions(options);
+    } catch (error) {
+      console.error('Failed to fetch gender options:', error);
+      // You can show a toast message here if needed
+    }
+  };
+
+  fetchGenderOptions();
+}, []);
+
   const handlePasswordChange = async (data) => {
     setChangePasswordError('');
     try {
@@ -137,7 +149,6 @@ function ProfileScreen({ navigation, route }) {
         old_password: data.oldPassword,
         new_password: data.newPassword
       });
-    //   console.log("Change Password Response:", response);
 
       if (response.status) {
         Alert.alert(
@@ -171,9 +182,23 @@ function ProfileScreen({ navigation, route }) {
     );
   }
 
-  const goback = () => {
-    // console.log("route.params.from: >>> ", route.params);
+  
+  const getGenderLabel = () => {
+    if (!userData?.gender || genderOptions.length === 0) return '-';
+    
+    // Find the matching gender option (case-insensitive comparison)
+    const genderOption = genderOptions.find(option => 
+      option.value.toUpperCase() === userData.gender.toUpperCase()
+    );
+    // make to lower case
+    const label = genderOption?.label || userData.gender;
+    // return label.charAt(0).toUpperCase() + label.slice(1).toLowerCase();
+    // make the uppercase
+    return label.toUpperCase();
+  };
 
+
+  const goback = () => {
     if (navigation.canGoBack()) {
       route.params.from === 'MigrantsList'
         ? navigation.navigate('MigrantsList')
@@ -243,6 +268,12 @@ function ProfileScreen({ navigation, route }) {
             <View style={styles.row}>
               <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.dob || 'Date of Birth'}</Text>
               <Text style={styles.value}>{formatDate(userData?.date_of_birth) || '-'}</Text>
+            </View>
+
+            {/* Add this gender field below your date of birth field */}
+            <View style={styles.row}>
+              <Text style={styles.label}>{languageTexts?.profile?.screen?.labels?.gender || 'Gender'}</Text>
+              <Text style={styles.value}>{getGenderLabel()}</Text>
             </View>
 
             <View style={styles.row}>
@@ -793,6 +824,47 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 5,
   },
+
+  // gender radio button style:
+  
+    radioRowContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        marginTop: 8,
+        marginBottom: 4,
+    },
+    radioItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 20,
+        marginBottom: 10,
+    },
+    radioCircle: {
+        height: 18,
+        width: 18,
+        borderRadius: 9,
+        borderWidth: 2,
+        borderColor: '#007AFF',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 8,
+        backgroundColor: '#FFFFFF',
+    },
+    radioSelected: {
+        backgroundColor: '#007AFF',
+    },
+    radioDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#FFFFFF',
+    },
+    radioText: {
+        fontSize: 16,
+        color: '#333',
+        fontWeight: '400',
+    },
+    
 });
 
 export default ProfileScreen;

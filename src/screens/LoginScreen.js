@@ -20,7 +20,7 @@ import {
 import loginImg from "../asserts/images/loginbg1.jpg";
 import CountryPicker from "react-native-country-picker-modal";
 import Toast from "react-native-toast-message";
-import { getLoginOtp, staffLogin, verifyOtp } from "../api/auth";
+import { getLoginOtp, getPublicEventsConfig, staffLogin, verifyOtp } from "../api/auth";
 import { setAuthToken } from "../api/axiosInstance";
 import { Controller, useForm } from "react-hook-form";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -70,6 +70,97 @@ function LoginScreen({ navigation }) {
   const [showNotRegisteredModal, setShowNotRegisteredModal] = useState(false);
 
   const [showExitModal, setShowExitModal] = useState(false);
+  // Add this state at the top with your other useState declarations
+  const [isPublicEvent, setIsPublicEvent] = useState(true); // This comes from backend
+  const [publicEventsConfig, setPublicEventsConfig] = useState(null);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [pulseAnim] = useState(new Animated.Value(1));
+
+  // Add this useEffect for the pulse animation
+  useEffect(() => {
+    if (isPublicEvent) {
+      const pulse = Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.05,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]);
+      
+      Animated.loop(pulse).start();
+    }
+  }, [isPublicEvent, pulseAnim]);
+
+  useEffect(() => {
+    const fetchPublicEventsConfig = async () => {
+      try {
+        setLoadingEvents(true);
+        const response = await getPublicEventsConfig();
+        
+        // Check if there are public events available
+        const hasPublicEvents = response.data && response.data.length > 0;
+        setIsPublicEvent(hasPublicEvents);
+        setPublicEventsConfig(response.data);
+      } catch (error) {
+        console.error('Error fetching public events config:', error);
+        setIsPublicEvent(false); // Hide button if API fails
+        // Optional: Show error toast
+        Toast.show({
+          type: 'error',
+          text1: 'Connection Error',
+          text2: 'Could not load events information',
+        });
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+
+    fetchPublicEventsConfig();
+  }, []);
+
+
+  // Add this function
+  const handlePublicEvents = () => {
+    navigation.navigate('PublicEventScreen', { 
+      events: publicEventsConfig 
+    });
+  };
+
+  // Add this render function
+  const renderPublicEventsButton = () => {
+    if (!isPublicEvent) return null;
+
+    return (
+      <Animated.View style={[styles.publicEventContainer, { transform: [{ scale: pulseAnim }] }]}>
+        <TouchableOpacity
+          style={styles.publicEventButton}
+          onPress={handlePublicEvents}
+          activeOpacity={0.8}
+        >
+          <View style={styles.publicEventContent}>
+            <View style={styles.iconContainer}>
+              <Text style={styles.eventIcon}> 🗓️ </Text>
+            </View>
+            <View style={styles.textContainer}>
+              <Text style={styles.publicEventTitle}>Public Events</Text>
+              <Text style={styles.publicEventSubtitle}>
+                {publicEventsConfig?.length} upcoming event{publicEventsConfig?.length !== 1 ? 's' : ''}
+              </Text>
+              {/* <Text style={styles.publicEventSubtitle}>View upcoming community events</Text> */}
+            </View>
+            <View style={styles.arrowContainer}>
+              <Text style={styles.arrow}>→</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
 
   // react-hook-form setup for staff login
   const {
@@ -747,6 +838,10 @@ function LoginScreen({ navigation }) {
 
             <Text style={styles.subtitle}>Login</Text>
 
+            {/* Add the Public Events Button here */}
+            {renderPublicEventsButton()}
+
+
             {/* Tabs */}
             <View style={styles.tabContainer}>
               <TouchableOpacity
@@ -1198,7 +1293,71 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.5)'
-  }
+  },
+
+  // public event styles:
+  // Public Events Button Styles
+  publicEventContainer: {
+    marginBottom: 30,
+    alignItems: 'center',
+    marginTop: -60,
+  },
+  publicEventButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 15,
+    padding: 16,
+    width: '100%',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 215, 0, 0.6)',
+  },
+  publicEventContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  iconContainer: {
+    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+    width: 40,
+    height: 40,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  eventIcon: {
+    fontSize: 24,
+  },
+  textContainer: {
+    flex: 1,
+    marginLeft: 15,
+  },
+  publicEventTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2753b2',
+    marginBottom: 4,
+  },
+  publicEventSubtitle: {
+    fontSize: 14,
+    color: '#666',
+  },
+  arrowContainer: {
+    backgroundColor: 'rgba(39, 83, 178, 0.1)',
+    width: 35,
+    height: 35,
+    borderRadius: 17.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  arrow: {
+    fontSize: 18,
+    color: '#2753b2',
+    fontWeight: 'bold',
+  },
 });
 
 export default LoginScreen;

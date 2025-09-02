@@ -13,6 +13,42 @@
     "cancel": "रद्द करें",
     "logout": "लॉगआउट करना चाहते हैं?"
   },
+  "publicEvent": {
+    "title": "सार्वजनिक कार्यक्रम",
+    "description": "सामुदायिक कार्यक्रमों में भाग लें और उनका अन्वेषण करें।",
+    "noEvents": "इस समय कोई सार्वजनिक कार्यक्रम उपलब्ध नहीं है।",
+    "Today": "आज",
+    "Upcoming": "आगामी",
+    "AboutThisEvent": "इस कार्यक्रम के बारे में",
+    "NoEventsFound": "कोई कार्यक्रम नहीं मिला",
+    "NoEventsAvailable": "इस समय कोई सार्वजनिक कार्यक्रम उपलब्ध नहीं है। कृपया बाद में जांचें।",
+    "LoadingEvents": "कार्यक्रम लोड हो रहा है..."
+  },
+  "eventRegister": {
+    "title": "निवेश विवरण",
+    "eventDetails": "निवेश विवरण",
+    "description": "इस कार्यक्रम में भाग लेने के लिए पंजीकरण करें।",
+    "participantInfo": "भागीदार जानकारी",
+    "fullname": "पूरा नाम",
+    "fullnamePlaceholder": "अपना पूरा नाम दर्ज करें",
+    "phoneNumber": "फोन नंबर",
+    "phoneNumberPlaceholder": "अपना फोन नंबर दर्ज करें",
+    "dateOfBirth": "जन्म तिथि",
+    "dateOfBirthPlaceholder": "अपनी जन्म तिथि दर्ज करें",
+    "gender": "लिंग",
+    "male": "पुरुष",
+    "female": "महिला",
+    "other": "अन्य",
+    "nameRequired": "नाम आवश्यक है",
+    "nameMinLength": "नाम में कम से कम 2 अक्षर होने चाहिए",
+    "countryCodeRequired": "देश कोड आवश्यक है",
+    "phoneRequired": "फोन नंबर आवश्यक है",
+    "phoneInvalid": "कृपया एक मान्य 10-अंकीय फोन नंबर दर्ज करें",
+    "dobRequired": "जन्म तिथि आवश्यक है",
+    "dobInvalid": "कृपया एक मान्य जन्म तिथि दर्ज करें",
+    "genderRequired": "लिंग आवश्यक है",
+    "otpRequired": "कृपया एक मान्य 5-अंकीय ओटीपी दर्ज करें"
+  },
   "menu": {
     "eventCalendar": "कार्यक्रम कैलेंडर",
     "servicesDirectory": "सेवा निर्देशिका",
@@ -33,6 +69,7 @@
   "eventCalendar": {
     "subtitle": "आगामी आयोजनों और गतिविधियों को देखें।",
     "noEvents": "इस तिथि के लिए कोई आयोजन निर्धारित नहीं है",
+    "enrollNow": "पंजीकरण करें",
     "register": "पंजीकरण करें",
     "registered": "पंजीकृत",
     "events": {
@@ -306,6 +343,7 @@
         "mobile": "मोबाइल",
         "aadhaar": "आधार",
         "dob": "जन्म तिथि",
+        "gender": "लिंग",
         "age": "आयु",
         "currentAddress": "वर्तमान पता",
         "currentCountry": "वर्तमान देश",
